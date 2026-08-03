@@ -1,4 +1,4 @@
-/* Isolated encounter layout. Old .fixed-board/.board-slot grid rules cannot affect these classes. */
+/* Desktop/tablet: all seven encounter zones stay in one horizontal row. */
 .encounter-strip-v4{
   display:flex!important;
   flex-flow:row nowrap!important;
@@ -15,11 +15,11 @@
 }
 .encounter-strip-v4>.encounter-zone-v4{
   display:flex!important;
-  flex:0 0 176px!important;
+  flex:1 0 150px!important;
   flex-direction:column!important;
-  width:176px!important;
-  min-width:176px!important;
-  max-width:176px!important;
+  width:auto!important;
+  min-width:150px!important;
+  max-width:none!important;
   min-height:280px!important;
   margin:0!important;
   grid-column:auto!important;
@@ -43,11 +43,24 @@
   letter-spacing:.04em;
   vertical-align:middle;
 }
+
+/* Phone: the seven zones stack vertically, full width, in the same order. */
 @media(max-width:700px){
+  .encounter-strip-v4{
+    flex-direction:column!important;
+    flex-wrap:nowrap!important;
+    overflow-x:visible!important;
+    overflow-y:visible!important;
+    scroll-snap-type:none!important;
+    gap:12px!important;
+    padding:4px 0 14px!important;
+  }
   .encounter-strip-v4>.encounter-zone-v4{
-    flex-basis:154px!important;
-    width:154px!important;
-    min-width:154px!important;
-    max-width:154px!important;
+    flex:0 0 auto!important;
+    width:100%!important;
+    min-width:0!important;
+    max-width:100%!important;
+    min-height:250px!important;
+    scroll-snap-align:none!important;
   }
 }
