@@ -11,7 +11,7 @@ Deliver a card-driven synchronized online tabletop where the DM reveals the worl
 ## Implemented now
 
 - Dedicated repository and product identity
-- Product vision, MVP specification, architecture, and approved decisions
+- Product vision, MVP specification, architecture, approved decisions, and command/event model
 - Static DM battle-board prototype
 - Dice roller fixed at the top
 - Standard d20, d12, d10, d8, d6, d4, and d100 rolls
@@ -24,8 +24,11 @@ Deliver a card-driven synchronized online tabletop where the DM reveals the worl
 - Reveal/hide interaction
 - Initiative and round progression
 - Turn panel identifies the actual active combatant
+- Revisioned command dispatcher for rolls, reveals, turns, and undo
+- Typed structured events with event IDs and human-readable log entries
+- In-memory snapshot undo for the static prototype
+- Visible revision and event count for debugging
 - Active-player character/action/resource panels
-- Event log
 - Responsive single-column fallback
 
 ## Prototype audit findings
@@ -49,15 +52,17 @@ Corrections:
 - Single browser only; no real DM/player synchronization
 - Demo data is hard-coded
 - Dice are client-side and are not cryptographically secure or server-authoritative
+- Current command/state validation is lightweight JavaScript, not a shared runtime schema package
+- Undo uses in-memory snapshots rather than persisted inverse/compensating events
 - Action buttons beyond dice/reveal/end-turn are intentionally disabled visual placeholders
 - No modifiers, roll formulas, attack resolution, target selection, or roll visibility modes yet
-- No targeting, damage resolution, conditions, concentration, spell spending, item consumption, undo, persistence, login, reconnection, or private audience filtering
+- No damage resolution, conditions, concentration, spell spending, item consumption, persistence, login, reconnection, or private audience filtering
 - No separate player projection yet
 - No browser-level accessibility or visual regression test yet
 
 ## MVP workstreams
 
-1. Shared schemas and deterministic state engine
+1. Shared schemas and deterministic state engine — **in progress**
 2. Server-authoritative sessions and WebSocket sync
 3. Role-filtered DM and player projections
 4. Card definitions, instances, zones, and reveals

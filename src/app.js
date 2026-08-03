@@ -1,80 +1,10 @@
-import { rollDie, rollD20 } from "./dice.js";
+import { COMMANDS, applyCommand, createInitialState, eventText } from "./state.js";
 
-const state = {
-  roll: "Ready",
-  total: null,
-  rollDetail: "Choose a die",
-  active: 0,
-  round: 2,
-  log: ["DM reveals The Ruined Chapel to everyone.", "Lyria is up."],
-  revealed: {
-    room: true,
-    priest: true,
-    skeleton: true,
-    hazard: false,
-    treasure: false
-  },
-  actors: [
-    ["Lyria", "Rogue", 24],
-    ["Skeleton A", "Monster", 18],
-    ["Thorin", "Fighter", 15],
-    ["Cult Priest", "Monster", 13],
-    ["Elandra", "Wizard", 11],
-    ["Skeleton B", "Monster", 8],
-    ["Dain", "Cleric", 6]
-  ]
-};
-
+let state = createInitialState();
 const dice = [20, 12, 10, 8, 6, 4, 100];
-const labelForCard = {
-  room: "The Ruined Chapel",
-  priest: "Cult Priest",
-  skeleton: "Skeletons",
-  hazard: "Falling Stones",
-  treasure: "Treasure Chest"
-};
 
-const recordRoll = ({ title, detail, total }) => {
-  state.roll = title;
-  state.rollDetail = detail;
-  state.total = total;
-  state.log.unshift(`${state.actors[state.active][0]} rolls ${detail}.`);
-  render();
-};
-
-const rollStandardDie = sides => {
-  const total = rollDie(sides);
-  recordRoll({
-    title: `d${sides}`,
-    detail: `d${sides} = ${total}`,
-    total
-  });
-};
-
-const rollD20Mode = mode => {
-  const result = rollD20(mode);
-  const title = mode === "advantage"
-    ? "Advantage"
-    : mode === "disadvantage"
-      ? "Disadvantage"
-      : "d20";
-  const detail = result.rolls.length === 2
-    ? `${title}: ${result.rolls.join(" and ")} → keep ${result.total}`
-    : `d20 = ${result.total}`;
-
-  recordRoll({ title, detail, total: result.total });
-};
-
-const reveal = key => {
-  state.revealed[key] = !state.revealed[key];
-  state.log.unshift(`DM ${state.revealed[key] ? "reveals" : "hides"} ${labelForCard[key]}.`);
-  render();
-};
-
-const endTurn = () => {
-  state.active = (state.active + 1) % state.actors.length;
-  if (state.active === 0) state.round += 1;
-  state.log.unshift(`${state.actors[state.active][0]}'s turn begins.`);
+const dispatch = command => {
+  state = applyCommand(state, command).state;
   render();
 };
 
@@ -86,26 +16,17 @@ const plannedButton = label => `<button class="action" type="button" disabled ti
 
 const activeTurnPanel = () => {
   const [name, role] = state.actors[state.active];
-  const isPlayerTurn = role !== "Monster";
-
-  if (!isPlayerTurn) {
+  if (role === "Monster") {
     return `<article class="character"><h2>${name}'s Turn</h2><p>DM-controlled combatant.</p><p>Monster actions and resolution controls are planned for the synchronized MVP.</p><button class="endturn" id="endTurn">End ${name}'s Turn</button></article>`;
   }
 
   return `<article class="character"><h2>${name}'s Turn</h2><p>1 Action · 1 Bonus Action · Reaction available</p><div class="actions">${[
-    "Attack",
-    "Cast Spell",
-    "Dash",
-    "Disengage",
-    "Hide",
-    "Help",
-    "Cunning Action",
-    "Off-Hand Attack",
-    "Uncanny Dodge"
+    "Attack", "Cast Spell", "Dash", "Disengage", "Hide", "Help", "Cunning Action", "Off-Hand Attack", "Uncanny Dodge"
   ].map(plannedButton).join("")}</div><p class="prototype-note">Action buttons are visual placeholders in this static prototype.</p><button class="endturn" id="endTurn">End Turn</button></article>`;
 };
 
 function render() {
+  const activeName = state.actors[state.active][0];
   document.querySelector("#app").innerHTML = `
     <div class="app">
       <header class="topbar">
@@ -135,21 +56,16 @@ function render() {
           </div>
           <h3>DM Notes</h3>
           <p>The priest completes the ritual at the end of round 3. A secret door lies behind the northern tapestry.</p>
+          <button class="reveal" id="undo" type="button" ${state.undoStack.length ? "" : "disabled"}>Undo Last Action</button>
+          <p><small>Revision ${state.revision} · ${state.events.length} recorded events</small></p>
         </aside>
 
         <main class="panel board" id="board">
           <div class="scene">
-            <section class="room">
-              <div><small>ROOM CARD</small><h2>The Ruined Chapel</h2><p>Fallen arches and whispering shadows.</p></div>
-            </section>
+            <section class="room"><div><small>ROOM CARD</small><h2>The Ruined Chapel</h2><p>Fallen arches and whispering shadows.</p></div></section>
             <section class="map" aria-label="Battle map">
-              <div class="token" style="left:18%;top:12%">SK</div>
-              <div class="token" style="left:42%;top:10%">SK</div>
-              <div class="token" style="left:68%;top:14%">CP</div>
-              <div class="token player" style="left:20%;top:68%">TH</div>
-              <div class="token player" style="left:43%;top:67%">LY</div>
-              <div class="token player" style="left:65%;top:70%">DA</div>
-              <div class="token player" style="left:82%;top:66%">EL</div>
+              <div class="token" style="left:18%;top:12%">SK</div><div class="token" style="left:42%;top:10%">SK</div><div class="token" style="left:68%;top:14%">CP</div>
+              <div class="token player" style="left:20%;top:68%">TH</div><div class="token player" style="left:43%;top:67%">LY</div><div class="token player" style="left:65%;top:70%">DA</div><div class="token player" style="left:82%;top:66%">EL</div>
             </section>
           </div>
           <div class="cards">
@@ -163,43 +79,31 @@ function render() {
 
         <aside class="panel">
           <h2>Initiative — Round ${state.round}</h2>
-          <ol class="initiative">
-            ${state.actors.map((actor, index) => `<li class="${index === state.active ? "active" : ""}"><span>${actor[0]}<small> ${actor[1]}</small></span><strong>${actor[2]}</strong></li>`).join("")}
-          </ol>
-          <h3>Objectives</h3>
-          <p>◇ Stop the ritual<br>◇ Defeat all enemies</p>
-          <h3>Event Log</h3>
-          <div class="log" aria-live="polite">${state.log.map(entry => `<p>${entry}</p>`).join("")}</div>
+          <ol class="initiative">${state.actors.map((actor, index) => `<li class="${index === state.active ? "active" : ""}"><span>${actor[0]}<small> ${actor[1]}</small></span><strong>${actor[2]}</strong></li>`).join("")}</ol>
+          <h3>Objectives</h3><p>◇ Stop the ritual<br>◇ Defeat all enemies</p>
+          <h3>Event Log</h3><div class="log" aria-live="polite">${eventText(state).map(entry => `<p>${entry}</p>`).join("")}</div>
         </aside>
       </div>
 
       <section class="bottom">
-        <article class="character">
-          <h2>Lyria</h2>
-          <p>Rogue · Level 5 · Half-Elf</p>
-          <div class="hpbar"><span></span></div>
-          <p><strong>HP 32/38</strong> · AC 15 · Init +4</p>
-          <p>Condition: Hidden</p>
-          ${plannedButton("View Full Sheet")}
-        </article>
+        <article class="character"><h2>Lyria</h2><p>Rogue · Level 5 · Half-Elf</p><div class="hpbar"><span></span></div><p><strong>HP 32/38</strong> · AC 15 · Init +4</p><p>Condition: Hidden</p>${plannedButton("View Full Sheet")}</article>
         ${activeTurnPanel()}
-        <article class="character resources">
-          <div><h2>Resources</h2><p>Movement: 30/30 ft</p><p>Sneak Attack: ◆◆◆◆◇◇</p><p>Inspiration: ●</p></div>
-          <div><h2>Spells & Items</h2><p>1st: <span class="slots"><i class="slot used"></i><i class="slot"></i><i class="slot"></i><i class="slot"></i></span></p><p>Rapier · Shortbow · Thieves' Tools · Potions (2)</p></div>
-        </article>
+        <article class="character resources"><div><h2>Resources</h2><p>Movement: 30/30 ft</p><p>Sneak Attack: ◆◆◆◆◇◇</p><p>Inspiration: ●</p></div><div><h2>Spells & Items</h2><p>1st: <span class="slots"><i class="slot used"></i><i class="slot"></i><i class="slot"></i><i class="slot"></i></span></p><p>Rapier · Shortbow · Thieves' Tools · Potions (2)</p></div></article>
       </section>
+      <p class="sr-only" aria-live="polite">Active combatant: ${activeName}. Revision ${state.revision}.</p>
     </div>`;
 
   document.querySelectorAll("[data-die]").forEach(button => {
-    button.onclick = () => rollStandardDie(Number(button.dataset.die));
+    button.onclick = () => dispatch({ type: COMMANDS.ROLL_DIE, sides: Number(button.dataset.die) });
   });
   document.querySelectorAll("[data-d20-mode]").forEach(button => {
-    button.onclick = () => rollD20Mode(button.dataset.d20Mode);
+    button.onclick = () => dispatch({ type: COMMANDS.ROLL_D20, mode: button.dataset.d20Mode });
   });
   document.querySelectorAll("[data-reveal]").forEach(button => {
-    button.onclick = () => reveal(button.dataset.reveal);
+    button.onclick = () => dispatch({ type: COMMANDS.TOGGLE_CARD, key: button.dataset.reveal });
   });
-  document.querySelector("#endTurn").onclick = endTurn;
+  document.querySelector("#endTurn").onclick = () => dispatch({ type: COMMANDS.END_TURN });
+  document.querySelector("#undo").onclick = () => dispatch({ type: COMMANDS.UNDO });
 }
 
 render();
