@@ -1,0 +1,53 @@
+/* Isolated encounter layout. Old .fixed-board/.board-slot grid rules cannot affect these classes. */
+.encounter-strip-v4{
+  display:flex!important;
+  flex-flow:row nowrap!important;
+  align-items:stretch!important;
+  gap:12px!important;
+  width:100%!important;
+  min-width:0!important;
+  margin-top:14px!important;
+  padding:4px 4px 14px!important;
+  overflow-x:auto!important;
+  overflow-y:hidden!important;
+  scroll-snap-type:x proximity!important;
+  overscroll-behavior-inline:contain;
+}
+.encounter-strip-v4>.encounter-zone-v4{
+  display:flex!important;
+  flex:0 0 176px!important;
+  flex-direction:column!important;
+  width:176px!important;
+  min-width:176px!important;
+  max-width:176px!important;
+  min-height:280px!important;
+  margin:0!important;
+  grid-column:auto!important;
+  grid-row:auto!important;
+  scroll-snap-align:start;
+  border:1px solid #34302a;
+  border-radius:14px;
+  padding:12px;
+  background:#0d0f13;
+}
+.encounter-strip-v4>.encounter-zone-v4.drop-ready{border-color:var(--green);background:#172018}
+.layout-build-v4{
+  display:inline-flex;
+  align-items:center;
+  margin-left:8px;
+  padding:3px 7px;
+  border:1px solid #625c50;
+  border-radius:999px;
+  color:var(--muted);
+  font:600 .68rem/1 system-ui,sans-serif;
+  letter-spacing:.04em;
+  vertical-align:middle;
+}
+@media(max-width:700px){
+  .encounter-strip-v4>.encounter-zone-v4{
+    flex-basis:154px!important;
+    width:154px!important;
+    min-width:154px!important;
+    max-width:154px!important;
+  }
+}
