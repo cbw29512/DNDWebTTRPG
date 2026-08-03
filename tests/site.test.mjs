@@ -5,12 +5,14 @@ import { COMMANDS, applyCommand, createInitialState, eventText } from '../src/st
 import { createRuinedChapelSession } from '../src/encounter.js';
 import { projectSessionFor } from '../src/projection.js';
 import { ROLES, validateCard, validateSession } from '../src/schema.js';
+import { SOURCE_KINDS, primarySourceFor, sourceRegistry, validateSourceRegistry } from '../src/integrations/sourceRegistry.js';
 
 const html=fs.readFileSync('index.html','utf8');
 const css=fs.readFileSync('styles.css','utf8');
 const app=fs.readFileSync('src/app.js','utf8');
 const vision=fs.readFileSync('docs/PRODUCT_VISION.md','utf8');
 const mvp=fs.readFileSync('docs/MVP_SPEC.md','utf8');
+const integrationLedger=fs.readFileSync('docs/DND_REPOSITORY_INTEGRATION.md','utf8');
 const sequence=values=>{let index=0;return()=>values[index++];};
 
 assert.equal(rollDie(20,()=>0),1); assert.equal(rollDie(20,()=>0.999999),20);
@@ -45,7 +47,17 @@ assert.equal(playerLyria.hp.current,32,'Controller receives full own-character s
 assert.throws(()=>projectSessionFor(session,{id:'intruder',name:'Intruder',role:'player'}),/not seated/);
 assert.throws(()=>validateCard({id:'bad'}),/title/);
 
+assert.equal(validateSourceRegistry(sourceRegistry),true);
+assert.equal(primarySourceFor(SOURCE_KINDS.RULES_CATALOG),'cbw29512/DungeonCards');
+assert.equal(primarySourceFor(SOURCE_KINDS.CARD_PLATFORM),'cbw29512/DungeonCards');
+assert.equal(sourceRegistry.some(source=>source.repository==='cbw29512/monstercardforge'),true);
+assert.equal(sourceRegistry.some(source=>source.repository==='cbw29512/CharacterForge'),true);
+assert.throws(()=>validateSourceRegistry([...sourceRegistry,sourceRegistry[0]]),/Duplicate source repository/);
+assert.match(integrationLedger,/Do not maintain a second handwritten SRD spell or monster catalog/);
+assert.match(integrationLedger,/DNDTeachingAdventureDemonsWrath/);
+assert.match(integrationLedger,/DungeonMaps/);
+
 assert.match(html,/The Living Table/); assert.match(app,/DM View/); assert.match(app,/Player View/); assert.match(app,/projectSessionFor/);
 assert.match(app,/Filtered player projection/); assert.match(app,/COMMANDS\.UNDO/); assert.match(app,/Encounter Deck/);
 assert.match(css,/\.view-switch/); assert.match(css,/\.safe-note/); assert.match(vision,/server-side/i); assert.match(mvp,/complete D&D-style combat encounter/i);
-console.log('The Living Table schemas, state engine, dice, and role projections passed.');
+console.log('The Living Table schemas, state engine, dice, projections, and source registry passed.');
