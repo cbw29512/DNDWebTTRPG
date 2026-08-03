@@ -57,7 +57,13 @@ assert.match(integrationLedger,/Do not maintain a second handwritten SRD spell o
 assert.match(integrationLedger,/DNDTeachingAdventureDemonsWrath/);
 assert.match(integrationLedger,/DungeonMaps/);
 
-assert.match(html,/The Living Table/); assert.match(app,/DM View/); assert.match(app,/Player View/); assert.match(app,/projectSessionFor/);
-assert.match(app,/Filtered player projection/); assert.match(app,/COMMANDS\.UNDO/); assert.match(app,/Encounter Deck/);
-assert.match(css,/\.view-switch/); assert.match(css,/\.safe-note/); assert.match(vision,/server-side/i); assert.match(mvp,/complete D&D-style combat encounter/i);
-console.log('The Living Table schemas, state engine, dice, projections, and source registry passed.');
+assert.match(html,/The Living Table/);
+assert.match(app,/DM View/); assert.match(app,/Player View/); assert.match(app,/projectSessionFor/);
+assert.match(app,/Adventure Deck/); assert.match(app,/Fixed Card Board/); assert.match(app,/SLOT_DEFINITIONS/);
+assert.match(app,/Location/); assert.match(app,/Room \/ Scene/); assert.match(app,/NPCs/); assert.match(app,/Monsters/);
+assert.match(app,/Traps \/ Hazards/); assert.match(app,/Objective \/ Quest/); assert.match(app,/Treasure \/ Rewards/);
+assert.match(app,/data-open-picker/); assert.match(app,/data-place-card/); assert.match(app,/draggable="true"/);
+assert.match(app,/data-flip-card/); assert.match(app,/data-remove-card/); assert.match(app,/COMMANDS\.UNDO/);
+assert.match(css,/\.fixed-board/); assert.match(css,/\.board-slot/); assert.match(css,/\.tarot-card/); assert.match(css,/\.card-picker/);
+assert.match(vision,/server-side/i); assert.match(mvp,/complete D&D-style combat encounter/i);
+console.log('The Living Table fixed board, projections, state engine, dice, and source registry passed.');
