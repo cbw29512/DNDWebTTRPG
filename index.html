@@ -5,18 +5,37 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="theme-color" content="#0a0b0d">
   <meta name="description" content="The Living Table card-driven online battle board MVP.">
+  <meta name="build" content="single-row-20260803-3">
   <title>The Living Table — Battle Board MVP</title>
   <link rel="stylesheet" href="styles.css">
   <link rel="stylesheet" href="player-board.css">
   <link rel="stylesheet" href="compact-stacks.css">
   <link rel="stylesheet" href="card-modal.css">
-  <link rel="stylesheet" href="tabletop-layout.css?v=20260803-2">
+  <link rel="stylesheet" href="tabletop-layout.css?v=20260803-3">
+  <style>
+    /* Final layout authority: encounter slots never wrap into a dashboard. */
+    .fixed-board {
+      display: flex !important;
+      flex-direction: row !important;
+      flex-wrap: nowrap !important;
+      grid-template-columns: none !important;
+      overflow-x: auto !important;
+      overflow-y: hidden !important;
+    }
+    .fixed-board > .board-slot {
+      flex: 0 0 176px !important;
+      width: 176px !important;
+      min-width: 176px !important;
+      max-width: 176px !important;
+      grid-column: auto !important;
+    }
+  </style>
 </head>
 <body>
   <a class="skip" href="#board">Skip to battle board</a>
   <div id="app"></div>
   <script type="module" src="src/app.js"></script>
   <script defer src="card-modal.js"></script>
-  <script defer src="tabletop-layout.js?v=20260803-2"></script>
+  <script defer src="tabletop-layout.js?v=20260803-3"></script>
 </body>
 </html>
