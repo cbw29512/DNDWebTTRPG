@@ -7,19 +7,25 @@
   overflow:hidden;
 }
 .fixed-board{
-  display:grid;
-  grid-template-columns:repeat(7,minmax(176px,1fr));
+  display:flex !important;
+  flex-flow:row nowrap !important;
+  align-items:stretch;
   gap:12px;
-  overflow-x:auto;
-  overflow-y:visible;
+  width:100%;
+  min-width:0;
+  overflow-x:auto !important;
+  overflow-y:hidden !important;
   overscroll-behavior-inline:contain;
   scroll-snap-type:x proximity;
   padding:4px 4px 12px;
   scrollbar-gutter:stable;
 }
-.board-slot{
-  min-width:176px;
-  width:auto;
+.fixed-board > .board-slot{
+  flex:0 0 176px !important;
+  width:176px !important;
+  min-width:176px !important;
+  max-width:176px !important;
+  grid-column:auto !important;
   scroll-snap-align:start;
 }
 .panel-collapse-toggle{
@@ -95,6 +101,10 @@
 @media(max-width:700px){
   .dm-workspace{grid-template-columns:1fr}
   .dm-workspace .adventure-deck,.dm-workspace .turn-panel{display:none}
-  .fixed-board{grid-template-columns:repeat(7,minmax(154px,154px));gap:10px}
-  .board-slot{min-width:154px}
+  .fixed-board > .board-slot{
+    flex-basis:154px !important;
+    width:154px !important;
+    min-width:154px !important;
+    max-width:154px !important;
+  }
 }
