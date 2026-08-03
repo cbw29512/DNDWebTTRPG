@@ -1,0 +1,20 @@
+.encounter-board{overflow:visible}
+.fixed-board{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(190px,1fr));
+  gap:14px;
+  overflow:visible;
+  padding-bottom:0;
+  scroll-snap-type:none;
+}
+.board-slot{min-width:0;width:100%}
+.slot-hazard,.slot-objective,.slot-treasure{display:flex;flex-direction:column}
+@media(max-width:1250px){
+  .fixed-board{grid-template-columns:repeat(3,minmax(190px,1fr))}
+}
+@media(max-width:900px){
+  .fixed-board{grid-template-columns:repeat(2,minmax(170px,1fr))}
+}
+@media(max-width:560px){
+  .fixed-board{grid-template-columns:1fr}
+}
