@@ -76,7 +76,11 @@ export const applyCommand = (currentState, command, dependencies = {}) => {
     const previous = clone(currentState.undoStack.at(-1));
     previous.undoStack = currentState.undoStack.slice(0, -1).map(clone);
     previous.revision = currentState.revision + 1;
-    const event = appendEvent(previous, "COMMAND_UNDONE", "DM undoes the previous action.");
+    previous.events = clone(currentState.events);
+    previous.nextEventId = currentState.nextEventId;
+    const event = appendEvent(previous, "COMMAND_UNDONE", "DM undoes the previous action.", {
+      restoredRevision: currentState.revision - 1
+    });
     return { state: previous, event };
   }
 
