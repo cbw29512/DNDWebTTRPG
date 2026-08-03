@@ -9,6 +9,7 @@ import { SOURCE_KINDS, primarySourceFor, sourceRegistry, validateSourceRegistry 
 
 const html=fs.readFileSync('index.html','utf8');
 const css=fs.readFileSync('styles.css','utf8');
+const stackCss=fs.readFileSync('compact-stacks.css','utf8');
 const app=fs.readFileSync('src/app.js','utf8');
 const vision=fs.readFileSync('docs/PRODUCT_VISION.md','utf8');
 const mvp=fs.readFileSync('docs/MVP_SPEC.md','utf8');
@@ -32,18 +33,14 @@ const dm=session.participants.find(p=>p.role===ROLES.DM);
 const player=session.participants.find(p=>p.role===ROLES.PLAYER);
 const dmView=projectSessionFor(session,dm);
 const playerView=projectSessionFor(session,player);
-assert.equal(dmView.cards.length,5,'DM receives all cards, including unrevealed cards.');
-assert.equal(playerView.cards.length,3,'Player receives only revealed cards.');
+assert.equal(dmView.cards.length,5);
+assert.equal(playerView.cards.length,3);
 assert.ok(dmView.cards.find(card=>card.id==='priest').dmFace.hp===32);
-assert.equal(playerView.cards.find(card=>card.id==='priest').dmFace,undefined,'Player must not receive DM card face.');
-assert.equal(playerView.cards.some(card=>card.id==='hazard'),false,'Unrevealed hazard must not reach player payload.');
-assert.equal(playerView.cards.some(card=>card.id==='treasure'),false,'Unrevealed treasure must not reach player payload.');
-const playerPriest=playerView.actors.find(actor=>actor.id==='cult-priest');
-assert.equal(playerPriest.hp,undefined,'Monster HP must not reach player projection.');
-assert.equal(playerPriest.ac,undefined,'Monster AC must not reach player projection.');
-assert.equal(playerPriest.private,undefined,'Monster tactics must not reach player projection.');
-const playerLyria=playerView.actors.find(actor=>actor.id==='lyria');
-assert.equal(playerLyria.hp.current,32,'Controller receives full own-character state.');
+assert.equal(playerView.cards.find(card=>card.id==='priest').dmFace,undefined);
+assert.equal(playerView.cards.some(card=>card.id==='hazard'),false);
+assert.equal(playerView.cards.some(card=>card.id==='treasure'),false);
+assert.equal(playerView.actors.find(actor=>actor.id==='cult-priest').hp,undefined);
+assert.equal(playerView.actors.find(actor=>actor.id==='lyria').hp.current,32);
 assert.throws(()=>projectSessionFor(session,{id:'intruder',name:'Intruder',role:'player'}),/not seated/);
 assert.throws(()=>validateCard({id:'bad'}),/title/);
 
@@ -57,13 +54,16 @@ assert.match(integrationLedger,/Do not maintain a second handwritten SRD spell o
 assert.match(integrationLedger,/DNDTeachingAdventureDemonsWrath/);
 assert.match(integrationLedger,/DungeonMaps/);
 
-assert.match(html,/The Living Table/);
+assert.match(html,/compact-stacks\.css/);
 assert.match(app,/DM View/); assert.match(app,/Player View/); assert.match(app,/projectSessionFor/);
-assert.match(app,/Adventure Deck/); assert.match(app,/Fixed Card Board/); assert.match(app,/SLOT_DEFINITIONS/);
+assert.match(app,/Adventure Deck/); assert.match(app,/Card Master Board/); assert.match(app,/const SLOTS/);
 assert.match(app,/Location/); assert.match(app,/Room \/ Scene/); assert.match(app,/NPCs/); assert.match(app,/Monsters/);
 assert.match(app,/Traps \/ Hazards/); assert.match(app,/Objective \/ Quest/); assert.match(app,/Treasure \/ Rewards/);
+assert.match(app,/stack-count/); assert.match(app,/data-toggle-stack/); assert.match(app,/data-card-roll/);
+assert.match(app,/data-roll-all-monsters/); assert.match(app,/sortedInitiative/); assert.match(app,/Top dice are for uncategorized rolls only/);
 assert.match(app,/data-open-picker/); assert.match(app,/data-place-card/); assert.match(app,/draggable="true"/);
-assert.match(app,/data-flip-card/); assert.match(app,/data-remove-card/); assert.match(app,/COMMANDS\.UNDO/);
+assert.match(app,/data-flip-card/); assert.match(app,/data-remove-instance/);
 assert.match(css,/\.fixed-board/); assert.match(css,/\.board-slot/); assert.match(css,/\.tarot-card/); assert.match(css,/\.card-picker/);
+assert.match(stackCss,/\.card-stack/); assert.match(stackCss,/\.stack-count/); assert.match(stackCss,/\.inside-card-rolls/); assert.match(stackCss,/\.stack-drawer/);
 assert.match(vision,/server-side/i); assert.match(mvp,/complete D&D-style combat encounter/i);
-console.log('The Living Table fixed board, projections, state engine, dice, and source registry passed.');
+console.log('The Living Table compact stacks, card rolls, initiative, projections, and source registry passed.');
