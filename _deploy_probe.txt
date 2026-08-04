@@ -1,0 +1,2 @@
+ROW BUILD 6 — 2026-08-03
+All seven encounter slots are direct siblings inside .fixed-board.
