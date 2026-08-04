@@ -31,7 +31,7 @@
   const app = document.querySelector('#app');
   if (app) {
     const observer = new MutationObserver(applyControls);
-    observer.observe(app, { childList: true, subtree: true });
+    observer.observe(app, { childList: true });
   }
 
   window.addEventListener('DOMContentLoaded', applyControls);
