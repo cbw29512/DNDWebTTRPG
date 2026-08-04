@@ -7,12 +7,11 @@ const boardCss = fs.readFileSync('board-layout.css', 'utf8');
 const polishCss = fs.readFileSync('workspace-polish.css', 'utf8');
 const controls = fs.readFileSync('workspace-controls.js', 'utf8');
 
-assert.match(html, /tabletop-polish-1/);
+assert.match(html, /card-slot-behavior-1/);
 assert.match(html, /workspace-polish\.css/);
 assert.match(html, /workspace-controls\.js/);
+assert.doesNotMatch(html, /initiative-groups\.js/);
 assert.doesNotMatch(html, /ROW BUILD 6/);
-assert.doesNotMatch(html, /encounter-strip-v4/);
-assert.doesNotMatch(html, /tabletop-layout/);
 assert.match(app, /class="fixed-board"/);
 assert.match(app, /class="board-slot slot-\$\{slot\.id\}"/);
 assert.match(app, /SLOTS\.map\(slot => renderSlot\(slot, projected, isDM\)\)\.join\(""\)/);
@@ -24,9 +23,8 @@ assert.match(boardCss, /overflow-x:auto/);
 assert.doesNotMatch(boardCss, /grid-template-columns:repeat\(4/);
 assert.match(html, /#app \.fixed-board\s*\{[\s\S]*display:flex!important;[\s\S]*flex-wrap:nowrap!important;/);
 assert.match(polishCss, /workspace-panel-toggle/);
-assert.match(polishCss, /grid-template-columns:minmax\(170px,210px\)/);
-assert.match(controls, /MutationObserver/);
-assert.match(controls, /is-collapsed/);
+assert.match(controls, /observe\(app, \{ childList: true \}\)/);
+assert.doesNotMatch(controls, /subtree:\s*true/);
 
 const slotDefinitions = [...app.matchAll(/id: "(location|room|npc|monster|hazard|objective|treasure)"/g)].map(match => match[1]);
 assert.deepEqual(slotDefinitions, ['location', 'room', 'npc', 'monster', 'hazard', 'objective', 'treasure']);

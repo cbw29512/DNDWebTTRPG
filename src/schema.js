@@ -1,5 +1,5 @@
 export const ROLES = Object.freeze({ DM: "dm", PLAYER: "player" });
-export const CARD_TYPES = Object.freeze({ ROOM:"room", MONSTER:"monster", NPC:"npc", HAZARD:"hazard", TREASURE:"treasure", CHARACTER:"character", SPELL:"spell", ITEM:"item", FEATURE:"feature", CONDITION:"condition", EFFECT:"effect" });
+export const CARD_TYPES = Object.freeze({ LOCATION:"location", ROOM:"room", NPC:"npc", MONSTER:"monster", HAZARD:"hazard", OBJECTIVE:"objective", TREASURE:"treasure", CHARACTER:"character", SPELL:"spell", ITEM:"item", FEATURE:"feature", CONDITION:"condition", EFFECT:"effect" });
 export const AUDIENCES = Object.freeze({ DM_ONLY:"dm-only", EVERYONE:"everyone", CONTROLLER:"controller", SELECTED:"selected" });
 
 const nonEmpty = (value, name) => { if (typeof value !== "string" || value.trim() === "") throw new TypeError(`${name} must be a non-empty string.`); };
@@ -28,6 +28,10 @@ export const validateCard = card => {
   if (typeof card.revealed !== "boolean") throw new TypeError("card.revealed must be boolean.");
   if (!card.playerFace || typeof card.playerFace !== "object") throw new TypeError("card.playerFace must be an object.");
   if (!card.dmFace || typeof card.dmFace !== "object") throw new TypeError("card.dmFace must be an object.");
+  if (card.uses) {
+    finite(card.uses.max, "card.uses.max");
+    if (card.uses.max < 1) throw new RangeError("card.uses.max must be at least 1.");
+  }
   return card;
 };
 

@@ -9,8 +9,7 @@ const escapeHtml = value => String(value)
   .replaceAll("'", "&#039;");
 
 function cardKey(card) {
-  const instance = card.querySelector("[data-instance]")?.dataset.instance;
-  return instance || card.dataset.cardId || card.querySelector("h3")?.textContent || crypto.randomUUID();
+  return card.dataset.cardInstance || card.querySelector("[data-instance]")?.dataset.instance || card.dataset.cardId || card.querySelector("h3")?.textContent || crypto.randomUUID();
 }
 
 function rememberCard(card) {
@@ -36,7 +35,7 @@ function rememberCard(card) {
   if (front) {
     const art = front.querySelector(".card-art")?.outerHTML || `<div class="card-art">◇</div>`;
     const ribbon = front.querySelector(".category-ribbon")?.outerHTML || "";
-    front.innerHTML = `${ribbon}${art}<h3>${escapeHtml(title)}</h3><span class="open-card-hint">Open card</span>`;
+    front.innerHTML = `${ribbon}${art}<h3>${escapeHtml(title)}</h3><span class="open-card-hint">Open full card</span>`;
   }
 
   back?.remove();
@@ -44,7 +43,7 @@ function rememberCard(card) {
   card.querySelector(".tarot-inner")?.classList.add("thumbnail-inner");
   card.setAttribute("role", "button");
   card.setAttribute("tabindex", "0");
-  card.setAttribute("aria-label", `Open ${title}`);
+  card.setAttribute("aria-label", `Open full ${title} card`);
 }
 
 function enhanceCards(root = document) {
@@ -67,10 +66,10 @@ function openModal(card) {
   backdrop.innerHTML = `<section class="large-card-modal" role="dialog" aria-modal="true" aria-labelledby="largeCardTitle">
     <header class="large-card-header">
       <div><small>${escapeHtml(details.type)}</small><h2 id="largeCardTitle">${escapeHtml(details.title)}</h2></div>
-      <button type="button" class="large-card-close" aria-label="Flip card back and close">×</button>
+      <button type="button" class="large-card-close" aria-label="Close full card">×</button>
     </header>
     <div class="large-card-body">${details.backHtml}</div>
-    <footer class="large-card-actions">${details.controlHtml}<button type="button" class="large-card-return">Flip Back</button></footer>
+    <footer class="large-card-actions">${details.controlHtml}<button type="button" class="large-card-return">Close Card</button></footer>
   </section>`;
   document.body.append(backdrop);
   backdrop.querySelector(".large-card-close")?.focus();
@@ -89,12 +88,13 @@ document.addEventListener("click", event => {
     if (instance && action) {
       const original = [...document.querySelectorAll(`[data-card-roll="${action}"]`)].find(button => button.dataset.instance === instance);
       original?.click();
+      closeModal();
     }
     return;
   }
 
   const card = event.target.closest(".tarot-card.image-only-card");
-  if (card && !event.target.closest(".stack-toggle")) {
+  if (card) {
     event.preventDefault();
     event.stopPropagation();
     openModal(card);
@@ -105,6 +105,7 @@ document.addEventListener("keydown", event => {
   if (event.key === "Escape") closeModal();
   if ((event.key === "Enter" || event.key === " ") && event.target.matches(".tarot-card.image-only-card")) {
     event.preventDefault();
+    event.stopPropagation();
     openModal(event.target);
   }
 });
