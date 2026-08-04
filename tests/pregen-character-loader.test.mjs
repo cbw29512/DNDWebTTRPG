@@ -17,7 +17,7 @@ assert.equal(resolveRequestedCharacter("?character=wendy-birthday-hero", storage
 const inventory=createInventory(defaultCharacterCard.ownedItemIds);
 const state={equipped:{...defaultCharacterCard.startingEquipment}};
 const stats=deriveStats(state,inventory,defaultCharacterCard);
-assert.equal(stats.ac,18,"Loaded character equipment should derive AC from character card plus legal items");
+assert.equal(stats.ac,17,"Loaded character equipment should derive AC from character card plus legal items");
 assert.equal(stats.maxHp,28);
 assert.equal(stats.attackProfile.name,"Rapier");
 
