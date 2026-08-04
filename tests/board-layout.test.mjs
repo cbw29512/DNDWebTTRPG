@@ -5,16 +5,19 @@ const html = fs.readFileSync('index.html', 'utf8');
 const app = fs.readFileSync('src/app.js', 'utf8');
 const boardCss = fs.readFileSync('board-layout.css', 'utf8');
 const polishCss = fs.readFileSync('workspace-polish.css', 'utf8');
+const questCss = fs.readFileSync('quest-tracker.css', 'utf8');
+const questJs = fs.readFileSync('quest-tracker.js', 'utf8');
 const controls = fs.readFileSync('workspace-controls.js', 'utf8');
 
-assert.match(html, /card-slot-behavior-1/);
+assert.match(html, /quest-tracker-1/);
 assert.match(html, /workspace-polish\.css/);
+assert.match(html, /quest-tracker\.css/);
+assert.match(html, /quest-tracker\.js/);
 assert.match(html, /workspace-controls\.js/);
 assert.doesNotMatch(html, /initiative-groups\.js/);
 assert.doesNotMatch(html, /ROW BUILD 6/);
 assert.match(app, /class="fixed-board"/);
 assert.match(app, /class="board-slot slot-\$\{slot\.id\}"/);
-assert.match(app, /SLOTS\.map\(slot => renderSlot\(slot, projected, isDM\)\)\.join\(""\)/);
 assert.doesNotMatch(app, /<button class="stack-toggle"/);
 assert.match(app, /<div class="stack-toggle" role="button"/);
 assert.match(boardCss, /display:flex/);
@@ -25,8 +28,15 @@ assert.match(html, /#app \.fixed-board\s*\{[\s\S]*display:flex!important;[\s\S]*
 assert.match(polishCss, /workspace-panel-toggle/);
 assert.match(controls, /observe\(app, \{ childList: true \}\)/);
 assert.doesNotMatch(controls, /subtree:\s*true/);
+assert.match(questCss, /single-card-holder > \.tarot-card/);
+assert.match(questCss, /\.fixed-board > \.slot-objective\{display:none!important\}/);
+assert.match(questCss, /\.quest-row/);
+assert.match(questJs, /Main Quest/);
+assert.match(questJs, /Side Quest/);
+assert.match(questJs, /data-add-side-quest/);
+assert.match(questJs, /revealedQuests/);
 
 const slotDefinitions = [...app.matchAll(/id: "(location|room|npc|monster|hazard|objective|treasure)"/g)].map(match => match[1]);
 assert.deepEqual(slotDefinitions, ['location', 'room', 'npc', 'monster', 'hazard', 'objective', 'treasure']);
 
-console.log('Encounter board is one polished, boxed, non-wrapping seven-slot row.');
+console.log('Encounter cards remain readable in one row while objectives live in the full-width quest tracker.');
