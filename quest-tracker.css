@@ -1,0 +1,113 @@
+/* Keep direct, non-stacked cards at the same readable tarot size as stack cards. */
+.single-card-holder > .tarot-card{
+  width:148px!important;
+  min-width:148px!important;
+  max-width:148px!important;
+  justify-self:center;
+}
+
+/* Objectives live in the dedicated tracker below the workspace, not the encounter row. */
+.fixed-board > .slot-objective{display:none!important}
+
+.quest-tracker{
+  margin-top:14px;
+  padding:16px;
+  overflow:hidden;
+}
+.quest-tracker-header{
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between;
+  gap:16px;
+  padding-bottom:12px;
+  border-bottom:1px solid #34302a;
+}
+.quest-tracker-header h2{
+  margin:.2rem 0 0;
+  font-family:Georgia,serif;
+  color:#e8d49a;
+  font-size:1.55rem;
+}
+.quest-tracker-header p{
+  margin:0;
+  max-width:620px;
+  color:var(--muted);
+  text-align:right;
+}
+.quest-row{
+  display:flex;
+  align-items:flex-start;
+  gap:16px;
+  overflow-x:auto;
+  padding:16px 4px 8px;
+}
+.quest-entry{
+  flex:0 0 auto;
+  display:grid;
+  gap:8px;
+  justify-items:center;
+}
+.quest-entry.main-quest{
+  padding-right:16px;
+  border-right:2px solid #6c5931;
+}
+.quest-entry.main-quest::before,
+.quest-entry.side-quest::before{
+  display:block;
+  width:100%;
+  text-align:center;
+  color:#f1d88f;
+  font-weight:900;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  font-size:.72rem;
+}
+.quest-entry.main-quest::before{content:"Main Quest"}
+.quest-entry.side-quest::before{content:"Side Quest"}
+.quest-entry .tarot-card{
+  width:170px!important;
+  flex-basis:170px!important;
+}
+.quest-entry.main-quest .tarot-card{
+  width:188px!important;
+  flex-basis:188px!important;
+}
+.quest-remove{
+  border:1px solid #713f3a;
+  border-radius:8px;
+  background:#261817;
+  color:var(--text);
+  padding:6px 10px;
+  cursor:pointer;
+}
+.quest-add-controls{
+  display:flex;
+  gap:8px;
+  align-items:center;
+  flex-wrap:wrap;
+}
+.quest-add-controls select,
+.quest-add-controls button{
+  border:1px solid #5c5549;
+  border-radius:8px;
+  background:#171b20;
+  color:var(--text);
+  padding:9px 11px;
+}
+.quest-add-controls button{cursor:pointer;font-weight:800}
+.quest-empty{
+  min-width:220px;
+  min-height:180px;
+  display:grid;
+  place-items:center;
+  border:2px dashed #4b463d;
+  border-radius:12px;
+  color:var(--muted);
+  padding:20px;
+  text-align:center;
+}
+@media(max-width:700px){
+  .quest-tracker-header{align-items:flex-start;flex-direction:column}
+  .quest-tracker-header p{text-align:left}
+  .quest-entry.main-quest{padding-right:12px}
+}
