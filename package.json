@@ -3,6 +3,6 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node tests/site.test.mjs && node tests/board-layout.test.mjs && node tests/grouped-initiative.test.mjs && node tests/card-behavior.test.mjs && node tests/item-system.test.mjs && node tests/adventure-loader.test.mjs"
+    "test": "node tests/site.test.mjs && node tests/board-layout.test.mjs && node tests/grouped-initiative.test.mjs && node tests/card-behavior.test.mjs && node tests/item-system.test.mjs && node tests/adventure-loader.test.mjs && node tests/library-hub.test.mjs"
   }
 }
