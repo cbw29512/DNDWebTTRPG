@@ -1,0 +1,41 @@
+{
+  "schemaVersion": 1,
+  "packId": "wishing-cake",
+  "releaseId": "wishing-cake-1.0.0",
+  "adventureCode": "WISH-CAKE-001",
+  "title": "The Wishing Cake",
+  "subtitle": "A Birthday Adventure for Wendy",
+  "version": "1.0.0",
+  "systems": ["dnd-2014", "dnd-2024"],
+  "estimatedHours": "3–4",
+  "recommendedLevel": 3,
+  "playerCount": "4–6",
+  "entrySceneId": "room",
+  "sourceRepository": "cbw29512/DungeonCards",
+  "runtimeRepository": "cbw29512/DNDWebTTRPG",
+  "counts": {
+    "locations": 1,
+    "rooms": 8,
+    "npcs": 6,
+    "monsters": 4,
+    "hazards": 3,
+    "quests": 2,
+    "items": 8,
+    "pregeneratedCharacters": 1
+  },
+  "startingBoard": {
+    "location": ["location"],
+    "room": ["room"],
+    "npc": ["caretaker", "npc-boris", "npc-pip", "npc-lute"],
+    "monster": ["priest"],
+    "hazard": [],
+    "treasure": ["birthday-spark-tokens"]
+  },
+  "startingQuests": ["objective"],
+  "cardModule": "../../../src/wishing-cake-cards.js",
+  "sessionFactory": "../../../src/encounter.js",
+  "offline": {
+    "cacheable": true,
+    "pinVersionOnStart": true
+  }
+}
