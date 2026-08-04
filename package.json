@@ -3,6 +3,6 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node tests/site.test.mjs"
+    "test": "node tests/site.test.mjs && node tests/board-layout.test.mjs"
   }
 }
