@@ -12,6 +12,17 @@ function cardKey(card) {
   return card.dataset.cardInstance || card.querySelector("[data-instance]")?.dataset.instance || card.dataset.cardId || card.querySelector("h3")?.textContent || crypto.randomUUID();
 }
 
+function controlKey(button, index) {
+  const datasets = [
+    ["cardRoll", button.dataset.cardRoll],
+    ["removeInstance", button.dataset.removeInstance],
+    ["reveal", button.dataset.reveal],
+    ["flipCard", button.dataset.flipCard]
+  ];
+  const match = datasets.find(([, value]) => value);
+  return match ? `${match[0]}:${match[1]}` : `control:${index}:${button.textContent?.trim() || "button"}`;
+}
+
 function rememberCard(card) {
   if (!(card instanceof HTMLElement) || card.dataset.modalReady === "true") return;
   const key = cardKey(card);
@@ -20,13 +31,22 @@ function rememberCard(card) {
   const front = card.querySelector(".tarot-front");
   const back = card.querySelector(".tarot-back");
   const controls = card.querySelector(".card-controls");
+  const controlButtons = [...(controls?.querySelectorAll("button") || [])];
+  const controlMap = new Map();
+
+  controlButtons.forEach((button, index) => {
+    const actionKey = controlKey(button, index);
+    button.dataset.modalControlKey = actionKey;
+    controlMap.set(actionKey, button);
+  });
 
   cardDetails.set(key, {
     title,
     type,
     frontHtml: front?.innerHTML || `<h3>${escapeHtml(title)}</h3><p>No player-facing information available.</p>`,
     backHtml: back?.innerHTML || `<h3>${escapeHtml(title)}</h3><p>No card details available.</p>`,
-    controlHtml: controls?.innerHTML || ""
+    controlHtml: controls?.innerHTML || "",
+    controlMap
   });
 
   card.dataset.modalKey = key;
@@ -67,6 +87,7 @@ function openModal(card) {
 
   const backdrop = document.createElement("div");
   backdrop.className = "large-card-backdrop";
+  backdrop.dataset.modalCardKey = card.dataset.modalKey;
   backdrop.innerHTML = `<section class="large-card-modal" role="dialog" aria-modal="true" aria-labelledby="largeCardTitle">
     <header class="large-card-header">
       <div><small>${escapeHtml(details.type)}</small><h2 id="largeCardTitle">${escapeHtml(details.title)}</h2></div>
@@ -85,6 +106,16 @@ function openModal(card) {
   backdrop.querySelector(".large-card-close")?.focus();
 }
 
+function runModalControl(button) {
+  const backdrop = button.closest(".large-card-backdrop");
+  const details = cardDetails.get(backdrop?.dataset.modalCardKey);
+  const key = button.dataset.modalControlKey;
+  const original = key ? details?.controlMap.get(key) : null;
+  if (!original) return false;
+  original.click();
+  return true;
+}
+
 document.addEventListener("click", event => {
   if (event.target.closest(".large-card-close, .large-card-return") || event.target.classList.contains("large-card-backdrop")) {
     closeModal();
@@ -93,13 +124,7 @@ document.addEventListener("click", event => {
 
   const modalButton = event.target.closest(".large-card-modal button");
   if (modalButton) {
-    const instance = modalButton.dataset.instance;
-    const action = modalButton.dataset.cardRoll;
-    if (instance && action) {
-      const original = [...document.querySelectorAll(`[data-card-roll="${action}"]`)].find(button => button.dataset.instance === instance);
-      original?.click();
-      closeModal();
-    }
+    if (runModalControl(modalButton)) closeModal();
     return;
   }
 
