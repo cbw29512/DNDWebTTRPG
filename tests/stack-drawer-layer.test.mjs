@@ -1,0 +1,11 @@
+import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
+const [html,css,js]=await Promise.all([readFile('index.html','utf8'),readFile('stack-drawer-layer.css','utf8'),readFile('stack-drawer-layer.js','utf8')]);
+assert.match(html,/stack-drawer-layer\.css/);
+assert.match(html,/stack-drawer-layer\.js/);
+assert.match(css,/position:fixed!important/);
+assert.match(css,/max-height:min\(68vh,620px\)/);
+assert.match(js,/getBoundingClientRect/);
+assert.match(js,/scrollWidth/);
+assert.match(js,/window\.addEventListener\('resize'/);
+console.log('stack drawer layer tests passed');
