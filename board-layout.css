@@ -1,0 +1,9 @@
+/* Canonical encounter-board layout. No runtime class mutation and no wrapping. */
+.dm-workspace{display:grid;grid-template-columns:minmax(220px,260px) minmax(0,1fr) minmax(220px,260px);gap:14px;align-items:start}
+.encounter-board{min-width:0;overflow:hidden}
+.fixed-board{display:flex;flex-flow:row nowrap;align-items:stretch;gap:12px;width:100%;min-width:0;margin-top:14px;padding:4px 4px 12px;overflow-x:auto;overflow-y:hidden;overscroll-behavior-inline:contain;scroll-snap-type:x proximity;scrollbar-gutter:stable}
+.fixed-board>.board-slot{display:flex;flex:0 0 188px;flex-direction:column;width:188px;min-width:188px;max-width:188px;min-height:300px;scroll-snap-align:start}
+.fixed-board>.board-slot .single-card-holder{display:flex;flex:1;min-width:0;align-items:flex-start;justify-content:center}
+.fixed-board>.board-slot .empty-slot{width:100%}
+@media(max-width:1200px){.dm-workspace{grid-template-columns:minmax(190px,220px) minmax(0,1fr) minmax(190px,220px)}.fixed-board>.board-slot{flex-basis:176px;width:176px;min-width:176px;max-width:176px}}
+@media(max-width:900px){.dm-workspace{grid-template-columns:1fr}.adventure-deck{order:2}.encounter-board{order:1}.turn-panel{order:3}.fixed-board{overflow-x:auto;scroll-snap-type:x mandatory}.fixed-board>.board-slot{flex-basis:164px;width:164px;min-width:164px;max-width:164px}}
