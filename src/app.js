@@ -74,12 +74,12 @@ const renderStack = (slot, instances, isDM) => {
   const top = instances[0];
   const topCard = cardById(top.cardId);
   return `<div class="card-stack ${expanded ? "expanded" : ""}">
-    <button class="stack-toggle" type="button" data-toggle-stack="${slot.id}" aria-expanded="${expanded}">
+    <div class="stack-toggle" role="button" tabindex="0" data-toggle-stack="${slot.id}" aria-expanded="${expanded}">
       <span class="stack-shadow shadow-two"></span><span class="stack-shadow shadow-one"></span>
       <span class="stack-count" aria-label="${instances.length} cards">${instances.length}</span>
       ${tarotCard(topCard, top, { isDM, compact: true })}
       <span class="stack-label">${expanded ? "Close stack" : `Open ${instances.length}-card stack`}</span>
-    </button>
+    </div>
     ${expanded ? `<div class="stack-drawer">${instances.map(instance => tarotCard(cardById(instance.cardId), instance, { isDM })).join("")}</div>` : ""}
   </div>`;
 };
@@ -135,7 +135,13 @@ function bind() {
   document.querySelectorAll("[data-open-picker]").forEach(button => button.onclick = () => { pickerSlot = button.dataset.openPicker; render(); });
   document.querySelectorAll("[data-place-card]").forEach(button => button.onclick = () => placeCard(button.dataset.placeCard, button.dataset.placeSlot));
   document.querySelector("[data-close-picker]")?.addEventListener("click", () => { pickerSlot = null; render(); });
-  document.querySelectorAll("[data-toggle-stack]").forEach(button => button.onclick = () => { const id = button.dataset.toggleStack; expandedStacks.has(id) ? expandedStacks.delete(id) : expandedStacks.add(id); render(); });
+  document.querySelectorAll("[data-toggle-stack]").forEach(control => {
+    const toggle = () => { const id = control.dataset.toggleStack; expandedStacks.has(id) ? expandedStacks.delete(id) : expandedStacks.add(id); render(); };
+    control.onclick = toggle;
+    control.onkeydown = event => {
+      if (event.key === "Enter" || event.key === " ") { event.preventDefault(); toggle(); }
+    };
+  });
   document.querySelectorAll("[data-card-roll]").forEach(button => button.onclick = event => { event.stopPropagation(); rollForInstance(button.dataset.instance, button.dataset.cardRoll); });
   document.querySelectorAll("[data-flip-card]").forEach(button => button.onclick = () => { const key = button.dataset.flipCard; flipped.has(key) ? flipped.delete(key) : flipped.add(key); render(); });
   document.querySelectorAll("[data-reveal]").forEach(button => button.onclick = () => dispatch({ type: COMMANDS.TOGGLE_CARD, key: button.dataset.reveal }));
