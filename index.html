@@ -5,19 +5,20 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="theme-color" content="#0a0b0d">
   <meta name="description" content="The Living Table card-driven online battle board MVP.">
-  <meta name="build" content="dndcards-library-import-20260804">
+  <meta name="build" content="expanded-stack-layer-20260804">
   <title>The Living Table — Libraries and Tabletop</title>
-  <link rel="stylesheet" href="styles.css?v=dndcards-library-1">
-  <link rel="stylesheet" href="player-board.css?v=dndcards-library-1">
-  <link rel="stylesheet" href="compact-stacks.css?v=dndcards-library-1">
-  <link rel="stylesheet" href="card-modal.css?v=dndcards-library-1">
-  <link rel="stylesheet" href="workspace-polish.css?v=dndcards-library-1">
-  <link rel="stylesheet" href="quest-tracker.css?v=dndcards-library-1">
-  <link rel="stylesheet" href="encounter-scale.css?v=dndcards-library-1">
-  <link rel="stylesheet" href="player-ready.css?v=dndcards-library-1">
-  <link rel="stylesheet" href="adventure-loader.css?v=dndcards-library-1">
-  <link rel="stylesheet" href="library-hub.css?v=dndcards-library-1">
-  <link rel="stylesheet" href="pregen-character-card.css?v=dndcards-library-1">
+  <link rel="stylesheet" href="styles.css?v=stack-layer-1">
+  <link rel="stylesheet" href="player-board.css?v=stack-layer-1">
+  <link rel="stylesheet" href="compact-stacks.css?v=stack-layer-1">
+  <link rel="stylesheet" href="stack-drawer-layer.css?v=stack-layer-1">
+  <link rel="stylesheet" href="card-modal.css?v=stack-layer-1">
+  <link rel="stylesheet" href="workspace-polish.css?v=stack-layer-1">
+  <link rel="stylesheet" href="quest-tracker.css?v=stack-layer-1">
+  <link rel="stylesheet" href="encounter-scale.css?v=stack-layer-1">
+  <link rel="stylesheet" href="player-ready.css?v=stack-layer-1">
+  <link rel="stylesheet" href="adventure-loader.css?v=stack-layer-1">
+  <link rel="stylesheet" href="library-hub.css?v=stack-layer-1">
+  <link rel="stylesheet" href="pregen-character-card.css?v=stack-layer-1">
   <style>
     #app .fixed-board{display:flex!important;flex-direction:row!important;flex-wrap:nowrap!important;grid-template-columns:none!important;grid-auto-flow:initial!important;align-items:stretch!important;gap:14px!important;width:100%!important;min-width:0!important;overflow-x:auto!important;overflow-y:hidden!important;padding:4px 4px 14px!important}
     #app .fixed-board>section.board-slot[data-slot]{display:flex!important;flex-direction:column!important;grid-column:auto!important;grid-row:auto!important;margin:0!important}
@@ -28,13 +29,14 @@
 <body>
   <a class="skip" href="#board">Skip to battle board</a>
   <div id="app"></div>
-  <script type="module" src="adventure-loader.js?v=dndcards-library-1"></script>
-  <script type="module" src="quest-tracker.js?v=dndcards-library-1"></script>
-  <script defer src="encounter-slot-guard.js?v=dndcards-library-1"></script>
-  <script defer src="card-modal.js?v=dndcards-library-1"></script>
-  <script defer src="workspace-controls.js?v=dndcards-library-1"></script>
-  <script type="module" src="player-ready.js?v=dndcards-library-1"></script>
-  <script type="module" src="pregen-character-loader.js?v=dndcards-library-1"></script>
-  <script type="module" src="library-hub.js?v=dndcards-library-1"></script>
+  <script type="module" src="adventure-loader.js?v=stack-layer-1"></script>
+  <script type="module" src="quest-tracker.js?v=stack-layer-1"></script>
+  <script defer src="encounter-slot-guard.js?v=stack-layer-1"></script>
+  <script defer src="card-modal.js?v=stack-layer-1"></script>
+  <script defer src="workspace-controls.js?v=stack-layer-1"></script>
+  <script defer src="stack-drawer-layer.js?v=stack-layer-1"></script>
+  <script type="module" src="player-ready.js?v=stack-layer-1"></script>
+  <script type="module" src="pregen-character-loader.js?v=stack-layer-1"></script>
+  <script type="module" src="library-hub.js?v=stack-layer-1"></script>
 </body>
 </html>
