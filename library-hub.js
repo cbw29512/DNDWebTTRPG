@@ -1,0 +1,93 @@
+const STORAGE_KEY = "living-table-library-v1";
+const app = document.querySelector("#app");
+
+const defaults = {
+  dmPacks: [{ id: "wishing-cake", title: "The Wishing Cake", system: "D&D 2014 / 2024", status: "Ready", code: "WISH-CAKE-001" }],
+  drafts: [],
+  player: {
+    characters: [{ id: "wendy-birthday-hero", name: "Wendy’s Birthday Hero", level: 3, system: "D&D 5e" }],
+    items: ["Rapier +1", "Cloak of Protection", "Potion of Healing", "Gift Rope"],
+    invitations: [{ id: "wish-invite", title: "The Wishing Cake", dm: "Birthday DM", status: "Accepted" }],
+    adventures: [{ id: "wishing-cake", title: "The Wishing Cake", version: "1.0.0", state: "In Progress" }]
+  }
+};
+
+const loadState = () => {
+  try { return { ...defaults, ...JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}") }; }
+  catch { return structuredClone(defaults); }
+};
+const state = loadState();
+const save = () => localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+const esc = value => String(value ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"}[c]));
+
+const shell = document.createElement("div");
+shell.className = "library-hub";
+shell.innerHTML = `<nav class="library-tabs" aria-label="Workspace">
+  <button data-library-tab="table" class="active">Current Card Board</button>
+  <button data-library-tab="dm">DM Library</button>
+  <button data-library-tab="player">Player Library</button>
+</nav>
+<section id="library-panel" class="library-panel" hidden></section>`;
+document.body.insertBefore(shell, app);
+const panel = shell.querySelector("#library-panel");
+
+function dmMarkup() {
+  const packs = [...state.dmPacks, ...state.drafts].map(pack => `<article class="library-card">
+    <span class="library-card-art">🎴</span><div><small>${esc(pack.system)}</small><h3>${esc(pack.title)}</h3><p>${esc(pack.status)}${pack.code ? ` · ${esc(pack.code)}` : ""}</p></div>
+    <button data-open-pack="${esc(pack.id)}">Open</button>
+  </article>`).join("");
+  return `<header class="library-heading"><div><small>DM WORKSPACE</small><h2>One-Shot Library</h2><p>Build, upload, organize, test, and launch complete adventure packs.</p></div></header>
+  <div class="library-actions">
+    <button data-new-one-shot>+ Build One-Shot</button>
+    <label class="upload-button">Upload Adventure JSON<input type="file" accept="application/json,.json" data-upload-adventure></label>
+    <a href="?pack=wishing-cake">Test Master Card Loader</a>
+  </div>
+  <form class="one-shot-builder" data-one-shot-form hidden>
+    <label>Title<input name="title" required placeholder="Adventure title"></label>
+    <label>Rules<select name="system"><option>D&D 2014</option><option>D&D 2024</option><option>D&D 2014 / 2024</option></select></label>
+    <button type="submit">Create Draft</button><button type="button" data-cancel-builder>Cancel</button>
+  </form>
+  <div class="library-grid">${packs}</div>`;
+}
+
+function playerMarkup() {
+  const characters = state.player.characters.map(c => `<article class="library-card character-library-card"><span class="library-card-art">🧙</span><div><small>${esc(c.system)}</small><h3>${esc(c.name)}</h3><p>Level ${c.level} · Base character card</p></div><button data-open-player-view>Play</button></article>`).join("");
+  const items = state.player.items.map(name => `<article class="mini-item-card"><span>✨</span><strong>${esc(name)}</strong><small>Owned item card</small></article>`).join("");
+  const invites = state.player.invitations.map(a => `<article class="library-row"><div><strong>${esc(a.title)}</strong><small>Invited by ${esc(a.dm)}</small></div><span>${esc(a.status)}</span></article>`).join("");
+  const adventures = state.player.adventures.map(a => `<article class="library-row"><div><strong>${esc(a.title)}</strong><small>Version ${esc(a.version)}</small></div><button data-open-pack="${esc(a.id)}">${esc(a.state)}</button></article>`).join("");
+  return `<header class="library-heading"><div><small>PLAYER WORKSPACE</small><h2>Player Library</h2><p>Your characters, owned cards, invitations, active adventures, and current table.</p></div></header>
+  <section class="library-section"><h3>Characters</h3><div class="library-grid">${characters}</div></section>
+  <section class="library-section"><h3>Owned Item Cards</h3><div class="item-library-grid">${items}</div></section>
+  <section class="library-columns"><div><h3>Adventure Invitations</h3>${invites}</div><div><h3>Current Adventures</h3>${adventures}</div></section>
+  <button class="return-board" data-library-tab="table">Return to Current Card Board</button>`;
+}
+
+function showTab(tab) {
+  shell.querySelectorAll("[data-library-tab]").forEach(button => button.classList.toggle("active", button.dataset.libraryTab === tab));
+  const table = tab === "table";
+  panel.hidden = table;
+  app.hidden = !table;
+  if (table) return;
+  panel.innerHTML = tab === "dm" ? dmMarkup() : playerMarkup();
+  bindPanel();
+}
+
+function bindPanel() {
+  panel.querySelector("[data-new-one-shot]")?.addEventListener("click", () => { panel.querySelector("[data-one-shot-form]").hidden = false; });
+  panel.querySelector("[data-cancel-builder]")?.addEventListener("click", () => { panel.querySelector("[data-one-shot-form]").hidden = true; });
+  panel.querySelector("[data-one-shot-form]")?.addEventListener("submit", event => {
+    event.preventDefault(); const data = new FormData(event.currentTarget); const title = data.get("title").trim();
+    state.drafts.push({ id: `draft-${Date.now()}`, title, system: data.get("system"), status: "Draft" }); save(); panel.innerHTML = dmMarkup(); bindPanel();
+  });
+  panel.querySelector("[data-upload-adventure]")?.addEventListener("change", async event => {
+    const file = event.target.files?.[0]; if (!file) return;
+    try { const pack = JSON.parse(await file.text()); state.dmPacks.push({ id: pack.packId || `upload-${Date.now()}`, title: pack.title || file.name, system: (pack.supportedSystems || [pack.system || "Unknown"]).join(" / "), status: "Uploaded", code: pack.backupCode || "" }); save(); panel.innerHTML = dmMarkup(); bindPanel(); }
+    catch { alert("That file is not a valid adventure JSON package."); }
+  });
+  panel.querySelectorAll("[data-open-pack]").forEach(button => button.addEventListener("click", () => { location.href = `?pack=${encodeURIComponent(button.dataset.openPack)}`; }));
+  panel.querySelectorAll("[data-open-player-view]").forEach(button => button.addEventListener("click", () => { showTab("table"); setTimeout(() => document.querySelector("[data-view='player']")?.click(), 0); }));
+  panel.querySelectorAll("[data-library-tab]").forEach(button => button.addEventListener("click", () => showTab(button.dataset.libraryTab)));
+}
+
+shell.querySelectorAll(".library-tabs [data-library-tab]").forEach(button => button.addEventListener("click", () => showTab(button.dataset.libraryTab)));
+showTab("table");
