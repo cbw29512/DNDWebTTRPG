@@ -5,14 +5,14 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="theme-color" content="#0a0b0d">
   <meta name="description" content="The Living Table card-driven online battle board MVP.">
-  <meta name="build" content="row-build-6-20260803">
-  <title>ROW BUILD 6 — The Living Table</title>
-  <link rel="stylesheet" href="styles.css?v=row-build-6">
-  <link rel="stylesheet" href="player-board.css?v=row-build-6">
-  <link rel="stylesheet" href="compact-stacks.css?v=row-build-6">
-  <link rel="stylesheet" href="card-modal.css?v=row-build-6">
+  <meta name="build" content="tabletop-polish-20260804">
+  <title>The Living Table — Battle Board MVP</title>
+  <link rel="stylesheet" href="styles.css?v=tabletop-polish-1">
+  <link rel="stylesheet" href="player-board.css?v=tabletop-polish-1">
+  <link rel="stylesheet" href="compact-stacks.css?v=tabletop-polish-1">
+  <link rel="stylesheet" href="card-modal.css?v=tabletop-polish-1">
+  <link rel="stylesheet" href="workspace-polish.css?v=tabletop-polish-1">
   <style>
-    /* Authoritative encounter layout. Seven direct children, one row, no wrapping. */
     #app .fixed-board{
       display:flex!important;
       flex-direction:row!important;
@@ -20,7 +20,7 @@
       grid-template-columns:none!important;
       grid-auto-flow:initial!important;
       align-items:stretch!important;
-      gap:12px!important;
+      gap:10px!important;
       width:100%!important;
       min-width:0!important;
       overflow-x:auto!important;
@@ -29,26 +29,14 @@
     }
     #app .fixed-board>section.board-slot[data-slot]{
       display:flex!important;
-      flex:0 0 188px!important;
+      flex:0 0 176px!important;
       flex-direction:column!important;
-      width:188px!important;
-      min-width:188px!important;
-      max-width:188px!important;
-      min-height:300px!important;
+      width:176px!important;
+      min-width:176px!important;
+      max-width:176px!important;
       grid-column:auto!important;
       grid-row:auto!important;
       margin:0!important;
-    }
-    #app .board-header h1::after{
-      content:"ROW BUILD 6";
-      display:inline-block;
-      margin-left:10px;
-      padding:4px 8px;
-      border:1px solid #d9b45f;
-      border-radius:999px;
-      color:#d9b45f;
-      font:700 .7rem/1 system-ui,sans-serif;
-      vertical-align:middle;
     }
     @media(max-width:900px){
       #app .fixed-board>section.board-slot[data-slot]{
@@ -63,7 +51,8 @@
 <body>
   <a class="skip" href="#board">Skip to battle board</a>
   <div id="app"></div>
-  <script type="module" src="src/app.js?v=row-build-6"></script>
-  <script defer src="card-modal.js?v=row-build-6"></script>
+  <script type="module" src="src/app.js?v=tabletop-polish-1"></script>
+  <script defer src="card-modal.js?v=tabletop-polish-1"></script>
+  <script defer src="workspace-controls.js?v=tabletop-polish-1"></script>
 </body>
 </html>
