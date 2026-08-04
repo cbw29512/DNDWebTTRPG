@@ -1,26 +1,9 @@
-export const characterCard = Object.freeze({
-  id: "wendy-birthday-hero",
-  name: "Wendy’s Birthday Hero",
-  classLine: "Level 3 Adventurer",
-  edition: "2014",
-  base: {
-    maxHp: 28,
-    baseAc: 13,
-    speed: 30,
-    proficiency: 2,
-    attack: 5,
-    damage: 3,
-    abilities: { strength: 10, dexterity: 16, constitution: 14, intelligence: 10, wisdom: 12, charisma: 15 },
-    saves: { strength: 1, dexterity: 5, constitution: 3, intelligence: 1, wisdom: 2, charisma: 4 }
-  },
-  features: [
-    "Birthday Spark: spend one candle token after a failed check to add 1d4.",
-    "Keeper of the Wish: Wendy decides how the recovered wish is shared."
-  ]
-});
+import { defaultCharacterCard } from "./character-cards.js";
 
-const srd = (item) => Object.freeze({ source: "SRD", color: "srd-item", ...item });
-const custom = (item) => Object.freeze({ source: "Wishing Cake", color: "custom-item", ...item });
+export const characterCard = defaultCharacterCard;
+
+const srd = item => Object.freeze({ source:"SRD", color:"srd-item", ...item });
+const custom = item => Object.freeze({ source:"Wishing Cake", color:"custom-item", ...item });
 
 export const itemCards = Object.freeze([
   srd({ id:"leather-armor", name:"Leather Armor", category:"armor", rarity:"standard", image:"🥋", validSlots:["armor"], attunement:false, edition:"2014/2024", front:"Supple leather armor", playerText:"Armor Class equals 11 + Dexterity modifier.", dmText:"This armor sets AC to 11 + Dexterity modifier; it does not stack with another armor formula.", effects:[{kind:"armorFormula",base:11,dexCap:null}] }),
@@ -37,67 +20,12 @@ export const itemCards = Object.freeze([
 ]);
 
 export const slotLabels = Object.freeze({ head:"Head", neck:"Neck", shoulders:"Shoulders", armor:"Armor", hands:"Hands", mainHand:"Main Hand", offHand:"Off Hand", ring1:"Ring 1", ring2:"Ring 2", feet:"Feet", wondrous:"Wondrous" });
-
-export function createInventory() {
-  return itemCards.map(item => ({ ...item, effects:item.effects.map(effect=>({...effect})), uses:item.uses?{...item.uses}:null, consumable:item.consumable?{...item.consumable}:null }));
-}
-
+export function createInventory(ownedIds = null) { const allowed=ownedIds?new Set(ownedIds):null; return itemCards.filter(item=>!allowed||allowed.has(item.id)).map(item=>({ ...item, effects:item.effects.map(effect=>({...effect})), uses:item.uses?{...item.uses}:null, consumable:item.consumable?{...item.consumable}:null })); }
 export function validSlots(item) { return item?.validSlots ?? []; }
-
-export function equippedItems(state, inventory) {
-  return Object.values(state.equipped).filter(Boolean).map(id => inventory.find(item => item.id === id)).filter(Boolean);
-}
-
-export function attunementCount(state, inventory) { return equippedItems(state, inventory).filter(item => item.attunement).length; }
-
-export function canEquip(item, slot, state, inventory) {
-  if (!item || !validSlots(item).includes(slot)) return { ok:false, reason:"That card does not fit this equipment slot." };
-  const alreadyEquipped = Object.values(state.equipped).includes(item.id);
-  const replacing = state.equipped[slot] ? inventory.find(entry => entry.id === state.equipped[slot]) : null;
-  const nextAttuned = attunementCount(state, inventory) - (replacing?.attunement ? 1 : 0) + (item.attunement && !alreadyEquipped ? 1 : 0);
-  if (nextAttuned > 3) return { ok:false, reason:"You cannot attune to more than three magic items." };
-  return { ok:true };
-}
-
-export function deriveStats(state, inventory) {
-  const base = characterCard.base;
-  const stats = { ...base, ac:base.baseAc, abilities:{...base.abilities}, saves:{...base.saves}, traits:[], attackProfile:null };
-  for (const item of equippedItems(state, inventory)) {
-    for (const effect of item.effects) {
-      if (effect.kind === "armorFormula") stats.ac = Math.max(stats.ac, effect.base + Math.floor((stats.abilities.dexterity - 10) / 2));
-      if (effect.kind === "add") stats[effect.target] = (stats[effect.target] ?? 0) + effect.value;
-      if (effect.kind === "allSaves") Object.keys(stats.saves).forEach(key => { stats.saves[key] += effect.value; });
-      if (effect.kind === "trait") stats.traits.push(effect.label);
-      if (effect.kind === "advantage") stats.traits.push(`Advantage: ${effect.target}`);
-    }
-    if (item.attack) stats.attackProfile = { ...item.attack, name:item.name };
-  }
-  return stats;
-}
-
-export function equipItem(state, inventory, itemId, slot) {
-  const item = inventory.find(entry => entry.id === itemId);
-  const check = canEquip(item, slot, state, inventory);
-  if (!check.ok) return check;
-  Object.keys(state.equipped).forEach(key => { if (state.equipped[key] === itemId) state.equipped[key] = null; });
-  state.equipped[slot] = itemId;
-  return { ok:true };
-}
-
-export function unequipItem(state, itemId) {
-  Object.keys(state.equipped).forEach(slot => { if (state.equipped[slot] === itemId) state.equipped[slot] = null; });
-}
-
-export function useItem(item) {
-  if (item.uses) {
-    if (item.uses.current < 1) return { ok:false, reason:"No charges remain." };
-    item.uses.current -= 1;
-    return { ok:true, text:`${item.uses.current}/${item.uses.max} charges remain.` };
-  }
-  if (item.consumable) {
-    if (item.consumable.count < 1) return { ok:false, reason:"None remain." };
-    item.consumable.count -= 1;
-    return { ok:true, text:`${item.consumable.count} remain.` };
-  }
-  return { ok:false, reason:"This item has no tracked use." };
-}
+export function equippedItems(state, inventory) { return Object.values(state.equipped).filter(Boolean).map(id=>inventory.find(item=>item.id===id)).filter(Boolean); }
+export function attunementCount(state, inventory) { return equippedItems(state,inventory).filter(item=>item.attunement).length; }
+export function canEquip(item,slot,state,inventory) { if(!item||!validSlots(item).includes(slot))return{ok:false,reason:"That card does not fit this equipment slot."}; const already=Object.values(state.equipped).includes(item.id); const replacing=state.equipped[slot]?inventory.find(entry=>entry.id===state.equipped[slot]):null; const next=attunementCount(state,inventory)-(replacing?.attunement?1:0)+(item.attunement&&!already?1:0); return next>3?{ok:false,reason:"You cannot attune to more than three magic items."}:{ok:true}; }
+export function deriveStats(state, inventory, activeCharacter = characterCard) { const base=activeCharacter.base; const stats={...base,ac:base.baseAc,abilities:{...base.abilities},saves:{...base.saves},traits:[],attackProfile:null}; for(const item of equippedItems(state,inventory)){for(const effect of item.effects){if(effect.kind==="armorFormula")stats.ac=Math.max(stats.ac,effect.base+Math.floor((stats.abilities.dexterity-10)/2));if(effect.kind==="add")stats[effect.target]=(stats[effect.target]??0)+effect.value;if(effect.kind==="allSaves")Object.keys(stats.saves).forEach(key=>stats.saves[key]+=effect.value);if(effect.kind==="trait")stats.traits.push(effect.label);if(effect.kind==="advantage")stats.traits.push(`Advantage: ${effect.target}`);}if(item.attack)stats.attackProfile={...item.attack,name:item.name};}return stats; }
+export function equipItem(state,inventory,itemId,slot){const item=inventory.find(entry=>entry.id===itemId);const check=canEquip(item,slot,state,inventory);if(!check.ok)return check;Object.keys(state.equipped).forEach(key=>{if(state.equipped[key]===itemId)state.equipped[key]=null;});state.equipped[slot]=itemId;return{ok:true};}
+export function unequipItem(state,itemId){Object.keys(state.equipped).forEach(slot=>{if(state.equipped[slot]===itemId)state.equipped[slot]=null;});}
+export function useItem(item){if(item.uses){if(item.uses.current<1)return{ok:false,reason:"No charges remain."};item.uses.current-=1;return{ok:true,text:`${item.uses.current}/${item.uses.max} charges remain.`};}if(item.consumable){if(item.consumable.count<1)return{ok:false,reason:"None remain."};item.consumable.count-=1;return{ok:true,text:`${item.consumable.count} remain.`};}return{ok:false,reason:"This item has no tracked use."};}
