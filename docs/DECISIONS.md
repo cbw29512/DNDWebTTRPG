@@ -1,6 +1,6 @@
 # Approved Product Decisions
 
-Last updated: 2026-08-04
+Last updated: 2026-08-05
 
 1. The project lives in `cbw29512/DNDWebTTRPG`.
 2. Working product name: **The Living Table**.
@@ -40,3 +40,10 @@ Last updated: 2026-08-04
 36. Full-document `MutationObserver` rendering is prohibited unless narrowly justified, guarded, tested, and documented.
 37. Every meaningful PR records its milestone, exact merge SHA, delivered behavior, tests actually run, browser verification, remaining limitations, and next acceptance test.
 38. `docs/PROJECT_CONTROL.md`, `docs/IMPLEMENTATION_LEDGER.md`, `PROJECT_STATUS.md`, and this decision log must remain synchronized after major changes.
+39. A **Location** is the broad place containing play: a city, biome, coast, cave system, castle, temple, region, or similar large environment.
+40. A **Room** is the party's immediate playable surroundings and battle-map scale, including enclosed chambers and open encounter areas such as clearings, campsites, bridges, shore sections, and ambush zones.
+41. A Room always belongs to a Location. Moving between rooms normally leaves the Location unchanged.
+42. The Location changes only when the party leaves the broad environment and enters another broad environment.
+43. Room cards contain picture-first fronts, player read-aloud information, and DM-only checks, DCs, triggers, secrets, consequences, related cards, and conditional exits.
+44. Room transitions may be triggered by player actions. Example: turning a torch bracket after a successful DC 15 check can reveal a secret door and change the current Room to `secret-room-1` while the Location remains the castle.
+45. Location and Room are not interchangeable terms in manifests, state, UI labels, tests, or documentation. `docs/SCENE_MODEL.md` is the canonical spatial definition.
