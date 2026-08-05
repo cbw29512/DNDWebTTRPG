@@ -2,28 +2,29 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#0a0b0d">
   <meta name="description" content="The Living Table card-driven online battle board MVP.">
-  <meta name="build" content="ordered-location-room-runtime-20260805">
+  <meta name="build" content="mobile-responsive-layout-20260805">
   <title>The Living Table — Libraries and Tabletop</title>
-  <link rel="stylesheet" href="styles.css?v=scene-runtime-1">
-  <link rel="stylesheet" href="player-board.css?v=scene-runtime-1">
-  <link rel="stylesheet" href="compact-stacks.css?v=scene-runtime-1">
-  <link rel="stylesheet" href="stack-drawer-layer.css?v=scene-runtime-1">
-  <link rel="stylesheet" href="card-modal.css?v=scene-runtime-1">
-  <link rel="stylesheet" href="workspace-polish.css?v=scene-runtime-1">
-  <link rel="stylesheet" href="quest-tracker.css?v=scene-runtime-1">
-  <link rel="stylesheet" href="encounter-scale.css?v=scene-runtime-1">
-  <link rel="stylesheet" href="player-ready.css?v=scene-runtime-1">
-  <link rel="stylesheet" href="adventure-loader.css?v=scene-runtime-1">
-  <link rel="stylesheet" href="library-hub.css?v=scene-runtime-1">
-  <link rel="stylesheet" href="player-library-filter.css?v=scene-runtime-1">
-  <link rel="stylesheet" href="combat-card-library.css?v=scene-runtime-1">
-  <link rel="stylesheet" href="card-quality-audit.css?v=scene-runtime-1">
-  <link rel="stylesheet" href="local-session.css?v=scene-runtime-1">
-  <link rel="stylesheet" href="scene-runtime.css?v=scene-runtime-1">
-  <link rel="stylesheet" href="pregen-character-card.css?v=scene-runtime-1">
+  <link rel="stylesheet" href="styles.css?v=mobile-layout-1">
+  <link rel="stylesheet" href="player-board.css?v=mobile-layout-1">
+  <link rel="stylesheet" href="compact-stacks.css?v=mobile-layout-1">
+  <link rel="stylesheet" href="stack-drawer-layer.css?v=mobile-layout-1">
+  <link rel="stylesheet" href="card-modal.css?v=mobile-layout-1">
+  <link rel="stylesheet" href="workspace-polish.css?v=mobile-layout-1">
+  <link rel="stylesheet" href="quest-tracker.css?v=mobile-layout-1">
+  <link rel="stylesheet" href="encounter-scale.css?v=mobile-layout-1">
+  <link rel="stylesheet" href="player-ready.css?v=mobile-layout-1">
+  <link rel="stylesheet" href="adventure-loader.css?v=mobile-layout-1">
+  <link rel="stylesheet" href="library-hub.css?v=mobile-layout-1">
+  <link rel="stylesheet" href="player-library-filter.css?v=mobile-layout-1">
+  <link rel="stylesheet" href="combat-card-library.css?v=mobile-layout-1">
+  <link rel="stylesheet" href="card-quality-audit.css?v=mobile-layout-1">
+  <link rel="stylesheet" href="local-session.css?v=mobile-layout-1">
+  <link rel="stylesheet" href="scene-runtime.css?v=mobile-layout-1">
+  <link rel="stylesheet" href="pregen-character-card.css?v=mobile-layout-1">
+  <link rel="stylesheet" href="mobile-responsive.css?v=mobile-layout-1">
   <style>
     #app .fixed-board{display:flex!important;flex-direction:row!important;flex-wrap:nowrap!important;grid-template-columns:none!important;grid-auto-flow:initial!important;align-items:stretch!important;gap:14px!important;width:100%!important;min-width:0!important;overflow-x:auto!important;overflow-y:hidden!important;padding:4px 4px 14px!important}
     #app .fixed-board>section.board-slot[data-slot]{display:flex!important;flex-direction:column!important;grid-column:auto!important;grid-row:auto!important;margin:0!important}
@@ -34,20 +35,20 @@
 <body>
   <a class="skip" href="#board">Skip to battle board</a>
   <div id="app"></div>
-  <script type="module" src="adventure-loader.js?v=scene-runtime-1"></script>
-  <script type="module" src="local-session.js?v=scene-runtime-1"></script>
-  <script type="module" src="scene-runtime.js?v=scene-runtime-1"></script>
-  <script type="module" src="quest-tracker.js?v=scene-runtime-1"></script>
-  <script defer src="encounter-slot-guard.js?v=scene-runtime-1"></script>
-  <script defer src="card-modal.js?v=scene-runtime-1"></script>
-  <script defer src="workspace-controls.js?v=scene-runtime-1"></script>
-  <script defer src="stack-drawer-layer.js?v=scene-runtime-1"></script>
-  <script type="module" src="player-ready.js?v=scene-runtime-1"></script>
-  <script type="module" src="player-session-bridge.js?v=scene-runtime-1"></script>
-  <script type="module" src="pregen-character-loader.js?v=scene-runtime-1"></script>
-  <script type="module" src="library-hub.js?v=scene-runtime-1"></script>
-  <script defer src="player-library-filter.js?v=scene-runtime-1"></script>
-  <script type="module" src="combat-card-library.js?v=scene-runtime-1"></script>
-  <script type="module" src="card-quality-audit.js?v=scene-runtime-1"></script>
+  <script type="module" src="adventure-loader.js?v=mobile-layout-1"></script>
+  <script type="module" src="local-session.js?v=mobile-layout-1"></script>
+  <script type="module" src="scene-runtime.js?v=mobile-layout-1"></script>
+  <script type="module" src="quest-tracker.js?v=mobile-layout-1"></script>
+  <script defer src="encounter-slot-guard.js?v=mobile-layout-1"></script>
+  <script defer src="card-modal.js?v=mobile-layout-1"></script>
+  <script defer src="workspace-controls.js?v=mobile-layout-1"></script>
+  <script defer src="stack-drawer-layer.js?v=mobile-layout-1"></script>
+  <script type="module" src="player-ready.js?v=mobile-layout-1"></script>
+  <script type="module" src="player-session-bridge.js?v=mobile-layout-1"></script>
+  <script type="module" src="pregen-character-loader.js?v=mobile-layout-1"></script>
+  <script type="module" src="library-hub.js?v=mobile-layout-1"></script>
+  <script defer src="player-library-filter.js?v=mobile-layout-1"></script>
+  <script type="module" src="combat-card-library.js?v=mobile-layout-1"></script>
+  <script type="module" src="card-quality-audit.js?v=mobile-layout-1"></script>
 </body>
 </html>
