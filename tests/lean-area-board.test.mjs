@@ -10,12 +10,13 @@ const questTracker = fs.readFileSync('quest-tracker.js', 'utf8');
 
 assert.match(html, /lean-area-board-20260805/);
 assert.match(playerHtml, /lean-area-board-20260805/);
-assert.match(guard, /VISIBLE_SLOT_IDS/);
+
+const visibleSet = guard.match(/VISIBLE_SLOT_IDS = new Set\(\[([\s\S]*?)\]\);/)?.[1] || '';
 for (const slot of ['location', 'site', 'room', 'npc', 'monster', 'hazard', 'treasure']) {
-  assert.match(guard, new RegExp(`"${slot}"`));
+  assert.match(visibleSet, new RegExp(`"${slot}"`));
 }
-assert.doesNotMatch(guard, /VISIBLE_SLOT_IDS[\s\S]*"scene"/);
-assert.doesNotMatch(guard, /VISIBLE_SLOT_IDS[\s\S]*"objective"/);
+assert.doesNotMatch(visibleSet, /"scene"/);
+assert.doesNotMatch(visibleSet, /"objective"/);
 assert.match(guard, /title\.textContent = "Area"/);
 assert.match(guard, /Now: \$\{sceneTitle\}/);
 assert.match(guard, /data-card-type="scene"/);
@@ -23,6 +24,7 @@ assert.match(guard, /data-card-type="objective"/);
 assert.match(scaleCss, /data-slot="scene"/);
 assert.match(scaleCss, /data-slot="objective"/);
 assert.match(boardCss, /Immediate playable area/);
+assert.match(questTracker, /isDungeonMaster/);
 assert.match(questTracker, /Quest Tracker/);
 assert.match(questTracker, /questState/);
 
