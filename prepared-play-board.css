@@ -1,4 +1,10 @@
 /* Prepared adventures own Location, Site, and Area. The DM operates encounter content. */
+body.prepared-play-active {
+  --prepared-board-slot-min-width: 208px;
+  --prepared-board-slot-height: 420px;
+  --prepared-board-heading-height: 78px;
+}
+
 body.prepared-play-active #app [data-prepared-context="true"] .slot-add,
 body.prepared-play-active #app [data-prepared-context="true"] [data-remove-instance] {
   display:none!important;
@@ -14,22 +20,70 @@ body.prepared-play-active #app [data-prepared-context="true"] .slot-heading::aft
   display:none!important;
 }
 
+/*
+ * The seven live-board slots are one visual set. The grid track owns their
+ * width and every slot owns the same fixed desktop height. Content may vary,
+ * but the outer boxes, headings, card baselines, and bottom edges may not.
+ */
 body.prepared-play-active #app .fixed-board {
-  align-items:flex-start!important;
-  align-content:flex-start!important;
-  min-height:0!important;
+  display:grid!important;
+  grid-template-columns:repeat(7,minmax(var(--prepared-board-slot-min-width),1fr))!important;
+  grid-auto-rows:var(--prepared-board-slot-height)!important;
+  align-items:stretch!important;
+  align-content:stretch!important;
+  justify-content:stretch!important;
+  gap:14px!important;
+  width:100%!important;
+  min-height:var(--prepared-board-slot-height)!important;
+  overflow-x:auto!important;
+  overflow-y:visible!important;
 }
 
-body.prepared-play-active #app .fixed-board > .board-slot {
-  align-self:flex-start!important;
-  min-height:0!important;
-  flex:1 1 170px!important;
-  min-width:164px!important;
-  max-width:240px!important;
+body.prepared-play-active #app .fixed-board > .board-slot[data-slot] {
+  display:flex!important;
+  flex-direction:column!important;
+  align-self:stretch!important;
+  width:auto!important;
+  min-width:var(--prepared-board-slot-min-width)!important;
+  max-width:none!important;
+  height:var(--prepared-board-slot-height)!important;
+  min-height:var(--prepared-board-slot-height)!important;
+  max-height:var(--prepared-board-slot-height)!important;
+  flex:none!important;
+  overflow:hidden!important;
+}
+
+body.prepared-play-active #app .fixed-board > .board-slot[data-slot] > .slot-heading {
+  flex:0 0 var(--prepared-board-heading-height)!important;
+  min-height:var(--prepared-board-heading-height)!important;
+  max-height:var(--prepared-board-heading-height)!important;
+  align-items:flex-start!important;
+  overflow:hidden!important;
 }
 
 body.prepared-play-active #app .single-card-holder {
+  flex:1 1 auto!important;
   min-height:0!important;
+  height:auto!important;
+  align-content:start!important;
+  justify-items:center!important;
+  overflow:hidden!important;
+}
+
+/* Stack shells and empty placeholders must occupy the same tarot footprint as
+   a normal card. Wider wrappers make equal slots look unequal even when the
+   outer grid math is correct. */
+body.prepared-play-active #app .single-card-holder > .tarot-card,
+body.prepared-play-active #app .card-stack,
+body.prepared-play-active #app .stack-toggle,
+body.prepared-play-active #app .empty-slot {
+  width:var(--live-tarot-card-width,148px)!important;
+  min-width:var(--live-tarot-card-width,148px)!important;
+  max-width:var(--live-tarot-card-width,148px)!important;
+}
+
+body.prepared-play-active #app .empty-slot {
+  min-height:256px!important;
 }
 
 body.prepared-play-active #app .encounter-board {
@@ -137,8 +191,18 @@ body.role-player .area-current-scene {
 }
 
 @media(max-width:760px) {
-  body.prepared-play-active #app .fixed-board > .board-slot {
+  body.prepared-play-active #app .fixed-board {
+    grid-template-columns:minmax(0,1fr)!important;
+    grid-auto-rows:auto!important;
+    overflow-x:visible!important;
+  }
+
+  body.prepared-play-active #app .fixed-board > .board-slot[data-slot] {
     width:100%!important;
+    min-width:0!important;
     max-width:none!important;
+    height:auto!important;
+    min-height:var(--prepared-board-slot-height)!important;
+    max-height:none!important;
   }
 }
