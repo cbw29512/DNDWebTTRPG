@@ -96,7 +96,7 @@ assert.match(app,/data-flip-card/); assert.match(app,/data-remove-instance/);
 assert.match(css,/\.fixed-board/); assert.match(css,/\.board-slot/); assert.match(css,/\.tarot-card/); assert.match(css,/\.card-picker/);
 assert.match(hierarchyCss,/data-slot="location"/); assert.match(hierarchyCss,/data-slot="site"/); assert.match(hierarchyCss,/data-slot="room"/); assert.doesNotMatch(hierarchyCss,/data-slot="scene"/); assert.match(hierarchyCss,/flex-wrap: wrap !important/);
 assert.match(stackCss,/\.card-stack/); assert.match(stackCss,/\.stack-count/); assert.match(stackCss,/\.inside-card-rolls/); assert.match(stackCss,/\.stack-drawer/);
-assert.match(vision,/server-side/i); assert.match(mvp,/complete D&D-style combat encounter/i);
+assert.match(vision,/server-side/i); assert.match(mvp,/complete (?:a single )?D&D-style combat encounter/i);
 
 const slotDefinitions = [...app.matchAll(/id: "(location|site|room|npc|monster|hazard|treasure)"/g)].map(match => match[1]);
 assert.deepEqual(slotDefinitions, ['location','site','room','npc','monster','hazard','treasure']);
