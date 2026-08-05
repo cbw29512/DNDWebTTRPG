@@ -39,8 +39,8 @@ const board = {
   site: [makeInstance("site-wishing-cake-inn")],
   room: [makeInstance("room")],
   scene: [makeInstance("scene-stolen-wish")],
-  npc: [makeInstance("caretaker")],
-  monster: [makeInstance("priest"), makeInstance("skeleton"), makeInstance("skeleton"), makeInstance("skeleton"), makeInstance("skeleton")],
+  npc: [makeInstance("caretaker"), makeInstance("npc-boris"), makeInstance("npc-pip"), makeInstance("npc-lute")],
+  monster: [makeInstance("priest")],
   hazard: [],
   objective: [makeInstance("objective")],
   treasure: [makeInstance("lantern")]
