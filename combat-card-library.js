@@ -1,61 +1,41 @@
 import { loadDungeonCardsCatalog } from './src/library/dndcards-catalog.js';
 
-const ICONS=Object.freeze({hp:'HP',armor:'🛡',speed:'➜',melee:'⚔',ranged:'➶',spell:'✦',dc:'⬡',roll:'◈',recharge:'↻',reaction:'⚡'});
+export const ICONS=Object.freeze({hp:'HP',armor:'🛡',speed:'➜',melee:'⚔',ranged:'➶',spell:'✦',dc:'⬡',roll:'◈',recharge:'↻',reaction:'⚡',value:'¤',uses:'●',trigger:'!',exit:'⇥',reward:'★',duration:'⌛',attune:'◇',check:'◈'});
 const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
-const glyph=kind=>({monster:'🐲',character:'🧙',item:'✨',room:'🚪',npc:'♟',hazard:'⚠',rule:'📖',event:'🎲'}[kind]||'🎴');
-const frontBadge=card=>card.raw?.badge||card.raw?.rarity||card.raw?.challengeLabel&&`CR ${card.raw.challengeLabel}`||card.kind.toUpperCase();
-const statIcon=text=>text.startsWith('🛡')?ICONS.armor:text.startsWith('♥')?ICONS.hp:text.startsWith('➜')?ICONS.speed:text.startsWith('⚔')?ICONS.melee:text.startsWith('➶')?ICONS.ranged:text.startsWith('✦')?ICONS.spell:text.startsWith('⬡')?ICONS.dc:'◆';
-const cleanStat=text=>String(text).replace(/^[🛡♥➜⚔➶✦⬡◈↻⚡]\s*/, '');
+const glyph=kind=>({monster:'🐲',character:'🧙',item:'✨',treasure:'💎',room:'🚪',location:'🗺',npc:'♟',hazard:'⚠',trap:'⚠',rule:'📖',event:'🎲',quest:'◆',objective:'◆',spell:'✦'}[kind]||'🎴');
+const label=kind=>({monster:'Monster',character:'Character',item:'Item',treasure:'Treasure',room:'Room',location:'Location',npc:'NPC',hazard:'Hazard',trap:'Trap',rule:'Rule',event:'Event',quest:'Quest',objective:'Objective',spell:'Spell'}[kind]||'Card');
+const text=value=>Array.isArray(value)?value.join(' • '):String(value??'');
+const first=(raw,...keys)=>{for(const key of keys){const value=raw?.[key];if(value!==undefined&&value!==null&&value!=='')return value;}return'';};
+const frontBadge=card=>card.raw?.badge||card.raw?.rarity||card.raw?.challengeLabel&&`CR ${card.raw.challengeLabel}`||card.raw?.level&&`LEVEL ${card.raw.level}`||label(card.kind).toUpperCase();
+const statIcon=value=>{const s=String(value);return s.startsWith('🛡')?ICONS.armor:s.startsWith('♥')||/^HP\b/i.test(s)?ICONS.hp:s.startsWith('➜')?ICONS.speed:s.startsWith('⚔')?ICONS.melee:s.startsWith('➶')?ICONS.ranged:s.startsWith('✦')?ICONS.spell:s.startsWith('⬡')?ICONS.dc:'◆';};
+const cleanStat=value=>String(value).replace(/^(?:🛡|♥|➜|⚔|➶|✦|⬡|◈|↻|⚡|HP)\s*/i,'');
 const abilityNames=['STR','DEX','CON','INT','WIS','CHA'];
-const mod=n=>`${Math.floor((Number(n)-10)/2)>=0?'+':''}${Math.floor((Number(n)-10)/2)}`;
+const mod=n=>{const value=Math.floor((Number(n)-10)/2);return`${value>=0?'+':''}${value}`;};
+const row=(icon,name,value,detail='')=>value?`<div class="combat-action-row"><b>${esc(icon)}</b><span><strong>${esc(name)}</strong><small>${esc(text(value))}</small>${detail?`<em>${esc(text(detail))}</em>`:''}</span></div>`:'';
 
-function actionRows(card){
-  return (card.raw?.actions||[]).map(action=>{
-    const icon=action.icon||({melee:ICONS.melee,ranged:ICONS.ranged,spell:ICONS.spell}[action.kind])||ICONS.roll;
-    return `<div class="combat-action-row"><b>${esc(icon)}</b><span><strong>${esc(action.label)}</strong><small>${esc(action.roll||'')} ${action.damage?`• ${esc(action.damage)}`:''} ${action.range?`• ${esc(action.range)}`:''}</small>${action.effect?`<em>${esc(action.effect)}</em>`:''}</span></div>`;
-  }).join('');
-}
-function statGrid(card){
-  const stats=(card.quickStats||[]).map(stat=>`<div class="combat-stat"><b>${esc(statIcon(stat))}</b><span>${esc(cleanStat(stat))}</span></div>`).join('');
-  const abilities=Array.isArray(card.raw?.abilities)?`<div class="combat-abilities">${card.raw.abilities.map((score,i)=>`<span><b>${abilityNames[i]}</b>${esc(score)} <small>${mod(score)}</small></span>`).join('')}</div>`:'';
-  return `${stats}${abilities}`;
-}
-function artMarkup(card){
-  const art=card.art;
-  if(typeof art==='string'&&/^https?:|^\.\/|^\//.test(art)) return `<img src="${esc(art)}" alt="${esc(card.title)}">`;
-  return `<span>${esc(typeof art==='string'&&art.length<8?art:glyph(card.kind))}</span>`;
-}
-function openCombatCard(card){
-  document.querySelector('.combat-card-dialog')?.remove();
-  const dialog=document.createElement('dialog');
-  dialog.className='combat-card-dialog';
-  dialog.innerHTML=`<button class="combat-dialog-close" aria-label="Close">×</button><div class="combat-tarot-pair">
-    <article class="combat-tarot-front"><header><span>${esc(card.kind)}</span><b>${esc(frontBadge(card))}</b></header><div class="combat-front-art">${artMarkup(card)}</div><h2>${esc(card.title)}</h2></article>
-    <article class="combat-tarot-back"><header><span>${esc(card.title)}</span><b>${esc(frontBadge(card))}</b></header><div class="combat-back-stats">${statGrid(card)}</div>${actionRows(card)?`<section class="combat-actions"><h3>Actions</h3>${actionRows(card)}</section>`:''}${card.dmText?`<section class="combat-traits"><h3>Traits / Rules</h3><p>${esc(card.dmText)}</p></section>`:''}<footer>${esc(card.raw?.edition||'')} ${card.raw?.source?`• ${esc(card.raw.source)}`:''}</footer></article>
-  </div>`;
-  document.body.append(dialog);
-  dialog.querySelector('.combat-dialog-close').onclick=()=>dialog.close();
-  dialog.addEventListener('close',()=>dialog.remove());
-  dialog.showModal();
-}
+function artMarkup(card){const art=card.art;if(typeof art==='string'&&/^https?:|^\.\/|^\//.test(art))return`<img src="${esc(art)}" alt="${esc(card.title)}">`;return`<span>${esc(typeof art==='string'&&art.length<8?art:glyph(card.kind))}</span>`;}
+function statGrid(card){const stats=(card.quickStats||[]).map(stat=>`<div class="combat-stat"><b>${esc(statIcon(stat))}</b><span>${esc(cleanStat(stat))}</span></div>`).join('');const abilities=Array.isArray(card.raw?.abilities)?`<div class="combat-abilities">${card.raw.abilities.map((score,i)=>`<span><b>${abilityNames[i]}</b>${esc(score)} <small>${mod(score)}</small></span>`).join('')}</div>`:'';return`${stats}${abilities}`;}
+function actionRows(card){return(card.raw?.actions||[]).map(action=>{const icon=action.icon||({melee:ICONS.melee,ranged:ICONS.ranged,spell:ICONS.spell,save:ICONS.dc,effect:ICONS.spell}[action.kind])||ICONS.roll;const detail=[action.effect,action.cost,action.save?.ability&&`DC ${action.save.dc||''} ${action.save.ability}`].filter(Boolean).join(' • ');return row(icon,action.label,[action.roll,action.damage&&`DMG ${action.damage}`,action.range].filter(Boolean).join(' • '),detail);}).join('');}
 
-let cards=[];
-loadDungeonCardsCatalog().then(result=>{cards=result;enhance();});
-function enhance(root=document){
-  root.querySelectorAll?.('[data-catalog-card]').forEach(article=>{
-    if(article.dataset.combatEnhanced==='true')return;
-    const card=cards.find(entry=>entry.id===article.dataset.catalogCard);if(!card)return;
-    article.dataset.combatEnhanced='true';
-    const art=article.querySelector('.library-card-art');
-    if(art)art.innerHTML=`<span class="catalog-front-badge">${esc(frontBadge(card))}</span><div class="catalog-front-picture">${artMarkup(card)}</div><strong>${esc(card.title)}</strong>`;
-    const body=article.children[1];
-    if(body)body.innerHTML=`<small>${esc(card.kind)} · ${esc(card.raw?.edition||'DungeonCards')}</small><h3>${esc(card.title)}</h3><div class="catalog-combat-strip">${(card.quickStats||[]).slice(0,4).map(stat=>`<span><b>${esc(statIcon(stat))}</b>${esc(cleanStat(stat))}</span>`).join('')}</div>${(card.raw?.actions||[]).slice(0,2).map(action=>`<p class="catalog-action-line"><b>${esc(action.icon||ICONS.roll)}</b> ${esc(action.label)} ${esc(action.roll||'')} ${action.damage?`• ${esc(action.damage)}`:''}</p>`).join('')}`;
-  });
-}
+export function categoryRows(card){const r=card.raw||{};const actions=actionRows(card);switch(card.kind){
+case'monster':return actions+row(ICONS.recharge,'Recharge',first(r,'recharge','rechargeOn'))+row(ICONS.reaction,'Reaction',first(r,'reaction','reactions'));
+case'character':return actions+row(ICONS.armor,'Proficiency',first(r,'proficiencyBonus','proficiency'))+row(ICONS.spell,'Features',first(r,'features','traits','classFeatures'))+row(ICONS.uses,'Resources',first(r,'resources','uses'));
+case'item':case'treasure':return row(ICONS.value,'Rarity / Value',[first(r,'rarity'),first(r,'value','cost')].filter(Boolean).join(' • '))+row(ICONS.attune,'Attunement',first(r,'attunement','requiresAttunement'))+row(ICONS.uses,'Uses / Charges',first(r,'charges','uses','count'))+row(ICONS.roll,'Equip / Use',first(r,'slot','equipSlot','action','activation'))+actions+row(ICONS.spell,'Effect',first(r,'effect','rulesText','properties'));
+case'npc':return row(ICONS.check,'Checks',first(r,'checks','skills','dc'))+row('💬','Dialogue',first(r,'dialogue','lines','talkingPoints'))+actions+row('🔒','DM Secret',first(r,'secret','secrets','dmSecret')||card.dmText);
+case'room':case'location':return row('📣','Read Aloud',first(r,'readAloud','playerText')||card.playerText)+row(ICONS.check,'Checks / Clues',first(r,'checks','clues','investigation'))+row(ICONS.exit,'Exits',first(r,'exits','connections','nextRooms'))+row(ICONS.trigger,'Hazards',first(r,'hazards','traps'))+row(ICONS.reward,'Rewards',first(r,'rewards','treasure'));
+case'hazard':case'trap':return row(ICONS.trigger,'Trigger',first(r,'trigger','triggers'))+row(ICONS.dc,'Save / Check',[first(r,'dc'),first(r,'save','check')].filter(Boolean).join(' • '))+row(ICONS.hp,'Damage / Effect',first(r,'damage','effect','consequence'))+row(ICONS.check,'Disarm / Avoid',first(r,'disarm','disable','avoid'))+row(ICONS.recharge,'Reset',first(r,'reset','recharge'));
+case'rule':return row('①','Procedure',first(r,'procedure','steps','rulesText')||card.playerText)+row(ICONS.roll,'Roll',first(r,'roll','dice','check'))+row(ICONS.dc,'Result',first(r,'result','outcome','effect'))+row('例','Example',first(r,'example','examples'));
+case'event':return row(ICONS.trigger,'Trigger',first(r,'trigger','when'))+row(ICONS.roll,'Roll / Draw',first(r,'roll','table','dice'))+row(ICONS.dc,'Outcomes',first(r,'outcomes','results','effect')||card.dmText)+row(ICONS.duration,'Duration',first(r,'duration'))+row(ICONS.recharge,'Reset',first(r,'reset'));
+case'quest':case'objective':return row('◆','Goal',first(r,'goal','objective')||card.playerText)+row(ICONS.check,'Requirements',first(r,'requirements','steps'))+row(ICONS.reward,'Reward',first(r,'reward','rewards'))+row('✓','Completion',first(r,'completion','success'))+row('✕','Failure',first(r,'failure','consequence'));
+case'spell':return row(ICONS.spell,'Level / School',[first(r,'level'),first(r,'school')].filter(Boolean).join(' • '))+row(ICONS.uses,'Casting',first(r,'castingTime','action'))+row(ICONS.ranged,'Range / Area',[first(r,'range'),first(r,'area')].filter(Boolean).join(' • '))+row(ICONS.duration,'Duration',first(r,'duration'))+row(ICONS.dc,'Save / Attack',[first(r,'save'),first(r,'attack')].filter(Boolean).join(' • '))+row(ICONS.hp,'Damage / Effect',first(r,'damage','effect')||card.dmText);
+default:return actions+row(ICONS.roll,'Card Rules',card.dmText||card.playerText);
+}}
+function summaryRows(card){return categoryRows(card)||row(ICONS.roll,'Card Rules',card.dmText||card.playerText||'No rules supplied.');}
+const rulesFooter=card=>[card.raw?.edition,card.raw?.source,`ID ${card.id}`].filter(Boolean).join(' • ');
+function openCombatCard(card){document.querySelector('.combat-card-dialog')?.remove();const dialog=document.createElement('dialog');dialog.className=`combat-card-dialog kind-${esc(card.kind)}`;dialog.innerHTML=`<button class="combat-dialog-close" aria-label="Close">×</button><div class="combat-tarot-pair"><article class="combat-tarot-front"><header><span>${esc(label(card.kind))}</span><b>${esc(frontBadge(card))}</b></header><div class="combat-front-art">${artMarkup(card)}</div><h2>${esc(card.title)}</h2></article><article class="combat-tarot-back"><header><span>${esc(card.title)}</span><b>${esc(frontBadge(card))}</b></header><div class="combat-back-stats">${statGrid(card)}</div><section class="combat-actions"><h3>${esc(label(card.kind))} Shorthand</h3>${summaryRows(card)}</section>${card.dmText&&!["npc","monster","event"].includes(card.kind)?`<section class="combat-traits"><h3>Notes</h3><p>${esc(card.dmText)}</p></section>`:''}<footer>${esc(rulesFooter(card))}</footer></article></div>`;document.body.append(dialog);dialog.querySelector('.combat-dialog-close').onclick=()=>dialog.close();dialog.addEventListener('close',()=>dialog.remove());dialog.showModal();}
+
+let cards=[];loadDungeonCardsCatalog().then(result=>{cards=result;enhance();});
+function enhance(root=document){root.querySelectorAll?.('[data-catalog-card]').forEach(article=>{if(article.dataset.combatEnhanced==='true')return;const card=cards.find(entry=>entry.id===article.dataset.catalogCard);if(!card)return;article.dataset.combatEnhanced='true';article.classList.add(`kind-${card.kind}`);const art=article.querySelector('.library-card-art');if(art)art.innerHTML=`<span class="catalog-front-badge">${esc(frontBadge(card))}</span><div class="catalog-front-picture">${artMarkup(card)}</div><strong>${esc(card.title)}</strong>`;const body=article.children[1];if(body){const compact=(card.quickStats||[]).slice(0,4).map(stat=>`<span><b>${esc(statIcon(stat))}</b>${esc(cleanStat(stat))}</span>`).join('');body.innerHTML=`<small>${esc(label(card.kind))} · ${esc(card.raw?.edition||'DungeonCards')}</small><h3>${esc(card.title)}</h3><div class="catalog-combat-strip">${compact||`<span><b>${esc(glyph(card.kind))}</b>${esc(frontBadge(card))}</span>`}</div><p class="catalog-purpose">${esc(cardPurpose(card.kind))}</p>`;}});}
+const cardPurpose=kind=>({monster:'Combat statistics and actions',character:'Playable statistics, actions, and resources',item:'Equip, use, charges, and effects',treasure:'Value, rarity, and usable effects',npc:'Checks, dialogue, combat, and secrets',room:'Read-aloud, checks, exits, hazards, and rewards',location:'Scene, routes, checks, and discoveries',hazard:'Trigger, save, damage, and disarm',trap:'Trigger, save, damage, and reset',rule:'Procedure, rolls, and outcomes',event:'Trigger, roll, outcomes, and duration',quest:'Goal, requirements, rewards, and completion',objective:'Goal, requirements, and success conditions',spell:'Casting, range, save, damage, and duration'}[kind]||'Complete card rules');
 new MutationObserver(records=>records.forEach(record=>record.addedNodes.forEach(node=>node instanceof HTMLElement&&enhance(node)))).observe(document.documentElement,{childList:true,subtree:true});
-document.addEventListener('click',event=>{
-  const button=event.target.closest('[data-preview-catalog-card]');if(!button)return;
-  const card=cards.find(entry=>entry.id===button.dataset.previewCatalogCard);if(!card)return;
-  event.preventDefault();event.stopImmediatePropagation();openCombatCard(card);
-},true);
-enhance();
+document.addEventListener('click',event=>{const button=event.target.closest('[data-preview-catalog-card]');if(!button)return;const card=cards.find(entry=>entry.id===button.dataset.previewCatalogCard);if(!card)return;event.preventDefault();event.stopImmediatePropagation();openCombatCard(card);},true);enhance();
