@@ -37,10 +37,11 @@ assert.doesNotMatch(controls, /subtree:\s*true/);
 assert.match(questCss, /single-card-holder > \.tarot-card/);
 assert.match(questCss, /\.fixed-board > \.slot-objective\{display:none!important\}/);
 assert.match(questCss, /\.quest-row/);
-assert.match(questJs, /Main Quest/);
-assert.match(questJs, /Side Quest/);
+assert.match(questJs, /main-quest/);
+assert.match(questJs, /side-quest/);
 assert.match(questJs, /data-add-side-quest/);
-assert.match(questJs, /revealedQuests/);
+assert.match(questJs, /questState/);
+assert.match(questJs, /state\.revealed/);
 
 const slotDefinitions = [...app.matchAll(/id: "(location|site|room|npc|monster|hazard|treasure)"/g)].map(match => match[1]);
 assert.deepEqual(slotDefinitions, ['location', 'site', 'room', 'npc', 'monster', 'hazard', 'treasure']);
