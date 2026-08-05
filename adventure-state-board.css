@@ -1,4 +1,4 @@
-/* Adventure-state hierarchy: where the party is, what is happening, and what is present. */
+/* Lean adventure-state board: where the party is and what is present right now. */
 #app .fixed-board {
   display: flex !important;
   flex-direction: row !important;
@@ -19,27 +19,31 @@
   margin: 0 !important;
 }
 
-/* The first row answers: Where are we and what is happening now? */
+/* Scene is internal adventure progress. Objectives live in the Quest Tracker. */
+#app .fixed-board > .board-slot[data-slot="scene"],
+#app .fixed-board > .board-slot[data-slot="objective"] {
+  display: none !important;
+}
+
+/* The first row answers: where are the characters right now? */
 #app .fixed-board > [data-slot="location"],
 #app .fixed-board > [data-slot="site"],
-#app .fixed-board > [data-slot="room"],
-#app .fixed-board > [data-slot="scene"] {
-  flex: 1 1 calc(25% - 14px) !important;
+#app .fixed-board > [data-slot="room"] {
+  flex: 1 1 calc(33.333% - 14px) !important;
   border-color: rgba(217, 180, 95, .5);
   background: linear-gradient(180deg, rgba(31, 29, 23, .98), rgba(14, 16, 19, .98));
 }
 
-/* The second row answers: Who and what is involved? */
+/* The second row answers: who and what is involved? */
 #app .fixed-board > [data-slot="npc"],
 #app .fixed-board > [data-slot="monster"],
 #app .fixed-board > [data-slot="hazard"],
-#app .fixed-board > [data-slot="objective"],
 #app .fixed-board > [data-slot="treasure"] {
   flex: 1 1 235px !important;
 }
 
-#app .fixed-board > [data-slot="scene"] .slot-heading::after {
-  content: "What is happening now";
+#app .fixed-board > [data-slot="room"] .slot-heading::after {
+  content: "Immediate playable area";
   display: block;
   margin-left: auto;
   color: #d9b45f;
@@ -61,8 +65,7 @@
 @media (max-width: 1100px) {
   #app .fixed-board > [data-slot="location"],
   #app .fixed-board > [data-slot="site"],
-  #app .fixed-board > [data-slot="room"],
-  #app .fixed-board > [data-slot="scene"] {
+  #app .fixed-board > [data-slot="room"] {
     flex-basis: calc(50% - 14px) !important;
   }
 }
