@@ -1,10 +1,5 @@
-/* Lean encounter board. Scene progress is shown with Area; quests live in the tracker. */
-.fixed-board > .board-slot[data-slot="scene"],
-.fixed-board > .board-slot[data-slot="objective"] {
-  display: none !important;
-}
-
-#app .fixed-board > section.board-slot[data-slot]:not([data-slot="scene"]):not([data-slot="objective"]) {
+/* Seven-slot encounter board. Scene context is carried by Area; quests live in the tracker. */
+#app .fixed-board > section.board-slot[data-slot] {
   flex: 1 0 208px !important;
   width: auto !important;
   min-width: 208px !important;
@@ -54,7 +49,7 @@
 .area-current-scene {
   display: block;
   width: 100%;
-  margin-top: 6px;
+  margin: 6px 0 2px;
   color: #f0d990;
   font-size: .72rem;
   font-weight: 700;
@@ -62,7 +57,7 @@
 }
 
 @media (max-width: 1350px) {
-  #app .fixed-board > section.board-slot[data-slot]:not([data-slot="scene"]):not([data-slot="objective"]) {
+  #app .fixed-board > section.board-slot[data-slot] {
     flex: 0 0 196px !important;
     width: 196px !important;
     min-width: 196px !important;
@@ -79,7 +74,7 @@
 }
 
 @media (max-width: 900px) {
-  #app .fixed-board > section.board-slot[data-slot]:not([data-slot="scene"]):not([data-slot="objective"]) {
+  #app .fixed-board > section.board-slot[data-slot] {
     flex: 0 0 184px !important;
     width: 184px !important;
     min-width: 184px !important;
