@@ -4,13 +4,15 @@ import fs from 'node:fs';
 const html = fs.readFileSync('index.html', 'utf8');
 const playerHtml = fs.readFileSync('player.html', 'utf8');
 const app = fs.readFileSync('src/app.js', 'utf8');
+const loader = fs.readFileSync('adventure-loader.js', 'utf8');
 const localSession = fs.readFileSync('local-session.js', 'utf8');
 const scaleCss = fs.readFileSync('encounter-scale.css', 'utf8');
 const boardCss = fs.readFileSync('adventure-state-board.css', 'utf8');
 const questTracker = fs.readFileSync('quest-tracker.js', 'utf8');
 
-assert.match(html, /source-board-model-20260805/);
-assert.match(playerHtml, /source-board-model-20260805/);
+assert.match(html, /seven-slot-source-20260805-2/);
+assert.match(playerHtml, /seven-slot-source-20260805-2/);
+assert.match(loader, /app\.js\?v=\$\{RUNTIME_BUILD\}/);
 assert.doesNotMatch(html, /encounter-slot-guard/);
 assert.doesNotMatch(playerHtml, /encounter-slot-guard/);
 
@@ -33,4 +35,4 @@ assert.match(boardCss, /Immediate playable area/);
 assert.match(questTracker, /Quest Tracker/);
 assert.match(questTracker, /questState/);
 
-console.log('The source renderer and session model expose only seven operational slots; Scene rides on Area and quests remain in the tracker.');
+console.log('The fresh source renderer and session model expose only seven operational slots; Scene rides on Area and quests remain in the tracker.');
