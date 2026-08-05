@@ -1,15 +1,17 @@
 import { activateCharacterCard } from './src/player/character-cards.js';
 
 export const LOCAL_SESSION_KEY = 'living-table-local-session-v1';
-const SLOT_IDS = ['location','room','npc','monster','hazard','treasure'];
+const SLOT_IDS = ['location','site','room','scene','npc','monster','hazard','objective','treasure'];
 const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 const clone = value => JSON.parse(JSON.stringify(value));
 const safeParse = value => { try { return JSON.parse(value); } catch { return null; } };
+const normalizedBoard = board => Object.fromEntries(SLOT_IDS.map(slotId => [slotId, clone(board?.[slotId] || [])]));
 
 export function createLocalSession(manifest, selectedSystem = manifest.systems?.[0] || 'dnd-2014') {
-  const openingBoard = clone(manifest.startingBoard || {});
+  const openingBoard = normalizedBoard(manifest.startingBoard || {});
+  const entry = manifest.scenes?.find(scene => scene.id === manifest.entrySceneId) || manifest.scenes?.[0] || {};
   return {
-    schemaVersion: 1,
+    schemaVersion: 2,
     sessionId: `${manifest.packId}-${Date.now()}`,
     packId: manifest.packId,
     releaseId: manifest.releaseId,
@@ -17,10 +19,23 @@ export function createLocalSession(manifest, selectedSystem = manifest.systems?.
     title: manifest.title,
     selectedSystem,
     status: 'prepared',
-    currentSceneId: manifest.entrySceneId,
+    currentSceneId: entry.id || manifest.entrySceneId,
+    currentLocationId: entry.locationId || openingBoard.location[0] || null,
+    currentSiteId: entry.siteId || openingBoard.site[0] || null,
+    currentRoomId: entry.roomId || openingBoard.room[0] || null,
+    currentSceneCardId: entry.sceneCardId || openingBoard.scene[0] || null,
     openingBoard,
     board: clone(openingBoard),
     quests: clone(manifest.startingQuests || []),
+    roomHistory: [],
+    discoveredScenes: entry.id ? [entry.id] : [],
+    worldState: {},
+    locationState: {},
+    siteState: {},
+    roomState: {},
+    sceneState: {},
+    combatState: null,
+    eventHistory: [],
     players: [{ seatId:'seat-1', characterId:'wendy-birthday-hero', claimedBy:null, ready:false }],
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString()
@@ -29,12 +44,24 @@ export function createLocalSession(manifest, selectedSystem = manifest.systems?.
 
 export function loadLocalSession(storage = localStorage) {
   const session = safeParse(storage.getItem(LOCAL_SESSION_KEY));
-  if (session && !session.openingBoard) session.openingBoard = clone(session.board || {});
+  if (!session) return null;
+  session.schemaVersion = Math.max(2, session.schemaVersion || 1);
+  session.board = normalizedBoard(session.board || {});
+  session.openingBoard = normalizedBoard(session.openingBoard || session.board);
+  session.roomHistory ||= [];
+  session.discoveredScenes ||= [];
+  session.worldState ||= {};
+  session.locationState ||= {};
+  session.siteState ||= {};
+  session.roomState ||= {};
+  session.sceneState ||= {};
+  session.eventHistory ||= [];
+  if (!('combatState' in session)) session.combatState = null;
   return session;
 }
 
 export function saveLocalSession(session, storage = localStorage) {
-  const next = { ...session, updatedAt:new Date().toISOString() };
+  const next = { ...session, board:normalizedBoard(session.board), updatedAt:new Date().toISOString() };
   storage.setItem(LOCAL_SESSION_KEY, JSON.stringify(next));
   window.dispatchEvent(new CustomEvent('living-table:session-updated', { detail:{ session:next } }));
   return next;
@@ -93,8 +120,9 @@ async function addOne(slotId, cardId) {
 }
 
 export async function reconcileBoard(targetBoard, { onProgress = () => {} } = {}) {
+  const normalizedTarget = normalizedBoard(targetBoard);
   for (const slotId of SLOT_IDS) {
-    const desired = [...(targetBoard?.[slotId] || [])];
+    const desired = [...normalizedTarget[slotId]];
     let slot = document.querySelector(`[data-slot="${slotId}"]`);
     if (!slot) continue;
     await openStack(slot);
@@ -119,8 +147,9 @@ export async function reconcileBoard(targetBoard, { onProgress = () => {} } = {}
 }
 
 function toolbarMarkup(session) {
+  const breadcrumb = session ? [session.currentLocationId, session.currentSiteId, session.currentRoomId, session.currentSceneCardId].filter(Boolean).join(' → ') : '';
   return `<section class="local-session-bar" aria-label="Local adventure session">
-    <div><small>LOCAL SESSION</small><strong>${session?.title || 'No adventure prepared'}</strong><span>${session ? `${session.version} · ${session.selectedSystem} · ${session.status}` : 'Load an Adventure Master Card to begin.'}</span></div>
+    <div><small>LOCAL SESSION</small><strong>${session?.title || 'No adventure prepared'}</strong><span>${session ? `${session.version} · ${session.selectedSystem} · ${session.status}` : 'Load an Adventure Master Card to begin.'}</span>${breadcrumb ? `<small>${breadcrumb}</small>` : ''}</div>
     <p data-session-message aria-live="polite"></p>
     <div class="local-session-actions">
       <button type="button" data-session-save ${session?'':'disabled'}>Save</button>
@@ -149,13 +178,13 @@ function message(text) {
 async function applySessionBoard(session, targetBoard = session.board, finalStatus = session.status) {
   if (!session || applying) return;
   applying = true;
-  message('Building the board from the saved adventure session…');
+  message('Restoring the exact adventure, place, scene, and cards…');
   activateCharacterCard(session.players?.[0]?.characterId || 'wendy-birthday-hero');
   const actual = await reconcileBoard(targetBoard, { onProgress:message });
   saveLocalSession({ ...session, board:actual, status:finalStatus || 'ready' });
   applying = false;
   renderToolbar();
-  message('Board, quest references, edition, and Wendy’s pregen are saved locally.');
+  message('Location, Site, Area, Scene, cards, quests, edition, and character state are saved locally.');
 }
 
 function bindToolbar() {
