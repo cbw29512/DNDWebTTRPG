@@ -57,3 +57,8 @@ Last updated: 2026-08-05
 53. Static DM and player routes are interaction prototypes only. Secure role enforcement requires server-verified account, campaign membership, role, seat, and player-safe projection.
 54. `docs/DND_PLAY_MODEL.md` is the canonical reference for role responsibilities, table rhythm, three-pillar interface requirements, and ease-of-use acceptance tests.
 55. Rules content and compatibility remain edition-labeled against SRD 5.1 for the 2014 rules and SRD 5.2.1 for revised 2024/5.5e rules. Non-SRD protected expression is not copied into the product.
+56. The primary reason The Living Table exists is to make D&D easier to track and easier to play for both the Dungeon Master and players.
+57. Every feature must remove a meaningful bookkeeping, lookup, navigation, repeated-entry, or cognitive burden. A feature that adds more tracking than it removes must be redesigned or rejected.
+58. Automation handles setup, state, calculations, reminders, and bookkeeping; it does not replace imagination, roleplay, player intent, DM adjudication, or DM authority.
+59. The same game fact should have one authoritative state owner and should not require duplicate manual tracking across modules or screens.
+60. `docs/NORTH_STAR.md` is the highest-level product filter and outranks visual novelty, feature count, technical cleverness, and marketplace expansion.
