@@ -1,7 +1,7 @@
 (() => {
-  /* Objective cards are rendered by the dedicated Quest Tracker. The board keeps
-     four context slots plus the immediate people, threats, hazards, and rewards. */
-  const BOARD_SLOT_IDS = new Set(["location", "site", "room", "scene", "npc", "monster", "hazard", "treasure"]);
+  /* Objective cards remain in the board DOM as the canonical source for the
+     dedicated Quest Tracker, even when that slot is visually hidden. */
+  const BOARD_SLOT_IDS = new Set(["location", "site", "room", "scene", "npc", "monster", "hazard", "objective", "treasure"]);
 
   function enforceAdventureStateBoard() {
     const board = document.querySelector("#app .fixed-board");
