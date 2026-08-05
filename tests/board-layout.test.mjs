@@ -10,7 +10,7 @@ const questCss = fs.readFileSync('quest-tracker.css', 'utf8');
 const questJs = fs.readFileSync('quest-tracker.js', 'utf8');
 const controls = fs.readFileSync('workspace-controls.js', 'utf8');
 
-assert.match(html, /source-board-model-1/);
+assert.match(html, /board-first-live-play-20260805/);
 assert.match(html, /workspace-polish\.css/);
 assert.match(html, /quest-tracker\.css/);
 assert.match(html, /quest-tracker\.js/);
