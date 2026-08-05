@@ -1,4 +1,4 @@
-/* Lean adventure-state board: where the party is and what is present right now. */
+/* Adventure-state board: where the party is and what is present right now. */
 #app .fixed-board {
   display: flex !important;
   flex-direction: row !important;
@@ -17,12 +17,6 @@
   min-width: 215px !important;
   max-width: none !important;
   margin: 0 !important;
-}
-
-/* Scene is internal adventure progress. Objectives live in the Quest Tracker. */
-#app .fixed-board > .board-slot[data-slot="scene"],
-#app .fixed-board > .board-slot[data-slot="objective"] {
-  display: none !important;
 }
 
 /* The first row answers: where are the characters right now? */
@@ -60,7 +54,6 @@
 }
 
 .type-site .category-ribbon { background: #7d6330; }
-.type-scene .category-ribbon { background: #7c3f69; }
 
 @media (max-width: 1100px) {
   #app .fixed-board > [data-slot="location"],
