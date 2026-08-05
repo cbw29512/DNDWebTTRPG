@@ -62,3 +62,18 @@ Last updated: 2026-08-05
 58. Automation handles setup, state, calculations, reminders, and bookkeeping; it does not replace imagination, roleplay, player intent, DM adjudication, or DM authority.
 59. The same game fact should have one authoritative state owner and should not require duplicate manual tracking across modules or screens.
 60. `docs/NORTH_STAR.md` is the highest-level product filter and outranks visual novelty, feature count, technical cleverness, and marketplace expansion.
+61. Decisions 39–45 are refined by the complete hierarchy in `docs/SCENE_MODEL.md`: **Campaign / World → Location → Site → Area / Room**, with **Scene** representing what is happening in that immediate area.
+62. Campaign / World is persistent game context and normally belongs in the application frame rather than consuming a live board card slot.
+63. Location is a broad city, settlement, biome, coast, region, or comparable part of the world. A building such as an inn is not a city Location.
+64. Site is a named destination, building, compound, dungeon, camp, ruin, cave complex, or other sub-place inside a Location.
+65. Area / Room is the immediate battle-map-scale space surrounding the characters, including outdoor encounter zones.
+66. Scene is temporal, not spatial. Conversation, discovery, puzzle, combat, rest, aftermath, or another event can change Scene without changing Location, Site, or Area.
+67. The live board's context row is Location, Site, Area / Room, and Current Scene. People, monsters, hazards, objectives, and treasure remain associated cards rather than spatial levels.
+68. Loading a Scene prepares the exact Location, Site, Area / Room, Scene card, NPCs, monsters, hazards, objectives, treasure, transitions, and saved persistent state.
+69. The source Wishing Cake adventure does not name its city. `Bramblewick` is an original working label isolated so it can be renamed without altering the model.
+70. Exact resume is a core product requirement. The authoritative session must be able to restore meaningful play state even in the middle of combat.
+71. Exact resume includes place hierarchy, active Scene, initiative, round, turn, HP, temporary HP, conditions, concentration, resources, hazards, room changes, quests, NPC memory, inventory instances, and event history.
+72. Every acquired item is a persistent instance with identity, known and hidden properties, ownership, quantity or charges, attunement, curse knowledge, provenance, transfers, and consumed/lost state.
+73. NPC instances retain important dialogue, promises, lies, favors, relationship state, knowledge, last known place, and unresolved business.
+74. Immutable adventure and card definitions remain separate from mutable campaign instances. Play never mutates the purchased source package.
+75. `docs/GAME_STATE_MEMORY_MODEL.md` and `docs/DND_PAIN_POINTS.md` are canonical references for tracking scope, exact resume, and burden-reduction priorities.
