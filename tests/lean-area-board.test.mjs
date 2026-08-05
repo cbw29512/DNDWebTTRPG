@@ -10,8 +10,8 @@ const scaleCss = fs.readFileSync('encounter-scale.css', 'utf8');
 const boardCss = fs.readFileSync('adventure-state-board.css', 'utf8');
 const questTracker = fs.readFileSync('quest-tracker.js', 'utf8');
 
-assert.match(html, /seven-slot-source-20260805-2/);
-assert.match(playerHtml, /seven-slot-source-20260805-2/);
+assert.match(html, /board-first-live-play-20260805/);
+assert.match(playerHtml, /board-first-live-play-20260805/);
 assert.match(loader, /app\.js\?v=\$\{RUNTIME_BUILD\}/);
 assert.doesNotMatch(html, /encounter-slot-guard/);
 assert.doesNotMatch(playerHtml, /encounter-slot-guard/);

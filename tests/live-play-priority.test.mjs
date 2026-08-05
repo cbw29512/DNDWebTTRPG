@@ -7,7 +7,7 @@ const css = fs.readFileSync('live-play-priority.css', 'utf8');
 
 for (const html of [dmHtml, playerHtml]) {
   assert.match(html, /board-first-live-play-20260805/);
-  assert.match(html, /live-play-priority\.css\?v=board-first-live-1/);
+  assert.match(html, /live-play-priority\.css\?v=board-first-live-2/);
   assert.ok(
     html.indexOf('live-play-priority.css') > html.indexOf('adventure-state-board.css'),
     'The live-play priority layer must load after every other board layout.'
@@ -32,4 +32,17 @@ assert.match(css, /> \.scene-runtime[\s\S]*order: 21/);
 assert.match(css, /> \.library-hub[\s\S]*order: 22/);
 assert.match(css, /@media \(max-width: 1000px\)[\s\S]*"board"[\s\S]*"topbar"/);
 
-console.log('The live card board is the first full-width surface for both DM and player routes.');
+assert.match(css, /--live-tarot-card-width:\s*148px/);
+assert.match(
+  css,
+  /#app \.tarot-card \{[\s\S]*flex:\s*0 0 var\(--live-tarot-card-width\)[\s\S]*width:\s*var\(--live-tarot-card-width\)[\s\S]*min-width:\s*var\(--live-tarot-card-width\)[\s\S]*max-width:\s*var\(--live-tarot-card-width\)/,
+  'Every in-app tarot card must retain one fixed physical-card width.'
+);
+assert.match(css, /#app \.tarot-inner \{[\s\S]*aspect-ratio:\s*2\.75 \/ 4\.75/);
+assert.match(
+  css,
+  /\.adventure-deck \.deck-card-list \{[\s\S]*grid-template-columns:\s*repeat\(auto-fill, var\(--live-tarot-card-width\)\)[\s\S]*justify-items:\s*start/,
+  'The Adventure Deck grid may add columns, but it must never stretch cards.'
+);
+
+console.log('The live board stays first and all cards remain fixed tarot size.');

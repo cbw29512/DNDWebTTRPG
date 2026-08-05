@@ -1,9 +1,9 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 const [html,js,css]=await Promise.all([readFile('index.html','utf8'),readFile('combat-card-library.js','utf8'),readFile('combat-card-library.css','utf8')]);
-assert.match(html,/combat-card-library\.css/);
-assert.match(html,/combat-card-library\.js/);
-assert.match(html,/combat-shorthand-library-20260804/);
+assert.match(html,/combat-card-library\.css\?v=board-first-live-1/);
+assert.match(html,/combat-card-library\.js\?v=board-first-live-1/);
+assert.match(html,/board-first-live-play-20260805/);
 assert.match(js,/hp:'HP'/);
 assert.match(js,/armor:'🛡'/);
 assert.match(js,/melee:'⚔'/);
