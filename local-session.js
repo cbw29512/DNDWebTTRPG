@@ -7,6 +7,65 @@ const clone = value => JSON.parse(JSON.stringify(value));
 const safeParse = value => { try { return JSON.parse(value); } catch { return null; } };
 const normalizedBoard = board => Object.fromEntries(SLOT_IDS.map(slotId => [slotId, clone(board?.[slotId] || [])]));
 
+function activeManifestScene(session, manifest) {
+  const scenes = manifest?.scenes || [];
+  return scenes.find(scene => scene.id === session.currentSceneId)
+    || scenes.find(scene => scene.roomId === session.currentRoomId)
+    || scenes.find(scene => scene.roomId === session.currentSceneId)
+    || scenes.find(scene => scene.id === manifest?.entrySceneId)
+    || scenes[0]
+    || null;
+}
+
+function migrateSpatialSession(session, manifest = window.__DND_ADVENTURE_PACK__) {
+  const previousSchema = session.schemaVersion || 1;
+  session.schemaVersion = 2;
+  session.board = normalizedBoard(session.board || {});
+  session.openingBoard = normalizedBoard(session.openingBoard || session.board);
+  const active = activeManifestScene(session, manifest);
+
+  if (active) {
+    session.currentSceneId = active.id;
+    session.currentLocationId ||= active.locationId || session.board.location[0] || null;
+    session.currentSiteId ||= active.siteId || null;
+    session.currentRoomId ||= active.roomId || session.board.room[0] || null;
+    session.currentSceneCardId ||= active.sceneCardId || null;
+    if (!session.board.location.length && active.locationId) session.board.location = [active.locationId];
+    if (!session.board.site.length && active.siteId) session.board.site = [active.siteId];
+    if (!session.board.room.length && active.roomId) session.board.room = [active.roomId];
+    if (!session.board.scene.length && active.sceneCardId) session.board.scene = [active.sceneCardId];
+    if (!session.board.objective.length) {
+      session.board.objective = [...new Set([...(manifest?.persistentBoard?.objective || []), ...(active.board?.objective || [])])];
+    }
+  }
+
+  const start = normalizedBoard(manifest?.startingBoard || {});
+  for (const slotId of SLOT_IDS) {
+    if (!session.openingBoard[slotId].length && start[slotId].length) session.openingBoard[slotId] = start[slotId];
+  }
+
+  session.roomHistory ||= [];
+  session.discoveredScenes ||= active?.id ? [active.id] : [];
+  session.worldState ||= {};
+  session.locationState ||= {};
+  session.siteState ||= {};
+  session.roomState ||= {};
+  session.sceneState ||= {};
+  session.eventHistory ||= [];
+  if (!('combatState' in session)) session.combatState = null;
+  if (previousSchema < 2 && !session.eventHistory.some(event => event.type === 'session-spatial-migrated')) {
+    session.eventHistory.push({
+      id: `migration-${Date.now()}`,
+      type: 'session-spatial-migrated',
+      fromSchema: previousSchema,
+      toSchema: 2,
+      sceneId: active?.id || null,
+      at: new Date().toISOString()
+    });
+  }
+  return session;
+}
+
 export function createLocalSession(manifest, selectedSystem = manifest.systems?.[0] || 'dnd-2014') {
   const openingBoard = normalizedBoard(manifest.startingBoard || {});
   const entry = manifest.scenes?.find(scene => scene.id === manifest.entrySceneId) || manifest.scenes?.[0] || {};
@@ -44,24 +103,12 @@ export function createLocalSession(manifest, selectedSystem = manifest.systems?.
 
 export function loadLocalSession(storage = localStorage) {
   const session = safeParse(storage.getItem(LOCAL_SESSION_KEY));
-  if (!session) return null;
-  session.schemaVersion = Math.max(2, session.schemaVersion || 1);
-  session.board = normalizedBoard(session.board || {});
-  session.openingBoard = normalizedBoard(session.openingBoard || session.board);
-  session.roomHistory ||= [];
-  session.discoveredScenes ||= [];
-  session.worldState ||= {};
-  session.locationState ||= {};
-  session.siteState ||= {};
-  session.roomState ||= {};
-  session.sceneState ||= {};
-  session.eventHistory ||= [];
-  if (!('combatState' in session)) session.combatState = null;
-  return session;
+  return session ? migrateSpatialSession(session) : null;
 }
 
 export function saveLocalSession(session, storage = localStorage) {
-  const next = { ...session, board:normalizedBoard(session.board), updatedAt:new Date().toISOString() };
+  const next = migrateSpatialSession({ ...session, board:normalizedBoard(session.board) });
+  next.updatedAt = new Date().toISOString();
   storage.setItem(LOCAL_SESSION_KEY, JSON.stringify(next));
   window.dispatchEvent(new CustomEvent('living-table:session-updated', { detail:{ session:next } }));
   return next;
