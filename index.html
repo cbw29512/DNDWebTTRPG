@@ -6,28 +6,28 @@
   <meta name="theme-color" content="#0a0b0d">
   <meta name="description" content="The Living Table Dungeon Master workspace.">
   <meta name="living-table-role" content="dm">
-  <meta name="build" content="spatial-scene-tracking-20260805">
+  <meta name="build" content="lean-area-board-20260805">
   <title>The Living Table — Dungeon Master</title>
-  <link rel="stylesheet" href="styles.css?v=spatial-state-1">
-  <link rel="stylesheet" href="player-board.css?v=spatial-state-1">
-  <link rel="stylesheet" href="compact-stacks.css?v=spatial-state-1">
-  <link rel="stylesheet" href="stack-drawer-layer.css?v=spatial-state-1">
-  <link rel="stylesheet" href="card-modal.css?v=spatial-state-1">
-  <link rel="stylesheet" href="workspace-polish.css?v=spatial-state-1">
-  <link rel="stylesheet" href="quest-tracker.css?v=spatial-state-1">
-  <link rel="stylesheet" href="encounter-scale.css?v=spatial-state-1">
-  <link rel="stylesheet" href="player-ready.css?v=spatial-state-1">
-  <link rel="stylesheet" href="adventure-loader.css?v=spatial-state-1">
-  <link rel="stylesheet" href="library-hub.css?v=spatial-state-1">
-  <link rel="stylesheet" href="player-library-filter.css?v=spatial-state-1">
-  <link rel="stylesheet" href="combat-card-library.css?v=spatial-state-1">
-  <link rel="stylesheet" href="card-quality-audit.css?v=spatial-state-1">
-  <link rel="stylesheet" href="local-session.css?v=spatial-state-1">
-  <link rel="stylesheet" href="scene-runtime.css?v=spatial-state-1">
-  <link rel="stylesheet" href="pregen-character-card.css?v=spatial-state-1">
-  <link rel="stylesheet" href="mobile-responsive.css?v=spatial-state-1">
-  <link rel="stylesheet" href="strict-role-boundary.css?v=spatial-state-1">
-  <link rel="stylesheet" href="adventure-state-board.css?v=spatial-state-1">
+  <link rel="stylesheet" href="styles.css?v=lean-area-board-1">
+  <link rel="stylesheet" href="player-board.css?v=lean-area-board-1">
+  <link rel="stylesheet" href="compact-stacks.css?v=lean-area-board-1">
+  <link rel="stylesheet" href="stack-drawer-layer.css?v=lean-area-board-1">
+  <link rel="stylesheet" href="card-modal.css?v=lean-area-board-1">
+  <link rel="stylesheet" href="workspace-polish.css?v=lean-area-board-1">
+  <link rel="stylesheet" href="quest-tracker.css?v=lean-area-board-1">
+  <link rel="stylesheet" href="encounter-scale.css?v=lean-area-board-1">
+  <link rel="stylesheet" href="player-ready.css?v=lean-area-board-1">
+  <link rel="stylesheet" href="adventure-loader.css?v=lean-area-board-1">
+  <link rel="stylesheet" href="library-hub.css?v=lean-area-board-1">
+  <link rel="stylesheet" href="player-library-filter.css?v=lean-area-board-1">
+  <link rel="stylesheet" href="combat-card-library.css?v=lean-area-board-1">
+  <link rel="stylesheet" href="card-quality-audit.css?v=lean-area-board-1">
+  <link rel="stylesheet" href="local-session.css?v=lean-area-board-1">
+  <link rel="stylesheet" href="scene-runtime.css?v=lean-area-board-1">
+  <link rel="stylesheet" href="pregen-character-card.css?v=lean-area-board-1">
+  <link rel="stylesheet" href="mobile-responsive.css?v=lean-area-board-1">
+  <link rel="stylesheet" href="strict-role-boundary.css?v=lean-area-board-1">
+  <link rel="stylesheet" href="adventure-state-board.css?v=lean-area-board-1">
   <style>
     .read-aloud-copy{padding:12px;border-left:3px solid #d9b45f;background:#17150f;font-size:1.05rem;line-height:1.55}
     .item-uses{margin-top:10px;padding:8px;border:1px solid #6c5931;border-radius:8px;background:#17150f;text-align:center}
@@ -36,21 +36,21 @@
 <body>
   <a class="skip" href="#board">Skip to battle board</a>
   <div id="app"></div>
-  <script type="module" src="adventure-loader.js?v=spatial-state-1"></script>
-  <script type="module" src="local-session.js?v=spatial-state-1"></script>
-  <script type="module" src="scene-runtime.js?v=spatial-state-1"></script>
-  <script type="module" src="quest-tracker.js?v=spatial-state-1"></script>
-  <script defer src="encounter-slot-guard.js?v=spatial-state-1"></script>
-  <script defer src="card-modal.js?v=spatial-state-1"></script>
-  <script defer src="workspace-controls.js?v=spatial-state-1"></script>
-  <script defer src="stack-drawer-layer.js?v=spatial-state-1"></script>
-  <script type="module" src="player-ready.js?v=spatial-state-1"></script>
-  <script type="module" src="player-session-bridge.js?v=spatial-state-1"></script>
-  <script type="module" src="pregen-character-loader.js?v=spatial-state-1"></script>
-  <script type="module" src="library-hub.js?v=spatial-state-1"></script>
-  <script defer src="player-library-filter.js?v=spatial-state-1"></script>
-  <script type="module" src="combat-card-library.js?v=spatial-state-1"></script>
-  <script type="module" src="card-quality-audit.js?v=spatial-state-1"></script>
-  <script type="module" src="strict-role-boundary.js?v=spatial-state-1"></script>
+  <script type="module" src="adventure-loader.js?v=lean-area-board-1"></script>
+  <script type="module" src="local-session.js?v=lean-area-board-1"></script>
+  <script type="module" src="scene-runtime.js?v=lean-area-board-1"></script>
+  <script type="module" src="quest-tracker.js?v=lean-area-board-1"></script>
+  <script defer src="encounter-slot-guard.js?v=lean-area-board-1"></script>
+  <script defer src="card-modal.js?v=lean-area-board-1"></script>
+  <script defer src="workspace-controls.js?v=lean-area-board-1"></script>
+  <script defer src="stack-drawer-layer.js?v=lean-area-board-1"></script>
+  <script type="module" src="player-ready.js?v=lean-area-board-1"></script>
+  <script type="module" src="player-session-bridge.js?v=lean-area-board-1"></script>
+  <script type="module" src="pregen-character-loader.js?v=lean-area-board-1"></script>
+  <script type="module" src="library-hub.js?v=lean-area-board-1"></script>
+  <script defer src="player-library-filter.js?v=lean-area-board-1"></script>
+  <script type="module" src="combat-card-library.js?v=lean-area-board-1"></script>
+  <script type="module" src="card-quality-audit.js?v=lean-area-board-1"></script>
+  <script type="module" src="strict-role-boundary.js?v=lean-area-board-1"></script>
 </body>
 </html>

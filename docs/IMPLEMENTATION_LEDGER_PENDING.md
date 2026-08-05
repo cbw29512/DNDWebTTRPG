@@ -99,3 +99,39 @@ Known limitations:
 Next acceptance test:
 
 - Verify side-by-side DM/player routes show the correct four-card context, transition from the inn into the Old Celebration Halls without changing the city Location, preserve player-safe boundaries, and restore the same context after refresh.
+
+## PR #72 — Remove redundant Scene and Objective board slots
+
+Burden removed:
+
+- Reduces the live encounter board from duplicated context and quest columns to the seven things the DM actively needs to see and operate.
+- Prevents the same quest information from being tracked in both a board slot and the Quest Tracker.
+- Keeps Scene progress available without requiring another full-size card column.
+
+Actually delivered:
+
+- Live board now exposes Location, Site, Area, NPCs, Monsters, Traps/Hazards, and Treasure/Rewards.
+- Current Scene appears as concise `Now:` context on the Area and remains available in DM adventure controls.
+- Scene and Objective cards are removed from the rendered board and pruned from the Adventure Deck.
+- Room card labels are presented as Area labels without changing the source card-type schema yet.
+- Quest Tracker is the sole quest presentation and management surface.
+- Quest Tracker now detects the immutable runtime role, restoring DM-only side-quest controls after the old role switch was removed.
+- Added cache-busted DM/player builds, responsive seven-slot styling, updated decisions/status, and a lean-board regression test.
+
+Tests actually run:
+
+- `tests/lean-area-board.test.mjs` was added to `npm test`.
+- The test suite was not executed in the connector environment.
+
+Browser/deployment verification:
+
+- Not yet performed.
+
+Known limitations:
+
+- The older source renderer, manifest, and browser-local board schema still define legacy Scene and Objective entries.
+- This PR removes those entries from the live interface through guarded post-render pruning; the deeper reducer/schema migration remains future work.
+
+Next acceptance test:
+
+- Load the DM and player routes, verify exactly seven encounter columns, confirm the Area displays the active Scene context, confirm the Quest Tracker retains main/side quests and DM controls, and verify save/refresh preserves Scene and quest state.
