@@ -35,7 +35,7 @@ assert.match(polishCss, /workspace-panel-toggle/);
 assert.match(controls, /observe\(app, \{ childList: true \}\)/);
 assert.doesNotMatch(controls, /subtree:\s*true/);
 assert.match(questCss, /single-card-holder > \.tarot-card/);
-assert.match(questCss, /\.fixed-board > \.slot-objective\{display:none!important\}/);
+assert.doesNotMatch(questCss, /slot-objective/);
 assert.match(questCss, /\.quest-row/);
 assert.match(questJs, /main-quest/);
 assert.match(questJs, /side-quest/);
