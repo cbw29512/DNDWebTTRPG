@@ -1,7 +1,8 @@
 export const DND_CARDS_SOURCE = Object.freeze({
   repository: "cbw29512/DNDCards",
   commit: "5395c9eb70ec8011df53f0ecdb5125485a6c8092",
-  moduleUrl: "https://cdn.jsdelivr.net/gh/cbw29512/DNDCards@5395c9eb70ec8011df53f0ecdb5125485a6c8092/src/data.js"
+  moduleUrl: "https://cdn.jsdelivr.net/gh/cbw29512/DNDCards@5395c9eb70ec8011df53f0ecdb5125485a6c8092/src/data.js",
+  assetBaseUrl: "https://cdn.jsdelivr.net/gh/cbw29512/DNDCards@5395c9eb70ec8011df53f0ecdb5125485a6c8092/"
 });
 
 const kindAliases = Object.freeze({
@@ -21,9 +22,17 @@ const fallbackCards = Object.freeze([
 
 const text = value => Array.isArray(value) ? value.join(" • ") : String(value ?? "");
 
+export function resolveDungeonCardsAsset(value) {
+  if (typeof value !== "string" || !value.trim()) return "🎴";
+  const asset = value.trim();
+  if (/^(?:https?:|data:|blob:)/i.test(asset)) return asset;
+  if (asset.length < 8 && !/[/.]/.test(asset)) return asset;
+  return new URL(asset.replace(/^\.\//, "").replace(/^\//, ""), DND_CARDS_SOURCE.assetBaseUrl).href;
+}
+
 export function normalizeDungeonCard(card) {
   const kind = kindAliases[card?.kind] || card?.kind || "card";
-  const art = card?.art || card?.image || card?.imageUrl || card?.portrait || card?.frontImage || "🎴";
+  const artSource = card?.art || card?.image || card?.imageUrl || card?.portrait || card?.frontImage || "🎴";
   return Object.freeze({
     id: String(card?.id || `dndcard-${crypto.randomUUID?.() || Math.random().toString(36).slice(2)}`),
     kind,
@@ -32,7 +41,8 @@ export function normalizeDungeonCard(card) {
     playerText: text(card?.playerText || card?.summary || card?.description),
     dmText: text(card?.dmText || card?.rulesText || card?.notes),
     quickStats: Array.isArray(card?.quickStats) ? [...card.quickStats] : [],
-    art,
+    art: resolveDungeonCardsAsset(artSource),
+    artSource,
     source: "DungeonCards",
     sourceCommit: DND_CARDS_SOURCE.commit,
     raw: card
