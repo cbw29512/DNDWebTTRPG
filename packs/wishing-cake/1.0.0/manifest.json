@@ -1,5 +1,6 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
+  "spatialModelVersion": 2,
   "packId": "wishing-cake",
   "releaseId": "wishing-cake-1.0.0",
   "adventureCode": "WISH-CAKE-001",
@@ -15,7 +16,9 @@
   "runtimeRepository": "cbw29512/DNDWebTTRPG",
   "counts": {
     "locations": 1,
+    "sites": 2,
     "rooms": 8,
+    "scenes": 8,
     "npcs": 6,
     "monsters": 4,
     "hazards": 3,
@@ -24,42 +27,56 @@
     "pregeneratedCharacters": 1
   },
   "persistentBoard": {
-    "location": ["location"]
+    "location": ["location"],
+    "objective": ["objective"]
   },
   "scenes": [
     {
       "id": "opening-inn",
       "order": 1,
-      "title": "Opening: The Stolen Wish",
+      "title": "The Stolen Wish",
       "locationId": "location",
-      "locationTitle": "The Wishing Cake Inn",
+      "locationTitle": "Bramblewick",
+      "siteId": "site-wishing-cake-inn",
+      "siteTitle": "The Wishing Cake Inn",
       "roomId": "room",
+      "roomTitle": "Grand Celebration Hall",
+      "sceneCardId": "scene-stolen-wish",
       "board": {
         "npc": ["caretaker", "npc-boris", "npc-pip", "npc-lute"],
         "monster": ["priest"],
         "hazard": [],
-        "treasure": ["birthday-spark-tokens"]
+        "objective": ["objective"],
+        "treasure": ["lantern"]
       },
       "exits": [{"sceneId": "holding-cells", "label": "Follow the stolen wish below"}]
     },
     {
       "id": "holding-cells",
       "order": 2,
-      "title": "Room 1: Holding Cells",
+      "title": "Escape and Ceiling Ambush",
       "locationId": "location",
-      "locationTitle": "The Wishing Cake Inn — Celebration Halls",
+      "locationTitle": "Bramblewick",
+      "siteId": "site-celebration-halls",
+      "siteTitle": "Old Celebration Halls",
       "roomId": "room-holding-cells",
-      "board": {"npc": [], "monster": ["skeleton"], "hazard": [], "treasure": []},
+      "roomTitle": "Holding Cells",
+      "sceneCardId": "scene-holding-cells",
+      "board": {"npc": [], "monster": ["skeleton"], "hazard": [], "objective": ["objective"], "treasure": []},
       "exits": [{"sceneId": "wish-hall", "label": "Western passage"}]
     },
     {
       "id": "wish-hall",
       "order": 3,
-      "title": "Room 2: Hall of Rejected Wishes",
+      "title": "Carry the Rejected Wishes",
       "locationId": "location",
-      "locationTitle": "The Wishing Cake Inn — Celebration Halls",
+      "locationTitle": "Bramblewick",
+      "siteId": "site-celebration-halls",
+      "siteTitle": "Old Celebration Halls",
       "roomId": "room-wish-hall",
-      "board": {"npc": [], "monster": [], "hazard": [], "treasure": []},
+      "roomTitle": "Hall of Rejected Wishes",
+      "sceneCardId": "scene-wish-hall",
+      "board": {"npc": [], "monster": [], "hazard": [], "objective": ["objective"], "treasure": []},
       "exits": [
         {"sceneId": "soul-cellar", "label": "North to the Soul Cellar"},
         {"sceneId": "pinata-pen", "label": "Toward the Piñata Pen"}
@@ -68,66 +85,90 @@
     {
       "id": "soul-cellar",
       "order": 4,
-      "title": "Room 3: Soul Cellar",
+      "title": "Free the Stolen Souls",
       "locationId": "location",
-      "locationTitle": "The Wishing Cake Inn — Celebration Halls",
+      "locationTitle": "Bramblewick",
+      "siteId": "site-celebration-halls",
+      "siteTitle": "Old Celebration Halls",
       "roomId": "room-soul-cellar",
-      "board": {"npc": ["npc-merrit"], "monster": [], "hazard": [], "treasure": []},
+      "roomTitle": "Soul Cellar",
+      "sceneCardId": "scene-soul-cellar",
+      "board": {"npc": ["npc-merrit"], "monster": [], "hazard": [], "objective": ["objective", "objective-free-souls"], "treasure": []},
       "exits": [{"sceneId": "wish-hall", "label": "Return to the Hall"}]
     },
     {
       "id": "pinata-pen",
       "order": 5,
-      "title": "Room 4: Piñata Pen",
+      "title": "The Piñata Stampede",
       "locationId": "location",
-      "locationTitle": "The Wishing Cake Inn — Celebration Halls",
+      "locationTitle": "Bramblewick",
+      "siteId": "site-celebration-halls",
+      "siteTitle": "Old Celebration Halls",
       "roomId": "room-pinata-pen",
-      "board": {"npc": [], "monster": ["monster-pinata-mimic"], "hazard": [], "treasure": []},
+      "roomTitle": "Piñata Pen",
+      "sceneCardId": "scene-pinata-pen",
+      "board": {"npc": [], "monster": ["monster-pinata-mimic"], "hazard": ["hazard-exploding-pinata"], "objective": ["objective"], "treasure": []},
       "exits": [{"sceneId": "wrapping-room", "label": "Western doors"}]
     },
     {
       "id": "wrapping-room",
       "order": 6,
-      "title": "Room 5: Wrapping Room",
+      "title": "Cross the Endless Wrapping Machine",
       "locationId": "location",
-      "locationTitle": "The Wishing Cake Inn — Celebration Halls",
+      "locationTitle": "Bramblewick",
+      "siteId": "site-celebration-halls",
+      "siteTitle": "Old Celebration Halls",
       "roomId": "room-wrapping",
-      "board": {"npc": [], "monster": [], "hazard": [], "treasure": []},
+      "roomTitle": "Wrapping Room",
+      "sceneCardId": "scene-wrapping-room",
+      "board": {"npc": [], "monster": [], "hazard": ["hazard-wrapping-machine"], "objective": ["objective"], "treasure": ["item-wish-crown"]},
       "exits": [{"sceneId": "cult-room", "label": "Beyond the conveyor"}]
     },
     {
       "id": "cult-room",
       "order": 7,
-      "title": "Room 6: Birthday Cult Room",
+      "title": "The Birthday Melody",
       "locationId": "location",
-      "locationTitle": "The Wishing Cake Inn — Celebration Halls",
+      "locationTitle": "Bramblewick",
+      "siteId": "site-celebration-halls",
+      "siteTitle": "Old Celebration Halls",
       "roomId": "room-cult",
-      "board": {"npc": [], "monster": ["priest"], "hazard": [], "treasure": []},
+      "roomTitle": "Birthday Cult Room",
+      "sceneCardId": "scene-cult-room",
+      "board": {"npc": [], "monster": ["priest"], "hazard": [], "objective": ["objective"], "treasure": []},
       "exits": [{"sceneId": "cake-chamber", "label": "Northern door"}]
     },
     {
       "id": "cake-chamber",
       "order": 8,
-      "title": "Room 7: Cake Chamber",
+      "title": "Claim of the Wish",
       "locationId": "location",
-      "locationTitle": "The Wishing Cake Inn — Celebration Halls",
+      "locationTitle": "Bramblewick",
+      "siteId": "site-celebration-halls",
+      "siteTitle": "Old Celebration Halls",
       "roomId": "room-cake-chamber",
+      "roomTitle": "Cake Chamber",
+      "sceneCardId": "scene-cake-chamber",
       "board": {
         "npc": ["npc-sepulchral"],
-        "monster": ["priest"],
-        "hazard": [],
-        "treasure": ["birthday-spark-tokens"]
+        "monster": ["monster-sepulchral", "priest"],
+        "hazard": ["hazard-wish-circle"],
+        "objective": ["objective"],
+        "treasure": ["treasure", "lantern"]
       },
       "exits": []
     }
   ],
   "startingBoard": {
     "location": ["location"],
+    "site": ["site-wishing-cake-inn"],
     "room": ["room"],
+    "scene": ["scene-stolen-wish"],
     "npc": ["caretaker", "npc-boris", "npc-pip", "npc-lute"],
     "monster": ["priest"],
     "hazard": [],
-    "treasure": ["birthday-spark-tokens"]
+    "objective": ["objective"],
+    "treasure": ["lantern"]
   },
   "startingQuests": ["objective"],
   "cardModule": "../../../src/wishing-cake-cards.js",
