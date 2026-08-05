@@ -10,12 +10,13 @@ const questCss = fs.readFileSync('quest-tracker.css', 'utf8');
 const questJs = fs.readFileSync('quest-tracker.js', 'utf8');
 const controls = fs.readFileSync('workspace-controls.js', 'utf8');
 
-assert.match(html, /spatial-state-1/);
+assert.match(html, /source-board-model-1/);
 assert.match(html, /workspace-polish\.css/);
 assert.match(html, /quest-tracker\.css/);
 assert.match(html, /quest-tracker\.js/);
 assert.match(html, /workspace-controls\.js/);
 assert.match(html, /adventure-state-board\.css/);
+assert.doesNotMatch(html, /encounter-slot-guard/);
 assert.doesNotMatch(html, /initiative-groups\.js/);
 assert.doesNotMatch(html, /ROW BUILD 6/);
 assert.match(app, /class="fixed-board"/);
@@ -27,8 +28,9 @@ assert.match(hierarchyCss, /flex-wrap: wrap !important/);
 assert.match(hierarchyCss, /data-slot="location"/);
 assert.match(hierarchyCss, /data-slot="site"/);
 assert.match(hierarchyCss, /data-slot="room"/);
-assert.match(hierarchyCss, /data-slot="scene"/);
-assert.match(hierarchyCss, /What is happening now/);
+assert.doesNotMatch(hierarchyCss, /data-slot="scene"/);
+assert.doesNotMatch(hierarchyCss, /data-slot="objective"/);
+assert.match(hierarchyCss, /Immediate playable area/);
 assert.match(polishCss, /workspace-panel-toggle/);
 assert.match(controls, /observe\(app, \{ childList: true \}\)/);
 assert.doesNotMatch(controls, /subtree:\s*true/);
@@ -40,7 +42,7 @@ assert.match(questJs, /Side Quest/);
 assert.match(questJs, /data-add-side-quest/);
 assert.match(questJs, /revealedQuests/);
 
-const slotDefinitions = [...app.matchAll(/id: "(location|site|room|scene|npc|monster|hazard|objective|treasure)"/g)].map(match => match[1]);
-assert.deepEqual(slotDefinitions, ['location', 'site', 'room', 'scene', 'npc', 'monster', 'hazard', 'objective', 'treasure']);
+const slotDefinitions = [...app.matchAll(/id: "(location|site|room|npc|monster|hazard|treasure)"/g)].map(match => match[1]);
+assert.deepEqual(slotDefinitions, ['location', 'site', 'room', 'npc', 'monster', 'hazard', 'treasure']);
 
-console.log('Adventure context wraps into a readable hierarchy while encounter cards and quests remain organized.');
+console.log('The source board renders seven readable operational slots while Scene and quests retain separate state owners.');
