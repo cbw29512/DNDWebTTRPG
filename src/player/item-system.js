@@ -25,7 +25,35 @@ export function validSlots(item) { return item?.validSlots ?? []; }
 export function equippedItems(state, inventory) { return Object.values(state.equipped).filter(Boolean).map(id=>inventory.find(item=>item.id===id)).filter(Boolean); }
 export function attunementCount(state, inventory) { return equippedItems(state,inventory).filter(item=>item.attunement).length; }
 export function canEquip(item,slot,state,inventory) { if(!item||!validSlots(item).includes(slot))return{ok:false,reason:"That card does not fit this equipment slot."}; const already=Object.values(state.equipped).includes(item.id); const replacing=state.equipped[slot]?inventory.find(entry=>entry.id===state.equipped[slot]):null; const next=attunementCount(state,inventory)-(replacing?.attunement?1:0)+(item.attunement&&!already?1:0); return next>3?{ok:false,reason:"You cannot attune to more than three magic items."}:{ok:true}; }
-export function deriveStats(state, inventory, activeCharacter = characterCard) { const base=activeCharacter.base; const stats={...base,ac:base.baseAc,abilities:{...base.abilities},saves:{...base.saves},traits:[],attackProfile:null}; for(const item of equippedItems(state,inventory)){for(const effect of item.effects){if(effect.kind==="armorFormula")stats.ac=Math.max(stats.ac,effect.base+Math.floor((stats.abilities.dexterity-10)/2));if(effect.kind==="add")stats[effect.target]=(stats[effect.target]??0)+effect.value;if(effect.kind==="allSaves")Object.keys(stats.saves).forEach(key=>stats.saves[key]+=effect.value);if(effect.kind==="trait")stats.traits.push(effect.label);if(effect.kind==="advantage")stats.traits.push(`Advantage: ${effect.target}`);}if(item.attack)stats.attackProfile={...item.attack,name:item.name};}return stats; }
+export function deriveStats(state, inventory, activeCharacter = characterCard) {
+  const base=activeCharacter.base;
+  const items=equippedItems(state,inventory);
+  const stats={...base,ac:base.baseAc,abilities:{...base.abilities},saves:{...base.saves},traits:[],attackProfile:null};
+
+  // Armor formulas establish the base AC first. Additive bonuses are applied
+  // afterward so the result never depends on equipment-slot iteration order.
+  for(const item of items){
+    for(const effect of item.effects){
+      if(effect.kind!=="armorFormula")continue;
+      const dexterityModifier=Math.floor((stats.abilities.dexterity-10)/2);
+      const appliedDexterity=effect.dexCap==null?dexterityModifier:Math.min(dexterityModifier,effect.dexCap);
+      stats.ac=Math.max(stats.ac,effect.base+appliedDexterity);
+    }
+  }
+
+  for(const item of items){
+    for(const effect of item.effects){
+      if(effect.kind==="armorFormula")continue;
+      if(effect.kind==="add")stats[effect.target]=(stats[effect.target]??0)+effect.value;
+      if(effect.kind==="allSaves")Object.keys(stats.saves).forEach(key=>stats.saves[key]+=effect.value);
+      if(effect.kind==="trait")stats.traits.push(effect.label);
+      if(effect.kind==="advantage")stats.traits.push(`Advantage: ${effect.target}`);
+    }
+    if(item.attack)stats.attackProfile={...item.attack,name:item.name};
+  }
+
+  return stats;
+}
 export function equipItem(state,inventory,itemId,slot){const item=inventory.find(entry=>entry.id===itemId);const check=canEquip(item,slot,state,inventory);if(!check.ok)return check;Object.keys(state.equipped).forEach(key=>{if(state.equipped[key]===itemId)state.equipped[key]=null;});state.equipped[slot]=itemId;return{ok:true};}
 export function unequipItem(state,itemId){Object.keys(state.equipped).forEach(slot=>{if(state.equipped[slot]===itemId)state.equipped[slot]=null;});}
 export function useItem(item){if(item.uses){if(item.uses.current<1)return{ok:false,reason:"No charges remain."};item.uses.current-=1;return{ok:true,text:`${item.uses.current}/${item.uses.max} charges remain.`};}if(item.consumable){if(item.consumable.count<1)return{ok:false,reason:"None remain."};item.consumable.count-=1;return{ok:true,text:`${item.consumable.count} remain.`};}return{ok:false,reason:"This item has no tracked use."};}
