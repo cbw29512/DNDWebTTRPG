@@ -22,10 +22,11 @@ assert.doesNotMatch(app, /Live preview:/);
 assert.match(app, /if \(!isDM\) return "";/);
 assert.match(app, /if \(viewRole !== ROLES\.DM\) return;/);
 assert.match(app, /renderInitiative\(false\)/);
+assert.match(app, /Scene player-safe information/);
 
 assert.match(sceneRuntime, /if \(!isDungeonMaster \|\| loading\) return false/);
-assert.match(sceneRuntime, /Players receive only revealed player-safe cards/);
+assert.match(sceneRuntime, /hidden information remains absent from player projections/);
 assert.match(boundary, /encounter-board \[data-card-roll\]/);
 assert.match(boundary, /view-switch/);
 
-console.log('role boundary source checks passed');
+console.log('role boundary and player-safe Area Scene composition source checks passed');
