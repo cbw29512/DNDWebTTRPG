@@ -7,6 +7,7 @@
 
 body.live-play-board-first {
   --live-tarot-card-width: 148px;
+  --live-secondary-panel-height: clamp(420px, 52vh, 520px);
   display: flex;
   flex-direction: column;
   min-height: 100vh;
@@ -41,7 +42,7 @@ body.live-play-board-first #app .app {
 }
 
 body.role-dm.live-play-board-first #app .app {
-  grid-template-columns: minmax(0, 1fr) minmax(280px, 360px);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   grid-template-areas:
     "board board"
     "topbar topbar"
@@ -82,6 +83,36 @@ body.live-play-board-first #app .adventure-deck {
   grid-area: deck;
   width: 100%;
   margin: 0 !important;
+}
+
+/*
+ * The DM's two secondary work panels are one matched pair. Their columns are
+ * equal, their outer heights are identical, and overflow stays inside them so
+ * neither panel can push the quest tracker farther down the page.
+ */
+body.role-dm.live-play-board-first #app .adventure-deck,
+body.role-dm.live-play-board-first #app .turn-panel {
+  display: flex;
+  flex-direction: column;
+  align-self: stretch;
+  height: var(--live-secondary-panel-height);
+  min-height: var(--live-secondary-panel-height);
+  max-height: var(--live-secondary-panel-height);
+  min-width: 0;
+  overflow: hidden;
+}
+
+body.role-dm.live-play-board-first #app .adventure-deck .deck-card-list {
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: none;
+  overflow: auto;
+}
+
+body.role-dm.live-play-board-first #app .turn-panel .initiative {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
 }
 
 /*
@@ -173,6 +204,17 @@ body.live-play-board-first > .library-hub {
       "player"
       "initiative"
       "quest";
+  }
+
+  body.role-dm.live-play-board-first #app .adventure-deck,
+  body.role-dm.live-play-board-first #app .turn-panel {
+    height: auto;
+    min-height: 0;
+    max-height: none;
+  }
+
+  body.role-dm.live-play-board-first #app .adventure-deck .deck-card-list {
+    max-height: 520px;
   }
 }
 

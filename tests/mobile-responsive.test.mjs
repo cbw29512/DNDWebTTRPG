@@ -10,7 +10,7 @@ const [html, css, hierarchyCss] = await Promise.all([
 assert.match(html, /viewport-fit=cover/, 'viewport should support phone safe areas');
 assert.match(html, /mobile-responsive\.css\?v=board-first-live-1/, 'mobile override must remain loaded');
 assert.match(html, /adventure-state-board\.css\?v=board-first-live-1/, 'board hierarchy override must remain loaded');
-assert.match(html, /live-play-priority\.css\?v=board-first-live-2/, 'final live-play layout guard must remain loaded');
+assert.match(html, /live-play-priority\.css\?v=board-first-live-3/, 'final live-play layout guard must remain loaded');
 assert.ok(
   html.indexOf('live-play-priority.css') > html.indexOf('adventure-state-board.css'),
   'the live-play guard must load after the board hierarchy layer'
