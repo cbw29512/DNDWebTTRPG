@@ -6,16 +6,32 @@ function positionStackDrawers(){
 
     const rect=toggle.getBoundingClientRect();
     const margin=12;
-    const gap=8;
-    const availableWidth=Math.max(240,window.innerWidth-margin-Math.max(margin,rect.left));
-    const desired=Math.min(900,Math.max(320,drawer.scrollWidth||320),availableWidth);
-    const left=Math.max(margin,Math.min(rect.left,window.innerWidth-desired-margin));
-    const top=Math.max(margin,rect.bottom+gap);
-    const availableHeight=Math.max(180,window.innerHeight-top-margin);
+    const gap=10;
+    const viewportWidth=Math.max(320,window.innerWidth);
+    const viewportHeight=Math.max(320,window.innerHeight);
+    const desiredWidth=Math.min(900,Math.max(320,drawer.scrollWidth||320),viewportWidth-(margin*2));
+    const naturalHeight=Math.min(
+      620,
+      Math.max(180,drawer.scrollHeight||180),
+      viewportHeight-(margin*2)
+    );
 
-    drawer.style.setProperty('--stack-drawer-left',`${Math.round(left)}px`);
+    const belowTop=rect.bottom+gap;
+    const aboveTop=rect.top-gap-naturalHeight;
+    const fitsBelow=belowTop+naturalHeight<=viewportHeight-margin;
+    const fitsAbove=aboveTop>=margin;
+    const preferAbove=rect.bottom>viewportHeight*.55&&fitsAbove;
+    const top=preferAbove
+      ? aboveTop
+      : fitsBelow
+        ? belowTop
+        : fitsAbove
+          ? aboveTop
+          : Math.max(margin,Math.min(belowTop,viewportHeight-naturalHeight-margin));
+    const availableHeight=Math.max(180,viewportHeight-top-margin);
+
     drawer.style.setProperty('--stack-drawer-top',`${Math.round(top)}px`);
-    drawer.style.setProperty('--stack-drawer-width',`${Math.round(desired)}px`);
+    drawer.style.setProperty('--stack-drawer-width',`${Math.round(desiredWidth)}px`);
     drawer.style.setProperty('--stack-drawer-max-height',`${Math.round(availableHeight)}px`);
   });
 }
