@@ -4,8 +4,11 @@ const [html,css,js]=await Promise.all([readFile('index.html','utf8'),readFile('s
 assert.match(html,/stack-drawer-layer\.css/);
 assert.match(html,/stack-drawer-layer\.js/);
 assert.match(css,/position:fixed!important/);
-assert.match(css,/max-height:min\(68vh,620px\)/);
+assert.match(css,/--stack-drawer-max-height/);
 assert.match(js,/getBoundingClientRect/);
-assert.match(js,/scrollWidth/);
+assert.match(js,/rect\.bottom\+gap/);
+assert.match(js,/dismissExpandedStack/);
+assert.match(js,/event\.target\.closest\('\.card-stack,\.stack-drawer/);
+assert.match(js,/toggle\?\.click\(\)/);
 assert.match(js,/window\.addEventListener\('resize'/);
 console.log('stack drawer layer tests passed');
