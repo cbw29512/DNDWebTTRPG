@@ -6,6 +6,7 @@
  */
 
 body.live-play-board-first {
+  --live-tarot-card-width: 148px;
   display: flex;
   flex-direction: column;
   min-height: 100vh;
@@ -81,6 +82,31 @@ body.live-play-board-first #app .adventure-deck {
   grid-area: deck;
   width: 100%;
   margin: 0 !important;
+}
+
+/*
+ * A card is a fixed-size game object, not a responsive dashboard tile.
+ * Grid and flex parents may rearrange cards, but they may never resize them.
+ */
+body.live-play-board-first #app .tarot-card {
+  flex: 0 0 var(--live-tarot-card-width);
+  width: var(--live-tarot-card-width);
+  min-width: var(--live-tarot-card-width);
+  max-width: var(--live-tarot-card-width);
+}
+
+body.live-play-board-first #app .tarot-inner {
+  width: 100%;
+  aspect-ratio: 2.75 / 4.75;
+}
+
+body.live-play-board-first #app .adventure-deck .deck-card-list {
+  grid-template-columns: repeat(auto-fill, var(--live-tarot-card-width));
+  grid-auto-rows: max-content;
+  justify-content: start;
+  justify-items: start;
+  align-content: start;
+  align-items: start;
 }
 
 body.live-play-board-first #app .turn-panel {
