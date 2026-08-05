@@ -1,0 +1,166 @@
+/*
+ * Canonical live-play hierarchy.
+ *
+ * The card board is the primary surface for both roles. Everything used to
+ * prepare, navigate, save, inspect, or manage the game follows the board.
+ */
+
+body.live-play-board-first {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+body.live-play-board-first > #app {
+  order: 0;
+  width: 100%;
+}
+
+body.live-play-board-first > .local-session-bar {
+  order: 20;
+}
+
+body.live-play-board-first > .scene-runtime {
+  order: 21;
+}
+
+body.live-play-board-first > .library-hub {
+  order: 22;
+}
+
+body.live-play-board-first > .adventure-load-error {
+  order: -20;
+}
+
+body.live-play-board-first #app .app {
+  display: grid !important;
+  gap: 14px;
+  min-height: 0 !important;
+  align-items: start;
+}
+
+body.role-dm.live-play-board-first #app .app {
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 360px);
+  grid-template-areas:
+    "board board"
+    "topbar topbar"
+    "deck initiative"
+    "quest quest";
+}
+
+body.role-player.live-play-board-first #app .app {
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 360px);
+  grid-template-areas:
+    "board board"
+    "topbar topbar"
+    "player initiative"
+    "quest quest";
+}
+
+/* The existing role layouts retain their semantic DOM but stop controlling
+   visual priority. Their children become direct items in the live-play grid. */
+body.live-play-board-first #app .dm-workspace,
+body.live-play-board-first #app .player-layout {
+  display: contents !important;
+}
+
+body.live-play-board-first #app .encounter-board {
+  grid-area: board;
+  width: 100%;
+  min-width: 0;
+  margin: 0 !important;
+}
+
+body.live-play-board-first #app .topbar {
+  grid-area: topbar;
+  width: 100%;
+  margin: 0 !important;
+}
+
+body.live-play-board-first #app .adventure-deck {
+  grid-area: deck;
+  width: 100%;
+  margin: 0 !important;
+}
+
+body.live-play-board-first #app .turn-panel {
+  grid-area: initiative;
+  width: 100%;
+  margin: 0 !important;
+}
+
+body.live-play-board-first #app .player-station {
+  grid-area: player;
+  width: 100%;
+  margin: 0 !important;
+}
+
+body.live-play-board-first #app .quest-tracker {
+  grid-area: quest;
+  width: 100%;
+  margin: 0 !important;
+}
+
+/* The board should read as one uninterrupted live table rather than a middle
+   dashboard column squeezed between preparation tools. */
+body.live-play-board-first #app .board-header {
+  margin-top: 0;
+}
+
+body.live-play-board-first #app .fixed-board {
+  width: 100%;
+}
+
+body.live-play-board-first > .local-session-bar,
+body.live-play-board-first > .scene-runtime,
+body.live-play-board-first > .library-hub {
+  width: calc(100% - 28px);
+  margin-left: 14px;
+  margin-right: 14px;
+}
+
+body.live-play-board-first > .local-session-bar {
+  margin-top: 14px;
+}
+
+body.live-play-board-first > .scene-runtime,
+body.live-play-board-first > .library-hub {
+  margin-top: 0;
+}
+
+@media (max-width: 1000px) {
+  body.role-dm.live-play-board-first #app .app {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      "board"
+      "topbar"
+      "initiative"
+      "deck"
+      "quest";
+  }
+
+  body.role-player.live-play-board-first #app .app {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      "board"
+      "topbar"
+      "player"
+      "initiative"
+      "quest";
+  }
+}
+
+@media (max-width: 760px) {
+  body.live-play-board-first #app .app {
+    gap: 10px;
+    padding: 8px;
+  }
+
+  body.live-play-board-first > .local-session-bar,
+  body.live-play-board-first > .scene-runtime,
+  body.live-play-board-first > .library-hub {
+    width: calc(100% - 16px);
+    margin-left: 8px;
+    margin-right: 8px;
+  }
+}
