@@ -22,7 +22,11 @@ assert.doesNotMatch(app, /Live preview:/);
 assert.match(app, /if \(!isDM\) return "";/);
 assert.match(app, /if \(viewRole !== ROLES\.DM\) return;/);
 assert.match(app, /renderInitiative\(false\)/);
-assert.match(app, /Scene player-safe information/);
+assert.match(app, /const scenePlayerFace = scene\.card\?\.playerFace/);
+assert.match(app, /const sceneDmFace = scene\.card\?\.dmFace/);
+assert.match(app, /face: card\.face \?/);
+assert.match(app, /prefixedFace\(scenePlayerFace\)/);
+assert.match(app, /prefixedFace\(sceneDmFace\)/);
 
 assert.match(sceneRuntime, /if \(!isDungeonMaster \|\| loading\) return false/);
 assert.match(sceneRuntime, /hidden information remains absent from player projections/);
