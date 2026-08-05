@@ -86,7 +86,7 @@ Cards are the primary interface and state container.
 4. Keep the dice roller permanently accessible at the top.
 5. Allow physical dice and manual result entry.
 6. Let the DM override automation at all times.
-7. Never expose private or unrevealed information through the client.
+7. Never expose private or unrevealed information through the client; enforce the boundary with server-side, player-safe projections.
 8. Use strong contrast, keyboard support, reduced motion, scalable text, and screen-reader status updates.
 9. Preserve table atmosphere with optional sound, music, scene art, and spotlight moments.
 10. Keep system rules modular so the platform can support more than D&D.
