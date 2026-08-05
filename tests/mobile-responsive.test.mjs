@@ -8,9 +8,9 @@ const [html, css, hierarchyCss] = await Promise.all([
 ]);
 
 assert.match(html, /viewport-fit=cover/, 'viewport should support phone safe areas');
-assert.match(html, /mobile-responsive\.css\?v=source-board-model-1/, 'mobile override must remain loaded');
-assert.match(html, /adventure-state-board\.css\?v=source-board-model-1/, 'board override must load last');
-assert.match(html, /source-board-model-20260805/, 'current build marker should be present');
+assert.match(html, /mobile-responsive\.css\?v=seven-slot-source-2/, 'mobile override must remain loaded');
+assert.match(html, /adventure-state-board\.css\?v=seven-slot-source-2/, 'board override must load last');
+assert.match(html, /seven-slot-source-20260805-2/, 'current build marker should be present');
 assert.match(css, /@media \(max-width: 760px\)/, 'phone breakpoint should exist');
 assert.match(hierarchyCss, /@media \(max-width: 760px\)[\s\S]*flex-direction: column !important/, 'spatial and encounter slots must stack vertically on phones');
 assert.match(css, /\.library-grid[\s\S]*grid-template-columns: minmax\(0, 1fr\) !important/, 'libraries must become one column');
@@ -18,4 +18,4 @@ assert.match(css, /\.player-station-grid[\s\S]*grid-template-columns: minmax\(0,
 assert.match(css, /\.stack-drawer-layer[\s\S]*position: fixed !important/, 'expanded stacks should become a phone bottom sheet');
 assert.match(css, /min-height: var\(--mobile-control-height\)/, 'interactive controls need touch-sized targets');
 
-console.log('mobile seven-slot board layout source checks passed');
+console.log('mobile fresh seven-slot board layout source checks passed');

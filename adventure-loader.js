@@ -3,6 +3,7 @@ const PACKS = Object.freeze({
   "wish-cake-001": "packs/wishing-cake/1.0.0/manifest.json"
 });
 
+const RUNTIME_BUILD = "seven-slot-source-20260805-2";
 const normalizeCode = value => String(value ?? "").trim().toLowerCase();
 const params = new URLSearchParams(location.search);
 const requested = normalizeCode(params.get("pack") || params.get("code"));
@@ -112,4 +113,4 @@ try {
   document.body.prepend(message);
 }
 
-await import("./src/app.js");
+await import(`./src/app.js?v=${RUNTIME_BUILD}`);
