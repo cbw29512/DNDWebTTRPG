@@ -80,3 +80,7 @@ Last updated: 2026-08-05
 76. Decision 67 is superseded: the live board's spatial context is **Location → Site → Area**. Current Scene remains session progress and appears as concise context on the Area and in DM adventure controls, not as a separate board slot.
 77. Decision 68 is refined: loading a Scene prepares the exact Location, Site, Area, NPCs, monsters, hazards, treasure, transitions, and saved state. A separate Scene card is optional source content and is not required on the live board.
 78. Objectives and quests appear in the dedicated Quest Tracker rather than consuming a live encounter-board slot. Quest definitions and quest state remain authoritative even though their board column is removed.
+79. The canonical live-board schema contains exactly seven slots: `location`, `site`, `room` (presented as Area), `npc`, `monster`, `hazard`, and `treasure`.
+80. Scene definitions may remain reusable source cards, but Scene identity and progress are session metadata. The active Scene's player-safe and DM details are composed into the current Area card instead of becoming a board instance.
+81. Quest definitions remain cards, but adventure manifests activate them through `startingQuests` and per-Scene `questIds`; quest instances and visibility live in `quests` and `questState`, never in a board payload.
+82. Browser-local schema version 3 migrates older `scene` and `objective` board entries by preserving active Scene and quest state, then discarding those legacy board keys. Post-render board-pruning guards are prohibited for this model.

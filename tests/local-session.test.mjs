@@ -8,18 +8,22 @@ const [html, js, css, manifest] = await Promise.all([
   readFile('packs/wishing-cake/1.0.0/manifest.json','utf8')
 ]);
 
-assert.match(html,/local-session\.js\?v=spatial-state-1/);
-assert.match(html,/local-session\.css\?v=spatial-state-1/);
+assert.match(html,/local-session\.js\?v=source-board-model-1/);
+assert.match(html,/local-session\.css\?v=source-board-model-1/);
+assert.doesNotMatch(html,/encounter-slot-guard/);
 assert.match(js,/living-table-local-session-v1/);
-assert.match(js,/schemaVersion: 2/);
-assert.match(js,/migrateSpatialSession/);
-assert.match(js,/activeManifestScene/);
-assert.match(js,/session-spatial-migrated/);
-assert.match(js,/\['location','site','room','scene','npc','monster','hazard','objective','treasure'\]/);
+assert.match(js,/schemaVersion: 3/);
+assert.match(js,/session-live-board-migrated/);
+assert.match(js,/removedBoardSlots: \['scene','objective'\]/);
+assert.match(js,/\['location','site','room','npc','monster','hazard','treasure'\]/);
+assert.doesNotMatch(js,/LIVE_BOARD_SLOT_IDS[^\n]*scene/);
+assert.doesNotMatch(js,/LIVE_BOARD_SLOT_IDS[^\n]*objective/);
 assert.match(js,/currentLocationId/);
 assert.match(js,/currentSiteId/);
 assert.match(js,/currentRoomId/);
+assert.match(js,/currentSceneId/);
 assert.match(js,/currentSceneCardId/);
+assert.match(js,/questState/);
 assert.match(js,/worldState/);
 assert.match(js,/locationState/);
 assert.match(js,/siteState/);
@@ -37,10 +41,12 @@ assert.match(js,/data-session-save/);
 assert.match(js,/data-session-restore/);
 assert.match(js,/data-session-reset/);
 assert.match(css,/local-session-bar/);
+
 const pack = JSON.parse(manifest);
+assert.equal(pack.schemaVersion,3);
 assert.equal(pack.packId,'wishing-cake');
-assert.ok(pack.startingBoard.site.length);
-assert.ok(pack.startingBoard.scene.length);
-assert.ok(pack.startingBoard.objective.length);
+assert.deepEqual(Object.keys(pack.startingBoard), ['location','site','room','npc','monster','hazard','treasure']);
+assert.equal('scene' in pack.startingBoard,false);
+assert.equal('objective' in pack.startingBoard,false);
 assert.ok(pack.startingQuests.length);
-console.log('canonical complete adventure-state session and legacy migration source checks passed');
+console.log('live seven-slot session schema, legacy migration, and quest-state checks passed');

@@ -1,11 +1,12 @@
 import { activateCharacterCard } from './src/player/character-cards.js';
 
 export const LOCAL_SESSION_KEY = 'living-table-local-session-v1';
-const SLOT_IDS = ['location','site','room','scene','npc','monster','hazard','objective','treasure'];
+export const LIVE_BOARD_SLOT_IDS = Object.freeze(['location','site','room','npc','monster','hazard','treasure']);
 const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 const clone = value => JSON.parse(JSON.stringify(value));
 const safeParse = value => { try { return JSON.parse(value); } catch { return null; } };
-const normalizedBoard = board => Object.fromEntries(SLOT_IDS.map(slotId => [slotId, clone(board?.[slotId] || [])]));
+const unique = values => [...new Set(values.filter(Boolean))];
+const normalizedBoard = board => Object.fromEntries(LIVE_BOARD_SLOT_IDS.map(slotId => [slotId, clone(board?.[slotId] || [])]));
 
 function activeManifestScene(session, manifest) {
   const scenes = manifest?.scenes || [];
@@ -17,12 +18,31 @@ function activeManifestScene(session, manifest) {
     || null;
 }
 
+function sceneBreadcrumb(session, manifest = window.__DND_ADVENTURE_PACK__) {
+  const active = activeManifestScene(session, manifest);
+  return [
+    active?.locationTitle || session?.currentLocationId,
+    active?.siteTitle || session?.currentSiteId,
+    active?.roomTitle || session?.currentRoomId,
+    active?.title || session?.currentSceneId
+  ].filter(Boolean).join(' → ');
+}
+
 function migrateSpatialSession(session, manifest = window.__DND_ADVENTURE_PACK__) {
   const previousSchema = session.schemaVersion || 1;
-  session.schemaVersion = 2;
-  session.board = normalizedBoard(session.board || {});
-  session.openingBoard = normalizedBoard(session.openingBoard || session.board);
+  const rawBoard = clone(session.board || {});
+  const rawOpeningBoard = clone(session.openingBoard || rawBoard);
   const active = activeManifestScene(session, manifest);
+  const legacyObjectiveIds = unique([
+    ...(rawBoard.objective || []),
+    ...(rawOpeningBoard.objective || []),
+    ...(manifest?.persistentBoard?.objective || []),
+    ...(active?.board?.objective || [])
+  ]);
+
+  session.schemaVersion = 3;
+  session.board = normalizedBoard(rawBoard);
+  session.openingBoard = normalizedBoard(rawOpeningBoard);
 
   if (active) {
     session.currentSceneId = active.id;
@@ -33,16 +53,31 @@ function migrateSpatialSession(session, manifest = window.__DND_ADVENTURE_PACK__
     if (!session.board.location.length && active.locationId) session.board.location = [active.locationId];
     if (!session.board.site.length && active.siteId) session.board.site = [active.siteId];
     if (!session.board.room.length && active.roomId) session.board.room = [active.roomId];
-    if (!session.board.scene.length && active.sceneCardId) session.board.scene = [active.sceneCardId];
-    if (!session.board.objective.length) {
-      session.board.objective = [...new Set([...(manifest?.persistentBoard?.objective || []), ...(active.board?.objective || [])])];
-    }
   }
 
   const start = normalizedBoard(manifest?.startingBoard || {});
-  for (const slotId of SLOT_IDS) {
+  for (const slotId of LIVE_BOARD_SLOT_IDS) {
     if (!session.openingBoard[slotId].length && start[slotId].length) session.openingBoard[slotId] = start[slotId];
   }
+
+  const startingQuests = clone(manifest?.startingQuests || []);
+  const mainQuestId = startingQuests[0] || session.quests?.[0] || legacyObjectiveIds[0] || null;
+  const existingActive = session.questState?.active || (session.quests || []).filter(id => id !== mainQuestId);
+  const activeQuestIds = unique([
+    ...existingActive,
+    ...legacyObjectiveIds,
+    ...(active?.questIds || [])
+  ]).filter(id => id !== mainQuestId);
+  const revealedQuestIds = unique([
+    ...(session.questState?.revealed || []),
+    mainQuestId,
+    ...activeQuestIds
+  ]);
+  session.quests = unique([mainQuestId, ...activeQuestIds]);
+  session.questState = {
+    active: activeQuestIds,
+    revealed: revealedQuestIds
+  };
 
   session.roomHistory ||= [];
   session.discoveredScenes ||= active?.id ? [active.id] : [];
@@ -53,13 +88,14 @@ function migrateSpatialSession(session, manifest = window.__DND_ADVENTURE_PACK__
   session.sceneState ||= {};
   session.eventHistory ||= [];
   if (!('combatState' in session)) session.combatState = null;
-  if (previousSchema < 2 && !session.eventHistory.some(event => event.type === 'session-spatial-migrated')) {
+  if (previousSchema < 3 && !session.eventHistory.some(event => event.type === 'session-live-board-migrated')) {
     session.eventHistory.push({
       id: `migration-${Date.now()}`,
-      type: 'session-spatial-migrated',
+      type: 'session-live-board-migrated',
       fromSchema: previousSchema,
-      toSchema: 2,
-      sceneId: active?.id || null,
+      toSchema: 3,
+      removedBoardSlots: ['scene','objective'],
+      sceneId: active?.id || session.currentSceneId || null,
       at: new Date().toISOString()
     });
   }
@@ -69,8 +105,9 @@ function migrateSpatialSession(session, manifest = window.__DND_ADVENTURE_PACK__
 export function createLocalSession(manifest, selectedSystem = manifest.systems?.[0] || 'dnd-2014') {
   const openingBoard = normalizedBoard(manifest.startingBoard || {});
   const entry = manifest.scenes?.find(scene => scene.id === manifest.entrySceneId) || manifest.scenes?.[0] || {};
+  const startingQuests = clone(manifest.startingQuests || []);
   return {
-    schemaVersion: 2,
+    schemaVersion: 3,
     sessionId: `${manifest.packId}-${Date.now()}`,
     packId: manifest.packId,
     releaseId: manifest.releaseId,
@@ -82,10 +119,14 @@ export function createLocalSession(manifest, selectedSystem = manifest.systems?.
     currentLocationId: entry.locationId || openingBoard.location[0] || null,
     currentSiteId: entry.siteId || openingBoard.site[0] || null,
     currentRoomId: entry.roomId || openingBoard.room[0] || null,
-    currentSceneCardId: entry.sceneCardId || openingBoard.scene[0] || null,
+    currentSceneCardId: entry.sceneCardId || null,
     openingBoard,
     board: clone(openingBoard),
-    quests: clone(manifest.startingQuests || []),
+    quests: startingQuests,
+    questState: {
+      active: startingQuests.slice(1),
+      revealed: startingQuests
+    },
     roomHistory: [],
     discoveredScenes: entry.id ? [entry.id] : [],
     worldState: {},
@@ -128,7 +169,7 @@ function uniqueInstances(slot) {
 }
 
 export function readBoardFromDom(root = document) {
-  return Object.fromEntries(SLOT_IDS.map(slotId => {
+  return Object.fromEntries(LIVE_BOARD_SLOT_IDS.map(slotId => {
     const slot = root.querySelector(`[data-slot="${slotId}"]`);
     return [slotId, uniqueInstances(slot).map(instance => instance.cardId)];
   }));
@@ -168,7 +209,7 @@ async function addOne(slotId, cardId) {
 
 export async function reconcileBoard(targetBoard, { onProgress = () => {} } = {}) {
   const normalizedTarget = normalizedBoard(targetBoard);
-  for (const slotId of SLOT_IDS) {
+  for (const slotId of LIVE_BOARD_SLOT_IDS) {
     const desired = [...normalizedTarget[slotId]];
     let slot = document.querySelector(`[data-slot="${slotId}"]`);
     if (!slot) continue;
@@ -194,7 +235,7 @@ export async function reconcileBoard(targetBoard, { onProgress = () => {} } = {}
 }
 
 function toolbarMarkup(session) {
-  const breadcrumb = session ? [session.currentLocationId, session.currentSiteId, session.currentRoomId, session.currentSceneCardId].filter(Boolean).join(' → ') : '';
+  const breadcrumb = session ? sceneBreadcrumb(session) : '';
   return `<section class="local-session-bar" aria-label="Local adventure session">
     <div><small>LOCAL SESSION</small><strong>${session?.title || 'No adventure prepared'}</strong><span>${session ? `${session.version} · ${session.selectedSystem} · ${session.status}` : 'Load an Adventure Master Card to begin.'}</span>${breadcrumb ? `<small>${breadcrumb}</small>` : ''}</div>
     <p data-session-message aria-live="polite"></p>
@@ -225,13 +266,13 @@ function message(text) {
 async function applySessionBoard(session, targetBoard = session.board, finalStatus = session.status) {
   if (!session || applying) return;
   applying = true;
-  message('Restoring the exact adventure, place, scene, and cards…');
+  message('Restoring the exact Location, Site, Area, active Scene context, and cards…');
   activateCharacterCard(session.players?.[0]?.characterId || 'wendy-birthday-hero');
   const actual = await reconcileBoard(targetBoard, { onProgress:message });
   saveLocalSession({ ...session, board:actual, status:finalStatus || 'ready' });
   applying = false;
   renderToolbar();
-  message('Location, Site, Area, Scene, cards, quests, edition, and character state are saved locally.');
+  message('Location, Site, Area, Scene context, cards, quests, edition, and character state are saved locally.');
 }
 
 function bindToolbar() {
@@ -278,7 +319,16 @@ window.addEventListener('dnd:adventure-loaded', async event => {
 const app = document.querySelector('#app');
 if (app) new MutationObserver(scheduleBoardSave).observe(app, { childList:true, subtree:true });
 
-window.LivingTableLocalSession = Object.freeze({ createLocalSession, loadLocalSession, saveLocalSession, clearLocalSession, readBoardFromDom, reconcileBoard, applySessionBoard });
+window.LivingTableLocalSession = Object.freeze({
+  LIVE_BOARD_SLOT_IDS,
+  createLocalSession,
+  loadLocalSession,
+  saveLocalSession,
+  clearLocalSession,
+  readBoardFromDom,
+  reconcileBoard,
+  applySessionBoard
+});
 
 renderToolbar();
 const saved = loadLocalSession();

@@ -32,9 +32,11 @@ The system remembers the game so the people at the table can play:
 
 ### Card and adventure experience
 
-- Lean seven-column encounter board: Location, Site, Area, NPCs, Monsters, Traps/Hazards, and Treasure/Rewards
-- Scene progress shown as concise context on the Area and in DM adventure controls rather than consuming another board card
-- Objectives and side quests shown in the dedicated Quest Tracker rather than duplicated on the board
+- Source-rendered seven-column encounter board: Location, Site, Area, NPCs, Monsters, Traps/Hazards, and Treasure/Rewards
+- Scene progress shown on the Area card and in DM adventure controls
+- Scene player and DM details composed into the matching Area back
+- Objectives and side quests owned by the dedicated Quest Tracker
+- Scene and Objective definitions excluded from the live Adventure Deck
 - Card placement, reveal, flip, remove, grouping, and basic grouped initiative
 - DM and Player libraries with role-specific tab visibility
 - Pinned `DNDCards` catalog and artwork resolution
@@ -44,8 +46,6 @@ The system remembers the game so the people at the table can play:
 - Automatic board reconciliation when a prepared Scene loads
 
 ### Correct adventure hierarchy
-
-The adventure model distinguishes:
 
 ```text
 Campaign / World → Location → Site → Area
@@ -59,22 +59,21 @@ For the opening:
 - Area: Grand Celebration Hall
 - Current Scene: The Stolen Wish
 
-The live board answers where the party is and what is physically present. The Area card carries the immediate read-aloud text, checks, triggers, secrets, and encounter context. Current Scene remains tracked without requiring a separate column.
+The live board answers where the party is and what is physically present. The Area card supplies the current event context without creating a duplicate Scene column.
 
 ### Browser-local state foundation
 
-The local session schema still records:
+Browser-local schema version 3 records:
 
-- current Location, Site, Area / Room, and Scene;
-- board state and reveal state;
-- quest and side-quest state;
+- current Location, Site, Area, Scene, and Scene-card reference;
+- exactly seven live board slots;
+- quest and side-quest state outside the board;
 - visited Area history and discovered Scenes;
 - world, Location, Site, Area, and Scene state containers;
-- combat-state container;
-- event-history container;
-- migration/default handling for older browser saves.
+- combat-state and event-history containers;
+- migration for older saves containing Scene and Objective board entries.
 
-The old Scene and Objective board entries may remain in legacy source/session data during migration, but the live interface removes those redundant columns. Quest state remains authoritative in the Quest Tracker, and Scene remains authoritative in session progress.
+During migration, legacy Scene and Objective board data is converted into Scene and quest state before those board keys are discarded.
 
 ### Project control and research
 
@@ -91,11 +90,12 @@ The old Scene and Objective board entries may remain in legacy source/session da
 - Site is the named destination or complex inside the Location.
 - Area is the immediate battle-map-scale space.
 - Scene is the active conversation, discovery, puzzle, combat, rest, aftermath, or other event.
-- Loading a Scene prepares the active Location, Site, Area, associated NPCs, monsters, hazards, treasure, transitions, and saved state.
-- Objectives remain in the Quest Tracker rather than a board slot.
+- Loading a Scene prepares Location, Site, Area, NPCs, monsters, hazards, treasure, transitions, and saved state.
+- Per-Scene `questIds` activate side quests in the Quest Tracker.
+- Scene progress remains separate from the seven-slot board.
 - Existing reveal state remains separate from loaded state.
 - Connected paths come from the adventure manifest.
-- The local session records each Scene load as an event.
+- Every Scene load is recorded in event history.
 - Players do not receive Scene-selection controls.
 
 ## Role-boundary truth
@@ -108,40 +108,39 @@ Secure multiplayer still requires the server to verify account identity, campaig
 
 - Single browser/static deployment; no real authentication, campaigns, join codes, multiplayer, or reconnect
 - Static route separation is not a security boundary against local JavaScript manipulation
-- Scene loading still uses the DOM card-picker bridge rather than a direct authoritative reducer
-- The lean board is currently enforced after rendering while the older source renderer still defines legacy Scene and Objective slots; a future reducer cleanup should remove those legacy definitions at the source
-- The state containers do not yet implement full NPC memory, item instances, rests, advancement, or combat persistence
-- The city name `Bramblewick` is a working original label because the source adventure does not provide one
+- Scene loading still reconciles through DOM controls rather than a direct authoritative reducer
+- State containers do not yet implement full NPC memory, item instances, rests, advancement, or combat persistence
+- `Bramblewick` remains a working original city label because the source adventure does not provide one
 - Some Wishing Cake Areas still need dedicated clue, trigger, and treasure cards
 - Only one partial pregen is present; a six-character legal roster is still required
-- Full browser interaction and deployment smoke testing has not been verified for the lean board
-- Automated tests were updated but have not been executed in the connector environment
+- Full browser interaction and deployed smoke testing remain unverified
+- The complete test suite could not be executed in the connector environment because it cannot resolve `github.com`; repository CI is being added to run it on GitHub
 - Complete D&D combat resolution is not implemented
 - Artwork commercial-rights certification and 300-DPI print output remain unfinished
 
 ## Current priority
 
-1. Browser-playtest the lean Location → Site → Area board on DM and player routes.
-2. Remove the legacy Scene and Objective slots from the source renderer and direct board reducer rather than relying on post-render pruning.
-3. Replace DOM reconciliation with a direct authoritative board/session reducer.
-4. Implement saved combat: round, active turn, initiative, HP, conditions, concentration, resources, hazards, and exact resume.
-5. Implement persistent item instances with identity, known/hidden properties, charges, attunement, curse knowledge, ownership, and history.
-6. Implement NPC conversation and relationship memory.
-7. Implement persistent Area alterations, traps, secrets, clues, and claimed treasure.
-8. Complete missing Wishing Cake cards and six legal level-three pregens.
-9. Add campaign creation, join code, claiming, ready lobby, and authoritative multiplayer synchronization.
+1. Run repository CI and browser-playtest the source seven-slot board on DM and player routes.
+2. Replace DOM reconciliation with a direct authoritative board/session reducer.
+3. Implement saved combat: round, active turn, initiative, HP, conditions, concentration, resources, hazards, and exact resume.
+4. Implement persistent item instances with identity, known/hidden properties, charges, attunement, curse knowledge, ownership, and history.
+5. Implement NPC conversation and relationship memory.
+6. Implement persistent Area alterations, traps, secrets, clues, and claimed treasure.
+7. Complete missing Wishing Cake cards and six legal level-three pregens.
+8. Add campaign creation, join code, claiming, ready lobby, and authoritative multiplayer synchronization.
 
 ## Next acceptance test
 
-1. DM loads The Wishing Cake.
-2. The board shows Location: Bramblewick, Site: The Wishing Cake Inn, and Area: Grand Celebration Hall.
-3. The Area heading shows the current event, The Stolen Wish, without a separate Scene column.
-4. The board contains no Objective / Quest column; the main and side quests remain in the Quest Tracker.
-5. DM advances below the inn.
-6. Location remains Bramblewick; Site changes to Old Celebration Halls; Area changes to Holding Cells; current Scene changes to Escape and Ceiling Ambush.
-7. Associated NPC, monster, hazard, and treasure cards replace the prior Scene automatically.
-8. Player route contains only revealed player-safe versions of the same lean board.
-9. Save and refresh; confirm Location, Site, Area, Scene progress, board, quests, character, equipment, and event history return.
+1. Load The Wishing Cake in the DM route.
+2. Confirm exactly seven board slots exist in the source DOM.
+3. Confirm Location is Bramblewick, Site is The Wishing Cake Inn, and Area is Grand Celebration Hall.
+4. Confirm Area displays `Now: The Stolen Wish` and its back includes the appropriate Scene information.
+5. Confirm no Scene or Objective board instance exists.
+6. Confirm the main quest and side quests remain operable in the Quest Tracker.
+7. Advance to the Holding Cells and verify Location remains Bramblewick while Site, Area, Scene context, and encounter cards change correctly.
+8. Save and refresh; verify Scene, quest, board, character, equipment, and event history return.
+9. Load an older schema-version-2 save and verify its legacy Scene and Objective board entries migrate without losing Scene or quest progress.
+10. Repeat the flow in the player route and confirm only player-safe content is rendered.
 
 ## Exact-resume target
 

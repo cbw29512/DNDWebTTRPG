@@ -80,18 +80,25 @@ assert.match(integrationLedger,/DungeonMaps/);
 
 assert.match(html,/name="living-table-role" content="dm"/);
 assert.match(html,/adventure-state-board\.css/);
+assert.doesNotMatch(html,/encounter-slot-guard/);
 assert.match(app,/projectSessionFor/);
 assert.match(app,/Adventure Deck/); assert.match(app,/Dungeon Master Card Board/); assert.match(app,/const SLOTS/);
-assert.match(app,/Location/); assert.match(app,/Site/); assert.match(app,/Area \/ Room/); assert.match(app,/Current Scene/);
-assert.doesNotMatch(app,/Room \/ Scene/);
+assert.match(app,/label: "Location"/); assert.match(app,/label: "Site"/); assert.match(app,/label: "Area"/);
+assert.doesNotMatch(app,/label: "Current Scene"/);
+assert.match(app,/mergeActiveSceneIntoArea/);
 assert.match(app,/NPCs/); assert.match(app,/Monsters/);
-assert.match(app,/Traps \/ Hazards/); assert.match(app,/Objective \/ Quest/); assert.match(app,/Treasure \/ Rewards/);
+assert.match(app,/Traps \/ Hazards/); assert.match(app,/Treasure \/ Rewards/);
+assert.doesNotMatch(app,/label: "Objective \/ Quest"/);
 assert.match(app,/stack-count/); assert.match(app,/data-toggle-stack/); assert.match(app,/data-card-roll/);
 assert.match(app,/data-roll-all-monsters/); assert.match(app,/groupedInitiative/); assert.match(app,/Identical monsters share one initiative value/);
 assert.match(app,/data-open-picker/); assert.match(app,/data-place-card/); assert.match(app,/draggable="true"/);
 assert.match(app,/data-flip-card/); assert.match(app,/data-remove-instance/);
 assert.match(css,/\.fixed-board/); assert.match(css,/\.board-slot/); assert.match(css,/\.tarot-card/); assert.match(css,/\.card-picker/);
-assert.match(hierarchyCss,/data-slot="location"/); assert.match(hierarchyCss,/data-slot="scene"/); assert.match(hierarchyCss,/flex-wrap: wrap !important/);
+assert.match(hierarchyCss,/data-slot="location"/); assert.match(hierarchyCss,/data-slot="site"/); assert.match(hierarchyCss,/data-slot="room"/); assert.doesNotMatch(hierarchyCss,/data-slot="scene"/); assert.match(hierarchyCss,/flex-wrap: wrap !important/);
 assert.match(stackCss,/\.card-stack/); assert.match(stackCss,/\.stack-count/); assert.match(stackCss,/\.inside-card-rolls/); assert.match(stackCss,/\.stack-drawer/);
 assert.match(vision,/server-side/i); assert.match(mvp,/complete D&D-style combat encounter/i);
-console.log('The Living Table spatial hierarchy, Wishing Cake cards, item uses, grouped initiative, projections, and source registry passed.');
+
+const slotDefinitions = [...app.matchAll(/id: "(location|site|room|npc|monster|hazard|treasure)"/g)].map(match => match[1]);
+assert.deepEqual(slotDefinitions, ['location','site','room','npc','monster','hazard','treasure']);
+
+console.log('The Living Table seven-slot hierarchy, Area-carried Scene context, Wishing Cake cards, item uses, grouped initiative, projections, and source registry passed.');

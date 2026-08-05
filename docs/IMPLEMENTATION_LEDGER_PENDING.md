@@ -135,3 +135,44 @@ Known limitations:
 Next acceptance test:
 
 - Load the DM and player routes, verify exactly seven encounter columns, confirm the Area displays the active Scene context, confirm the Quest Tracker retains main/side quests and DM controls, and verify save/refresh preserves Scene and quest state.
+
+## PR #73 — Remove legacy Scene and Objective board state
+
+Head SHA before final ledger update: `c8ce626bc81903c7b603ffc06959d3f419bc983e`
+
+Burden removed:
+
+- Eliminates duplicate board state and the post-render guard that repeatedly removed it.
+- Gives Scene, quests, and the live board one clear state owner each.
+- Prevents old saves from losing Scene or quest progress during the migration.
+
+Actually delivered:
+
+- Source renderer defines exactly seven live slots: Location, Site, Area, NPCs, Monsters, Traps/Hazards, and Treasure/Rewards.
+- Active Scene player-safe and DM details are composed into the current Area card.
+- Scene and Objective definitions are excluded from the live Adventure Deck.
+- Deleted `encounter-slot-guard.js` and removed it from DM/player entry points.
+- Wishing Cake manifest moved to schema version 3 with seven-slot board payloads, `startingQuests`, and per-Scene `questIds`.
+- Scene loading now reconciles only seven board slots and activates quests through quest state.
+- Browser-local schema version 3 migrates old Scene and Objective board entries into Scene and quest state before removing the legacy keys.
+- Adventure loader validates schema version 3 and rejects legacy Scene/Objective board keys.
+- Updated canonical decisions, Scene model, project status, responsive styling, and regression tests.
+
+Tests actually run:
+
+- JavaScript syntax checks, manifest JSON validation, and focused static assertions passed against the composed changed files.
+- The connector container could not clone the repository because it could not resolve `github.com`.
+- The repository's existing GitHub Actions workflow runs `npm test` for this pull request; its result must be checked before merge.
+
+Browser/deployment verification:
+
+- Not yet performed.
+
+Known limitations:
+
+- Board reconciliation still operates through DOM controls rather than a direct authoritative reducer.
+- Secure multiplayer, full combat persistence, item memory, NPC memory, rests, advancement, and complete browser smoke testing remain unfinished.
+
+Next acceptance test:
+
+- Verify schema-version-3 CI passes, then run DM/player browser tests for exactly seven source slots, Area-carried Scene details, Quest Tracker persistence, Scene transitions, refresh recovery, and migration from a schema-version-2 browser save.

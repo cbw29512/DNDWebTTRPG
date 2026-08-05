@@ -12,15 +12,14 @@ const freeDice = [20, 12, 10, 8, 6, 4, 100];
 const SLOTS = Object.freeze([
   { id: "location", label: "Location", icon: "⌖", accepts: ["location"], stackable: false },
   { id: "site", label: "Site", icon: "◆", accepts: ["site"], stackable: false },
-  { id: "room", label: "Area / Room", icon: "▣", accepts: ["room"], stackable: false },
-  { id: "scene", label: "Current Scene", icon: "▶", accepts: ["scene"], stackable: false },
+  { id: "room", label: "Area", icon: "▣", accepts: ["room"], stackable: false },
   { id: "npc", label: "NPCs", icon: "♟", accepts: ["npc"], stackable: true },
   { id: "monster", label: "Monsters", icon: "☠", accepts: ["monster"], stackable: true },
   { id: "hazard", label: "Traps / Hazards", icon: "⚠", accepts: ["hazard"], stackable: true },
-  { id: "objective", label: "Objective / Quest", icon: "◇", accepts: ["objective"], stackable: false },
   { id: "treasure", label: "Treasure / Rewards", icon: "✦", accepts: ["treasure", "item"], stackable: true }
 ]);
 
+const DECK_ONLY_TYPES = new Set(["scene", "objective"]);
 const cardById = id => session.cards.find(card => card.id === id);
 let nextInstance = 1;
 const makeInstance = cardId => {
@@ -38,11 +37,9 @@ const board = {
   location: [makeInstance("location")],
   site: [makeInstance("site-wishing-cake-inn")],
   room: [makeInstance("room")],
-  scene: [makeInstance("scene-stolen-wish")],
   npc: [makeInstance("caretaker"), makeInstance("npc-boris"), makeInstance("npc-pip"), makeInstance("npc-lute")],
   monster: [makeInstance("priest")],
   hazard: [],
-  objective: [makeInstance("objective")],
   treasure: [makeInstance("lantern")]
 };
 
@@ -63,10 +60,66 @@ const slotForCard = card => SLOTS.find(slot => slot.accepts.includes(card.type))
 const escapeHtml = value => String(value).replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#039;");
 const d20 = modifier => Math.floor(Math.random() * 20) + 1 + modifier;
 const labelForKey = key => key.replace(/([A-Z])/g, " $1").replace(/^./, letter => letter.toUpperCase());
+const cardTypeLabel = type => type === "room" ? "area" : type;
+
+function activeSceneContext() {
+  let localSession = null;
+  try {
+    localSession = JSON.parse(localStorage.getItem("living-table-local-session-v1") || "null");
+  } catch {
+    localSession = null;
+  }
+  const manifest = window.__DND_ADVENTURE_PACK__;
+  const sceneDefinition = manifest?.scenes?.find(entry => entry.id === localSession?.currentSceneId)
+    || manifest?.scenes?.find(entry => entry.id === manifest?.entrySceneId)
+    || manifest?.scenes?.[0]
+    || null;
+  const sceneCardId = localSession?.currentSceneCardId || sceneDefinition?.sceneCardId;
+  const sceneCard = sceneCardId ? cardById(sceneCardId) : null;
+  return {
+    id: sceneDefinition?.id || localSession?.currentSceneId || null,
+    title: sceneDefinition?.title || sceneCard?.title || "",
+    card: sceneCard
+  };
+}
+
+const prefixedFace = (face, prefix = "scene") => Object.fromEntries(
+  Object.entries(face ?? {}).map(([key, value]) => [
+    `${prefix}${key.slice(0, 1).toUpperCase()}${key.slice(1)}`,
+    value
+  ])
+);
+
+function mergeActiveSceneIntoArea(card) {
+  if (card?.type !== "room") return card;
+  const scene = activeSceneContext();
+  if (!scene.title) return card;
+
+  const scenePlayerFace = scene.card?.playerFace ?? {};
+  const sceneDmFace = scene.card?.dmFace ?? {};
+  return {
+    ...card,
+    playerFace: card.playerFace ? {
+      ...card.playerFace,
+      currentScene: scene.title,
+      ...prefixedFace(scenePlayerFace)
+    } : card.playerFace,
+    dmFace: card.dmFace ? {
+      ...card.dmFace,
+      currentScene: scene.title,
+      ...prefixedFace(sceneDmFace)
+    } : card.dmFace,
+    face: card.face ? {
+      ...card.face,
+      currentScene: scene.title,
+      ...prefixedFace(scenePlayerFace)
+    } : card.face
+  };
+}
 
 const faceDetails = face => Object.entries(face ?? {}).map(([key, value]) => {
   const text = Array.isArray(value) ? value.join(" • ") : value;
-  const dialogueClass = key === "openingDialogue" || key === "readAloud" ? " read-aloud-copy" : "";
+  const dialogueClass = key === "openingDialogue" || key === "readAloud" || key === "sceneReadAloud" ? " read-aloud-copy" : "";
   return `<p class="card-detail${dialogueClass}"><strong>${escapeHtml(labelForKey(key))}:</strong> ${escapeHtml(text)}</p>`;
 }).join("");
 
@@ -81,15 +134,18 @@ const cardActions = (card, instance, isDM) => {
   return `${uses}<div class="inside-card-rolls">${actions.map(([label, action]) => `<button type="button" data-card-roll="${action}" data-instance="${instance.instanceId}">${label}</button>`).join("")}</div><small class="card-roll-note">Rules and tracking happen here</small>`;
 };
 
-const tarotCard = (card, instance, { isDM, inDeck = false, compact = false } = {}) => {
+const tarotCard = (inputCard, instance, { isDM, inDeck = false, compact = false } = {}) => {
+  const card = mergeActiveSceneIntoArea(inputCard);
   const key = instance?.instanceId ?? card.id;
   const isFlipped = flipped.has(key);
   const face = isDM ? card.dmFace : card.face;
   const visibleSummary = isDM ? (card.dmFace?.readAloud ?? card.dmFace?.openingDialogue ?? card.playerFace?.summary) : (card.face?.readAloud ?? card.face?.openingDialogue ?? card.face?.summary);
+  const scene = card.type === "room" ? activeSceneContext() : null;
+  const sceneLabel = scene?.title ? `<span class="area-current-scene">Now: ${escapeHtml(scene.title)}</span>` : "";
   return `<article class="tarot-card type-${card.type} ${isFlipped ? "is-flipped" : ""} ${compact ? "compact-card" : ""}" data-card-id="${card.id}" data-card-type="${card.type}" ${instance ? `data-card-instance="${instance.instanceId}"` : ""} ${inDeck ? `draggable="true" tabindex="0"` : ""}>
     <div class="tarot-inner">
-      <section class="tarot-face tarot-front"><span class="category-ribbon">${escapeHtml(card.type)}</span><div class="card-art">${slotForCard(card)?.icon ?? "◇"}</div><h3>${escapeHtml(card.title)}</h3><p>${escapeHtml(visibleSummary ?? "Adventure card")}</p>${instance && card.type === "monster" ? `<div class="instance-strip"><span>${escapeHtml(instance.instanceId)}</span><strong>Init ${instance.initiative ?? "—"}</strong></div>` : ""}${instance ? cardActions(card, instance, isDM) : ""}</section>
-      <section class="tarot-face tarot-back"><span class="category-ribbon">${isDM ? "DM FULL CARD" : "PLAYER CARD"}</span><h3>${escapeHtml(card.title)}</h3><div class="card-copy">${faceDetails(face)}</div>${instance ? cardActions(card, instance, isDM) : ""}</section>
+      <section class="tarot-face tarot-front"><span class="category-ribbon">${escapeHtml(cardTypeLabel(card.type))}</span><div class="card-art">${slotForCard(card)?.icon ?? "◇"}</div><h3>${escapeHtml(card.title)}</h3>${sceneLabel}<p>${escapeHtml(visibleSummary ?? "Adventure card")}</p>${instance && card.type === "monster" ? `<div class="instance-strip"><span>${escapeHtml(instance.instanceId)}</span><strong>Init ${instance.initiative ?? "—"}</strong></div>` : ""}${instance ? cardActions(card, instance, isDM) : ""}</section>
+      <section class="tarot-face tarot-back"><span class="category-ribbon">${isDM ? "DM FULL CARD" : "PLAYER CARD"}</span><h3>${escapeHtml(card.title)}</h3>${sceneLabel}<div class="card-copy">${faceDetails(face)}</div>${instance ? cardActions(card, instance, isDM) : ""}</section>
     </div>
     ${!compact ? `<footer class="card-controls"><button class="card-control" data-flip-card="${key}">${isFlipped ? "Front" : "Flip"}</button>${isDM && !inDeck ? `<button class="card-control" data-reveal="${card.id}">${card.revealed ? "Hide" : "Reveal"}</button><button class="card-control danger" data-remove-instance="${instance?.instanceId}">Remove</button>` : ""}</footer>` : ""}
   </article>`;
@@ -113,10 +169,13 @@ const renderStack = (slot, instances, isDM) => {
 const renderSlot = (slot, projected, isDM) => {
   const allowed = new Set(projected.cards.map(card => card.id));
   const instances = board[slot.id].filter(item => isDM || allowed.has(item.cardId));
+  const helper = slot.id === "room"
+    ? "The party's immediate playable surroundings"
+    : isDM ? `Accepts ${slot.accepts.map(labelForKey).join(" / ")} cards only` : "Revealed by the Dungeon Master";
   const content = !instances.length
     ? `<button class="empty-slot" ${isDM ? `data-open-picker="${slot.id}"` : "disabled"}><span>${slot.icon}</span><strong>${isDM ? `Add ${slot.label}` : "Nothing revealed"}</strong></button>`
     : slot.stackable ? renderStack(slot, instances, isDM) : tarotCard(isDM ? cardById(instances[0].cardId) : projected.cards.find(card => card.id === instances[0].cardId), instances[0], { isDM });
-  return `<section class="board-slot slot-${slot.id}" data-slot="${slot.id}" data-accepts="${slot.accepts.join(",")}"><header class="slot-heading"><span class="slot-icon">${slot.icon}</span><div><h2>${slot.label}</h2><small>${isDM ? `Accepts ${slot.accepts.map(labelForKey).join(" / ")} cards only` : "Revealed by the Dungeon Master"}</small></div>${isDM ? `<button class="slot-add" data-open-picker="${slot.id}">+ Add</button>` : ""}</header><div class="single-card-holder">${content}</div></section>`;
+  return `<section class="board-slot slot-${slot.id}" data-slot="${slot.id}" data-accepts="${slot.accepts.join(",")}"><header class="slot-heading"><span class="slot-icon">${slot.icon}</span><div><h2>${slot.label}</h2><small>${helper}</small></div>${isDM ? `<button class="slot-add" data-open-picker="${slot.id}">+ Add</button>` : ""}</header><div class="single-card-holder">${content}</div></section>`;
 };
 
 const groupedInitiative = () => {
@@ -134,13 +193,18 @@ const renderInitiative = isDM => {
   return `<aside class="panel turn-panel"><h2>Combat Initiative</h2>${controls}<ol class="initiative">${entries.length ? entries.map((entry, index) => `<li><span><strong>${index + 1}.</strong> ${escapeHtml(cardById(entry.cardId)?.title ?? entry.cardId)}${entry.count > 1 ? ` ×${entry.count}` : ""}</span><strong>${entry.initiative}</strong></li>`).join("") : `<li>No initiative has been revealed yet.</li>`}</ol><p class="card-roll-result" aria-live="polite">${escapeHtml(cardRoll)}</p><small>${isDM ? "Identical monsters share one initiative value." : "The DM controls monsters and advances the encounter."}</small></aside>`;
 };
 
-const filteredDeck = () => session.cards.filter(card => (deckFilter === "all" || card.type === deckFilter) && (!deckSearch.trim() || `${card.title} ${card.type}`.toLowerCase().includes(deckSearch.trim().toLowerCase())));
-const renderDeck = () => `<aside class="panel adventure-deck"><h2>Adventure Deck</h2><input id="deckSearch" class="deck-search" value="${escapeHtml(deckSearch)}" placeholder="Search cards"><div class="deck-filters">${["all", ...new Set(session.cards.map(card => card.type))].map(type => `<button data-deck-filter="${type}" class="${deckFilter === type ? "selected" : ""}">${type}</button>`).join("")}</div><div class="deck-card-list">${filteredDeck().map(card => tarotCard(card, null, { isDM: true, inDeck: true })).join("")}</div></aside>`;
+const deckCards = () => session.cards.filter(card => !DECK_ONLY_TYPES.has(card.type));
+const filteredDeck = () => deckCards().filter(card => (deckFilter === "all" || card.type === deckFilter) && (!deckSearch.trim() || `${card.title} ${card.type}`.toLowerCase().includes(deckSearch.trim().toLowerCase())));
+const renderDeck = () => {
+  const cards = deckCards();
+  const kinds = ["all", ...new Set(cards.map(card => card.type))];
+  return `<aside class="panel adventure-deck"><h2>Adventure Deck</h2><input id="deckSearch" class="deck-search" value="${escapeHtml(deckSearch)}" placeholder="Search cards"><div class="deck-filters">${kinds.map(type => `<button data-deck-filter="${type}" class="${deckFilter === type ? "selected" : ""}">${cardTypeLabel(type)}</button>`).join("")}</div><div class="deck-card-list">${filteredDeck().map(card => tarotCard(card, null, { isDM: true, inDeck: true })).join("")}</div></aside>`;
+};
 
 const pickerMarkup = () => {
   if (!pickerSlot || viewRole !== ROLES.DM) return "";
   const slot = SLOTS.find(entry => entry.id === pickerSlot);
-  return `<div class="picker-backdrop"><section class="card-picker" role="dialog" aria-modal="true"><header><h2>Add to ${slot.label}</h2><button class="picker-close" data-close-picker>×</button></header><p>This slot only accepts ${slot.accepts.map(labelForKey).join(" or ")} cards.</p><div class="picker-grid">${session.cards.filter(card => slot.accepts.includes(card.type)).map(card => `<button class="picker-option" data-place-card="${card.id}" data-place-slot="${slot.id}"><strong>${escapeHtml(card.title)}</strong><span>${escapeHtml(card.type)}</span></button>`).join("")}</div></section></div>`;
+  return `<div class="picker-backdrop"><section class="card-picker" role="dialog" aria-modal="true"><header><h2>Add to ${slot.label}</h2><button class="picker-close" data-close-picker>×</button></header><p>This slot only accepts ${slot.accepts.map(labelForKey).join(" or ")} cards.</p><div class="picker-grid">${session.cards.filter(card => slot.accepts.includes(card.type)).map(card => `<button class="picker-option" data-place-card="${card.id}" data-place-slot="${slot.id}"><strong>${escapeHtml(card.title)}</strong><span>${escapeHtml(cardTypeLabel(card.type))}</span></button>`).join("")}</div></section></div>`;
 };
 
 const renderPlayerStation = projected => {
@@ -217,7 +281,7 @@ function bind() {
 
 function render() {
   const projected = projection(); const isDM = viewRole === ROLES.DM;
-  const boardMarkup = `<main class="panel encounter-board"><header class="board-header"><div><small>${isDM ? "RUN THE CURRENT ADVENTURE STATE" : "EXPERIENCE THE CURRENT ADVENTURE"}</small><h1>${isDM ? "Dungeon Master Card Board" : "Revealed Adventure Cards"}</h1></div><p>${isDM ? "Track where the party is, what is happening now, the people and threats present, and every lasting result." : "See where your character is, what is happening, and the cards the Dungeon Master has revealed."}</p></header><div class="fixed-board">${SLOTS.map(slot => renderSlot(slot, projected, isDM)).join("")}</div></main>`;
+  const boardMarkup = `<main class="panel encounter-board"><header class="board-header"><div><small>${isDM ? "RUN THE CURRENT ADVENTURE STATE" : "EXPERIENCE THE CURRENT ADVENTURE"}</small><h1>${isDM ? "Dungeon Master Card Board" : "Revealed Adventure Cards"}</h1></div><p>${isDM ? "Track where the party is, who and what is present, and every lasting result. The active Scene is carried by the Area card and adventure controls." : "See where your character is, what is happening in the current Area, and the cards the Dungeon Master has revealed."}</p></header><div class="fixed-board">${SLOTS.map(slot => renderSlot(slot, projected, isDM)).join("")}</div></main>`;
   document.querySelector("#app").innerHTML = `<div class="app"><header class="topbar"><div class="brand">⬡ THE LIVING TABLE<br><small>${isDM ? "Dungeon Master Table" : "Player Table"}</small></div><div class="dice" aria-label="Freeform dice roller">${freeDice.map(die => `<button data-die="${die}">d${die}</button>`).join("")}<button data-d20-mode="advantage">Adv.</button><button data-d20-mode="disadvantage">Dis.</button></div><div class="result" aria-live="polite">${state.roll}<br>${state.total !== null ? `<strong>${state.total}</strong><small>${state.rollDetail}</small>` : state.rollDetail}</div></header>${isDM ? `<div class="workspace dm-workspace">${renderDeck()}${boardMarkup}${renderInitiative(true)}</div>` : `<div class="player-layout">${boardMarkup}${renderInitiative(false)}${renderPlayerStation(projected)}</div>`}${pickerMarkup()}</div>`;
   bind();
 }

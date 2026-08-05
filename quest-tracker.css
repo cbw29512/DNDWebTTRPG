@@ -6,9 +6,6 @@
   justify-self:center;
 }
 
-/* Objectives live in the dedicated tracker below the workspace, not the encounter row. */
-.fixed-board > .slot-objective{display:none!important}
-
 .quest-tracker{
   margin-top:14px;
   padding:16px;

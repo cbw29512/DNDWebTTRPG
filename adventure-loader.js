@@ -8,6 +8,16 @@ const params = new URLSearchParams(location.search);
 const requested = normalizeCode(params.get("pack") || params.get("code"));
 const saved = normalizeCode(localStorage.getItem("dndweb:lastAdventurePack"));
 const packKey = PACKS[requested] ? requested : PACKS[saved] ? saved : "wishing-cake";
+const LIVE_BOARD_SLOT_IDS = Object.freeze(["location", "site", "room", "npc", "monster", "hazard", "treasure"]);
+
+function validateLiveBoard(board, label) {
+  if (!board || LIVE_BOARD_SLOT_IDS.some(slotId => !Array.isArray(board[slotId]))) {
+    throw new Error(`${label} does not define the complete seven-slot board.`);
+  }
+  if ("scene" in board || "objective" in board) {
+    throw new Error(`${label} contains legacy Scene or Objective board slots.`);
+  }
+}
 
 async function fetchManifest(key) {
   const path = PACKS[key];
@@ -15,11 +25,26 @@ async function fetchManifest(key) {
   const response = await fetch(path, { cache: "no-store" });
   if (!response.ok) throw new Error(`Adventure manifest failed to load (${response.status}).`);
   const manifest = await response.json();
-  if (![1, 2].includes(manifest.schemaVersion) || !manifest.releaseId || !manifest.entrySceneId) {
+  if (![1, 2, 3].includes(manifest.schemaVersion) || !manifest.releaseId || !manifest.entrySceneId) {
     throw new Error("Adventure manifest is incomplete or incompatible.");
   }
   if (manifest.schemaVersion >= 2 && (!manifest.scenes?.every(scene => scene.locationId && scene.siteId && scene.roomId && scene.sceneCardId))) {
     throw new Error("Adventure spatial hierarchy is incomplete.");
+  }
+  if (manifest.schemaVersion >= 3) {
+    validateLiveBoard(manifest.startingBoard, "Starting board");
+    if (!manifest.scenes.every(scene => Array.isArray(scene.questIds))) {
+      throw new Error("Adventure Scene quest metadata is incomplete.");
+    }
+    manifest.scenes.forEach(scene => validateLiveBoard({
+      location: [scene.locationId].filter(Boolean),
+      site: [scene.siteId].filter(Boolean),
+      room: [scene.roomId].filter(Boolean),
+      npc: scene.board?.npc || [],
+      monster: scene.board?.monster || [],
+      hazard: scene.board?.hazard || [],
+      treasure: scene.board?.treasure || []
+    }, `Scene ${scene.id}`));
   }
   return manifest;
 }

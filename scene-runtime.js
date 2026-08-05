@@ -3,6 +3,7 @@ import { isDungeonMaster } from './src/role-context.js';
 
 const clone = value => JSON.parse(JSON.stringify(value));
 const esc = value => String(value ?? '').replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[char]));
+const unique = values => [...new Set(values.filter(Boolean))];
 
 function sceneList(manifest = window.__DND_ADVENTURE_PACK__) {
   return Array.isArray(manifest?.scenes) ? manifest.scenes : [];
@@ -16,15 +17,29 @@ function boardForScene(scene, manifest) {
   const persistent = clone(manifest?.persistentBoard || {});
   const board = clone(scene?.board || {});
   return {
-    location: [...new Set([...(persistent.location || []), scene.locationId].filter(Boolean))],
+    location: unique([...(persistent.location || []), scene.locationId]),
     site: [scene.siteId].filter(Boolean),
     room: [scene.roomId].filter(Boolean),
-    scene: [scene.sceneCardId].filter(Boolean),
-    npc: [...new Set([...(persistent.npc || []), ...(board.npc || [])])],
-    monster: [...new Set(board.monster || [])],
-    hazard: [...new Set(board.hazard || [])],
-    objective: [...new Set([...(persistent.objective || []), ...(board.objective || [])])],
-    treasure: [...new Set(board.treasure || [])]
+    npc: unique([...(persistent.npc || []), ...(board.npc || [])]),
+    monster: unique(board.monster || []),
+    hazard: unique(board.hazard || []),
+    treasure: unique(board.treasure || [])
+  };
+}
+
+function questStateForScene(session, scene, manifest) {
+  const mainQuestId = manifest?.startingQuests?.[0] || session?.quests?.[0] || null;
+  const active = new Set(session?.questState?.active || (session?.quests || []).filter(id => id !== mainQuestId));
+  (scene?.questIds || []).filter(id => id !== mainQuestId).forEach(id => active.add(id));
+  const revealed = new Set(session?.questState?.revealed || []);
+  if (mainQuestId) revealed.add(mainQuestId);
+  active.forEach(id => revealed.add(id));
+  return {
+    quests: unique([mainQuestId, ...active]),
+    questState: {
+      active: [...active],
+      revealed: [...revealed]
+    }
   };
 }
 
@@ -50,7 +65,7 @@ function sceneControlsMarkup(manifest, activeId) {
     <label>Current scene<select data-scene-select>${scenes.map(scene => `<option value="${esc(scene.id)}" ${scene.id === active.id ? 'selected' : ''}>${esc(sceneLabel(scene))}</option>`).join('')}</select></label>
     <div class="scene-runtime-actions"><button type="button" data-scene-previous ${activeIndex < 1 ? 'disabled' : ''}>← Previous</button><button type="button" data-scene-load>Load Scene</button><button type="button" data-scene-next ${activeIndex >= scenes.length - 1 ? 'disabled' : ''}>Next →</button></div>
     ${exits ? `<div class="scene-runtime-exits"><small>CONNECTED PATHS</small>${exits}</div>` : ''}
-    <p data-scene-status aria-live="polite">Location, Site, and Area describe where the party is. Scene describes what is happening there. Players receive only revealed player-safe cards.</p>
+    <p data-scene-status aria-live="polite">Location, Site, and Area describe where the party is. The active Scene is carried by the Area card and saved separately from the live board.</p>
   </section>`;
 }
 
@@ -61,43 +76,62 @@ async function loadScene(sceneId, manifest = window.__DND_ADVENTURE_PACK__) {
   const scene = findScene(sceneId, manifest);
   const api = window.LivingTableLocalSession;
   if (!scene || !api?.reconcileBoard) return false;
+
   loading = true;
   const status = document.querySelector('[data-scene-status]');
   if (status) status.textContent = `Preparing ${[scene.locationTitle, scene.siteTitle, scene.roomTitle, scene.title].filter(Boolean).join(' / ')}…`;
-  const targetBoard = boardForScene(scene, manifest);
-  const actual = await api.reconcileBoard(targetBoard, { onProgress:text => { const node=document.querySelector('[data-scene-status]'); if(node) node.textContent=text; } });
-  const session = loadLocalSession() || api.createLocalSession(manifest, manifest.selectedSystem);
-  const history = [...(session.roomHistory || [])];
-  if (session.currentRoomId && history.at(-1) !== session.currentRoomId) history.push(session.currentRoomId);
-  const eventHistory = [...(session.eventHistory || []), {
-    id: `scene-${Date.now()}`,
-    type: 'scene-loaded',
-    sceneId: scene.id,
-    locationId: scene.locationId,
-    siteId: scene.siteId,
-    roomId: scene.roomId,
-    sceneCardId: scene.sceneCardId,
-    at: new Date().toISOString()
-  }];
-  saveLocalSession({
-    ...session,
-    currentSceneId: scene.id,
-    currentLocationId: scene.locationId,
-    currentSiteId: scene.siteId,
-    currentRoomId: scene.roomId,
-    currentSceneCardId: scene.sceneCardId,
-    board: actual,
-    roomHistory: history,
-    discoveredScenes: [...new Set([...(session.discoveredScenes || []), scene.id])],
-    eventHistory,
-    status: 'in-progress'
-  });
-  loading = false;
-  renderSceneRuntime();
-  const nextStatus = document.querySelector('[data-scene-status]');
-  if (nextStatus) nextStatus.textContent = `${scene.roomTitle}: ${scene.title} is active. The exact adventure state is saved; hidden information remains absent from player projections until revealed.`;
-  window.dispatchEvent(new CustomEvent('living-table:scene-loaded', { detail:{ scene, board:actual } }));
-  return true;
+
+  try {
+    const targetBoard = boardForScene(scene, manifest);
+    const actual = await api.reconcileBoard(targetBoard, {
+      onProgress:text => {
+        const node = document.querySelector('[data-scene-status]');
+        if (node) node.textContent = text;
+      }
+    });
+    const session = loadLocalSession() || api.createLocalSession(manifest, manifest.selectedSystem);
+    const history = [...(session.roomHistory || [])];
+    if (session.currentRoomId && history.at(-1) !== session.currentRoomId) history.push(session.currentRoomId);
+    const quests = questStateForScene(session, scene, manifest);
+    const eventHistory = [...(session.eventHistory || []), {
+      id: `scene-${Date.now()}`,
+      type: 'scene-loaded',
+      sceneId: scene.id,
+      locationId: scene.locationId,
+      siteId: scene.siteId,
+      roomId: scene.roomId,
+      sceneCardId: scene.sceneCardId,
+      activatedQuestIds: clone(scene.questIds || []),
+      at: new Date().toISOString()
+    }];
+
+    saveLocalSession({
+      ...session,
+      ...quests,
+      currentSceneId: scene.id,
+      currentLocationId: scene.locationId,
+      currentSiteId: scene.siteId,
+      currentRoomId: scene.roomId,
+      currentSceneCardId: scene.sceneCardId,
+      board: actual,
+      roomHistory: history,
+      discoveredScenes: unique([...(session.discoveredScenes || []), scene.id]),
+      eventHistory,
+      status: 'in-progress'
+    });
+
+    renderSceneRuntime();
+    const nextStatus = document.querySelector('[data-scene-status]');
+    if (nextStatus) nextStatus.textContent = `${scene.roomTitle}: ${scene.title} is active. Area context, quests, and the exact adventure state are saved; hidden information remains absent from player projections until revealed.`;
+    window.dispatchEvent(new CustomEvent('living-table:scene-loaded', { detail:{ scene, board:actual } }));
+    return true;
+  } catch (error) {
+    const failure = document.querySelector('[data-scene-status]');
+    if (failure) failure.textContent = `Could not load ${scene.title}. ${error?.message || 'The current board was left unchanged.'}`;
+    return false;
+  } finally {
+    loading = false;
+  }
 }
 
 function bindSceneRuntime(root, manifest) {
@@ -134,5 +168,5 @@ if (isDungeonMaster) {
   window.addEventListener('dnd:adventure-loaded', () => setTimeout(renderSceneRuntime, 120));
   window.addEventListener('DOMContentLoaded', renderSceneRuntime);
 }
-window.LivingTableScenes = Object.freeze({ sceneList, findScene, boardForScene, loadScene, renderSceneRuntime });
+window.LivingTableScenes = Object.freeze({ sceneList, findScene, boardForScene, questStateForScene, loadScene, renderSceneRuntime });
 renderSceneRuntime();
