@@ -2,9 +2,10 @@ import { COMMANDS, applyCommand, createInitialState } from "./state.js";
 import { createRuinedChapelSession } from "./encounter.js";
 import { projectSessionFor } from "./projection.js";
 import { ROLES } from "./schema.js";
+import { resolveRuntimeRole } from "./role-context.js";
 
 let state = createInitialState();
-let viewRole = ROLES.DM;
+const viewRole = resolveRuntimeRole();
 const session = createRuinedChapelSession();
 const freeDice = [20, 12, 10, 8, 6, 4, 100];
 
@@ -66,16 +67,14 @@ const faceDetails = face => Object.entries(face ?? {}).map(([key, value]) => {
 }).join("");
 
 const cardActions = (card, instance, isDM) => {
+  if (!isDM) return "";
   const actions = [];
   if (card.type === "monster") actions.push(["Initiative", "initiative"], ["Attack", "attack"], ["Save", "save"], ["Damage", "damage"]);
   else if (["npc", "hazard"].includes(card.type)) actions.push(["Check", "check"], ["Save", "save"]);
-  if (card.uses && instance) {
-    actions.push(["Use 1", "use-charge"]);
-    if (isDM) actions.push(["Restore 1", "restore-charge"]);
-  }
+  if (card.uses && instance) actions.push(["Use 1", "use-charge"], ["Restore 1", "restore-charge"]);
   if (!actions.length) return "";
   const uses = card.uses && instance ? `<div class="item-uses" aria-live="polite"><strong>${instance.usesRemaining}/${card.uses.max}</strong> ${escapeHtml(card.uses.label ?? "uses")} remaining</div>` : "";
-  return `${uses}<div class="inside-card-rolls">${actions.map(([label, action]) => `<button type="button" data-card-roll="${action}" data-instance="${instance.instanceId}">${label}</button>`).join("")}</div>${isDM ? `<small class="card-roll-note">Rules and tracking happen here</small>` : ""}`;
+  return `${uses}<div class="inside-card-rolls">${actions.map(([label, action]) => `<button type="button" data-card-roll="${action}" data-instance="${instance.instanceId}">${label}</button>`).join("")}</div><small class="card-roll-note">Rules and tracking happen here</small>`;
 };
 
 const tarotCard = (card, instance, { isDM, inDeck = false, compact = false } = {}) => {
@@ -113,7 +112,7 @@ const renderSlot = (slot, projected, isDM) => {
   const content = !instances.length
     ? `<button class="empty-slot" ${isDM ? `data-open-picker="${slot.id}"` : "disabled"}><span>${slot.icon}</span><strong>${isDM ? `Add ${slot.label}` : "Nothing revealed"}</strong></button>`
     : slot.stackable ? renderStack(slot, instances, isDM) : tarotCard(isDM ? cardById(instances[0].cardId) : projected.cards.find(card => card.id === instances[0].cardId), instances[0], { isDM });
-  return `<section class="board-slot slot-${slot.id}" data-slot="${slot.id}" data-accepts="${slot.accepts.join(",")}"><header class="slot-heading"><span class="slot-icon">${slot.icon}</span><div><h2>${slot.label}</h2><small>Accepts ${slot.accepts.map(labelForKey).join(" / ")} cards only</small></div>${isDM ? `<button class="slot-add" data-open-picker="${slot.id}">+ Add</button>` : ""}</header><div class="single-card-holder">${content}</div></section>`;
+  return `<section class="board-slot slot-${slot.id}" data-slot="${slot.id}" data-accepts="${slot.accepts.join(",")}"><header class="slot-heading"><span class="slot-icon">${slot.icon}</span><div><h2>${slot.label}</h2><small>${isDM ? `Accepts ${slot.accepts.map(labelForKey).join(" / ")} cards only` : "Revealed by the Dungeon Master"}</small></div>${isDM ? `<button class="slot-add" data-open-picker="${slot.id}">+ Add</button>` : ""}</header><div class="single-card-holder">${content}</div></section>`;
 };
 
 const groupedInitiative = () => {
@@ -125,16 +124,17 @@ const groupedInitiative = () => {
   });
   return [...groups.values()].sort((a, b) => b.initiative - a.initiative);
 };
-const renderInitiative = () => {
+const renderInitiative = isDM => {
   const entries = groupedInitiative();
-  return `<aside class="panel turn-panel"><h2>Combat Initiative</h2><button class="reveal" data-roll-all-monsters>Roll grouped monster initiative</button><ol class="initiative">${entries.length ? entries.map((entry, index) => `<li><span><strong>${index + 1}.</strong> ${escapeHtml(cardById(entry.cardId)?.title ?? entry.cardId)}${entry.count > 1 ? ` ×${entry.count}` : ""}</span><strong>${entry.initiative}</strong></li>`).join("") : `<li>No card initiative rolled yet.</li>`}</ol><p class="card-roll-result" aria-live="polite">${escapeHtml(cardRoll)}</p><small>Identical monsters share one initiative value.</small></aside>`;
+  const controls = isDM ? `<button class="reveal" data-roll-all-monsters>Roll grouped monster initiative</button>` : "";
+  return `<aside class="panel turn-panel"><h2>Combat Initiative</h2>${controls}<ol class="initiative">${entries.length ? entries.map((entry, index) => `<li><span><strong>${index + 1}.</strong> ${escapeHtml(cardById(entry.cardId)?.title ?? entry.cardId)}${entry.count > 1 ? ` ×${entry.count}` : ""}</span><strong>${entry.initiative}</strong></li>`).join("") : `<li>No initiative has been revealed yet.</li>`}</ol><p class="card-roll-result" aria-live="polite">${escapeHtml(cardRoll)}</p><small>${isDM ? "Identical monsters share one initiative value." : "The DM controls monsters and advances the encounter."}</small></aside>`;
 };
 
 const filteredDeck = () => session.cards.filter(card => (deckFilter === "all" || card.type === deckFilter) && (!deckSearch.trim() || `${card.title} ${card.type}`.toLowerCase().includes(deckSearch.trim().toLowerCase())));
 const renderDeck = () => `<aside class="panel adventure-deck"><h2>Adventure Deck</h2><input id="deckSearch" class="deck-search" value="${escapeHtml(deckSearch)}" placeholder="Search cards"><div class="deck-filters">${["all", ...new Set(session.cards.map(card => card.type))].map(type => `<button data-deck-filter="${type}" class="${deckFilter === type ? "selected" : ""}">${type}</button>`).join("")}</div><div class="deck-card-list">${filteredDeck().map(card => tarotCard(card, null, { isDM: true, inDeck: true })).join("")}</div></aside>`;
 
 const pickerMarkup = () => {
-  if (!pickerSlot) return "";
+  if (!pickerSlot || viewRole !== ROLES.DM) return "";
   const slot = SLOTS.find(entry => entry.id === pickerSlot);
   return `<div class="picker-backdrop"><section class="card-picker" role="dialog" aria-modal="true"><header><h2>Add to ${slot.label}</h2><button class="picker-close" data-close-picker>×</button></header><p>This slot only accepts ${slot.accepts.map(labelForKey).join(" or ")} cards.</p><div class="picker-grid">${session.cards.filter(card => slot.accepts.includes(card.type)).map(card => `<button class="picker-option" data-place-card="${card.id}" data-place-slot="${slot.id}"><strong>${escapeHtml(card.title)}</strong><span>${escapeHtml(card.type)}</span></button>`).join("")}</div></section></div>`;
 };
@@ -145,12 +145,14 @@ const renderPlayerStation = projected => {
 };
 
 function placeCard(cardId, slotId) {
+  if (viewRole !== ROLES.DM) return;
   const card = cardById(cardId); const slot = SLOTS.find(entry => entry.id === slotId);
   if (!card || !slot || !slot.accepts.includes(card.type)) { cardRoll = "That card type does not belong in this slot."; render(); return; }
   if (slot.stackable) board[slotId].push(makeInstance(cardId)); else board[slotId] = [makeInstance(cardId)];
   pickerSlot = null; render();
 }
 function rollForInstance(instanceId, action) {
+  if (viewRole !== ROLES.DM) return;
   const instance = Object.values(board).flat().find(item => item.instanceId === instanceId);
   if (!instance) return;
   const card = cardById(instance.cardId);
@@ -173,10 +175,9 @@ function rollForInstance(instanceId, action) {
 }
 
 function bind() {
-  document.querySelectorAll("[data-role]").forEach(button => button.onclick = () => { viewRole = button.dataset.role; render(); });
   document.querySelectorAll("[data-die]").forEach(button => button.onclick = () => dispatch({ type: COMMANDS.ROLL_DIE, sides: Number(button.dataset.die) }));
   document.querySelectorAll("[data-d20-mode]").forEach(button => button.onclick = () => dispatch({ type: COMMANDS.ROLL_D20, mode: button.dataset.d20Mode }));
-  document.querySelectorAll("[data-open-picker]").forEach(button => button.onclick = () => { pickerSlot = button.dataset.openPicker; render(); });
+  document.querySelectorAll("[data-open-picker]").forEach(button => button.onclick = () => { if (viewRole === ROLES.DM) { pickerSlot = button.dataset.openPicker; render(); } });
   document.querySelectorAll("[data-place-card]").forEach(button => button.onclick = () => placeCard(button.dataset.placeCard, button.dataset.placeSlot));
   document.querySelector("[data-close-picker]")?.addEventListener("click", () => { pickerSlot = null; render(); });
   document.querySelectorAll("[data-toggle-stack]").forEach(control => {
@@ -191,9 +192,10 @@ function bind() {
   });
   document.querySelectorAll("[data-card-roll]").forEach(button => button.onclick = event => { event.stopPropagation(); rollForInstance(button.dataset.instance, button.dataset.cardRoll); });
   document.querySelectorAll("[data-flip-card]").forEach(button => button.onclick = () => { const key = button.dataset.flipCard; flipped.has(key) ? flipped.delete(key) : flipped.add(key); render(); });
-  document.querySelectorAll("[data-reveal]").forEach(button => button.onclick = () => dispatch({ type: COMMANDS.TOGGLE_CARD, key: button.dataset.reveal }));
-  document.querySelectorAll("[data-remove-instance]").forEach(button => button.onclick = () => { Object.keys(board).forEach(slot => board[slot] = board[slot].filter(item => item.instanceId !== button.dataset.removeInstance)); render(); });
+  document.querySelectorAll("[data-reveal]").forEach(button => button.onclick = () => { if (viewRole === ROLES.DM) dispatch({ type: COMMANDS.TOGGLE_CARD, key: button.dataset.reveal }); });
+  document.querySelectorAll("[data-remove-instance]").forEach(button => button.onclick = () => { if (viewRole !== ROLES.DM) return; Object.keys(board).forEach(slot => board[slot] = board[slot].filter(item => item.instanceId !== button.dataset.removeInstance)); render(); });
   document.querySelector("[data-roll-all-monsters]")?.addEventListener("click", () => {
+    if (viewRole !== ROLES.DM) return;
     [...new Set(board.monster.map(instance => instance.cardId))].forEach(cardId => {
       const card = cardById(cardId); const shared = d20(card?.dmFace?.initiative ?? 0);
       board.monster.filter(instance => instance.cardId === cardId).forEach(instance => { instance.initiative = shared; });
@@ -201,16 +203,18 @@ function bind() {
     cardRoll = "Grouped monster initiative rolled and sorted."; render();
   });
   document.querySelectorAll("[data-free-character-roll]").forEach(button => button.onclick = () => { cardRoll = `Character card ${button.dataset.freeCharacterRoll}: ${d20(4)}`; render(); });
-  document.querySelectorAll("[data-deck-filter]").forEach(button => button.onclick = () => { deckFilter = button.dataset.deckFilter; render(); });
-  document.querySelector("#deckSearch")?.addEventListener("input", event => { deckSearch = event.target.value; render(); });
-  document.querySelectorAll("[draggable='true']").forEach(card => card.addEventListener("dragstart", event => event.dataTransfer.setData("text/card-id", card.dataset.cardId)));
-  document.querySelectorAll("[data-slot]").forEach(slot => { slot.ondragover = event => event.preventDefault(); slot.ondrop = event => { event.preventDefault(); placeCard(event.dataTransfer.getData("text/card-id"), slot.dataset.slot); }; });
+  document.querySelectorAll("[data-deck-filter]").forEach(button => button.onclick = () => { if (viewRole === ROLES.DM) { deckFilter = button.dataset.deckFilter; render(); } });
+  document.querySelector("#deckSearch")?.addEventListener("input", event => { if (viewRole === ROLES.DM) { deckSearch = event.target.value; render(); } });
+  if (viewRole === ROLES.DM) {
+    document.querySelectorAll("[draggable='true']").forEach(card => card.addEventListener("dragstart", event => event.dataTransfer.setData("text/card-id", card.dataset.cardId)));
+    document.querySelectorAll("[data-slot]").forEach(slot => { slot.ondragover = event => event.preventDefault(); slot.ondrop = event => { event.preventDefault(); placeCard(event.dataTransfer.getData("text/card-id"), slot.dataset.slot); }; });
+  }
 }
 
 function render() {
   const projected = projection(); const isDM = viewRole === ROLES.DM;
-  const boardMarkup = `<main class="panel encounter-board"><header class="board-header"><div><small>THE CURRENT ENCOUNTER</small><h1>${isDM ? "Card Master Board" : "Revealed Encounter Cards"}</h1></div><p>Click a placed card to open its full readable version.</p></header><div class="fixed-board">${SLOTS.map(slot => renderSlot(slot, projected, isDM)).join("")}</div></main>`;
-  document.querySelector("#app").innerHTML = `<div class="app"><header class="topbar"><div class="brand">⬡ THE LIVING TABLE<br><small>${isDM ? "DM Card Board" : "Player Card Board"}</small></div><div class="dice" aria-label="Freeform dice roller">${freeDice.map(die => `<button data-die="${die}">d${die}</button>`).join("")}<button data-d20-mode="advantage">Adv.</button><button data-d20-mode="disadvantage">Dis.</button></div><div class="result" aria-live="polite">${state.roll}<br>${state.total !== null ? `<strong>${state.total}</strong><small>${state.rollDetail}</small>` : state.rollDetail}</div></header><nav class="view-switch panel"><strong>Live preview:</strong><button class="reveal ${isDM ? "selected" : ""}" data-role="dm">DM View</button><button class="reveal ${!isDM ? "selected" : ""}" data-role="player">Player View</button><span>DM cards include private notes; player cards include revealed information only.</span></nav>${isDM ? `<div class="workspace dm-workspace">${renderDeck()}${boardMarkup}${renderInitiative()}</div>` : `<div class="player-layout">${boardMarkup}${renderInitiative()}${renderPlayerStation(projected)}</div>`}${pickerMarkup()}</div>`;
+  const boardMarkup = `<main class="panel encounter-board"><header class="board-header"><div><small>${isDM ? "RUN THE CURRENT ENCOUNTER" : "EXPERIENCE THE CURRENT ENCOUNTER"}</small><h1>${isDM ? "Dungeon Master Card Board" : "Revealed Adventure Cards"}</h1></div><p>${isDM ? "Describe the scene, hear the players’ actions, adjudicate the result, and reveal what happens next." : "Choose what your character does from the information and cards the Dungeon Master reveals."}</p></header><div class="fixed-board">${SLOTS.map(slot => renderSlot(slot, projected, isDM)).join("")}</div></main>`;
+  document.querySelector("#app").innerHTML = `<div class="app"><header class="topbar"><div class="brand">⬡ THE LIVING TABLE<br><small>${isDM ? "Dungeon Master Table" : "Player Table"}</small></div><div class="dice" aria-label="Freeform dice roller">${freeDice.map(die => `<button data-die="${die}">d${die}</button>`).join("")}<button data-d20-mode="advantage">Adv.</button><button data-d20-mode="disadvantage">Dis.</button></div><div class="result" aria-live="polite">${state.roll}<br>${state.total !== null ? `<strong>${state.total}</strong><small>${state.rollDetail}</small>` : state.rollDetail}</div></header>${isDM ? `<div class="workspace dm-workspace">${renderDeck()}${boardMarkup}${renderInitiative(true)}</div>` : `<div class="player-layout">${boardMarkup}${renderInitiative(false)}${renderPlayerStation(projected)}</div>`}${pickerMarkup()}</div>`;
   bind();
 }
 render();

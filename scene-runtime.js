@@ -1,4 +1,5 @@
 import { loadLocalSession, saveLocalSession } from './local-session.js';
+import { isDungeonMaster } from './src/role-context.js';
 
 const clone = value => JSON.parse(JSON.stringify(value));
 const esc = value => String(value ?? '').replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[char]));
@@ -38,18 +39,18 @@ function sceneControlsMarkup(manifest, activeId) {
     return target ? `<button type="button" data-load-scene="${esc(target.id)}">${esc(exit.label || target.title)}</button>` : '';
   }).join('');
   return `<section class="scene-runtime" aria-labelledby="scene-runtime-title">
-    <div class="scene-runtime-heading"><div><small>LOCATION → ROOM</small><h2 id="scene-runtime-title">${esc(manifest.title)}</h2><p><strong>${esc(active.locationTitle)}</strong> / ${esc(active.title)}</p></div><div class="scene-runtime-progress">Room ${activeIndex + 1} of ${scenes.length}</div></div>
+    <div class="scene-runtime-heading"><div><small>DM SCENE CONTROL · LOCATION → ROOM</small><h2 id="scene-runtime-title">${esc(manifest.title)}</h2><p><strong>${esc(active.locationTitle)}</strong> / ${esc(active.title)}</p></div><div class="scene-runtime-progress">Room ${activeIndex + 1} of ${scenes.length}</div></div>
     <label>Current room<select data-scene-select>${scenes.map(scene => `<option value="${esc(scene.id)}" ${scene.id === active.id ? 'selected' : ''}>${esc(sceneLabel(scene))}</option>`).join('')}</select></label>
     <div class="scene-runtime-actions"><button type="button" data-scene-previous ${activeIndex < 1 ? 'disabled' : ''}>← Previous</button><button type="button" data-scene-load>Load Room</button><button type="button" data-scene-next ${activeIndex >= scenes.length - 1 ? 'disabled' : ''}>Next →</button></div>
     ${exits ? `<div class="scene-runtime-exits"><small>CONNECTED AREAS</small>${exits}</div>` : ''}
-    <p data-scene-status aria-live="polite">Loading a room keeps the broad Location active and prepares every card assigned to the immediate area.</p>
+    <p data-scene-status aria-live="polite">Loading a room keeps the broad Location active and prepares every card assigned to the immediate area. Players receive only revealed player-safe cards.</p>
   </section>`;
 }
 
 let loading = false;
 
 async function loadScene(sceneId, manifest = window.__DND_ADVENTURE_PACK__) {
-  if (loading) return false;
+  if (!isDungeonMaster || loading) return false;
   const scene = findScene(sceneId, manifest);
   const api = window.LivingTableLocalSession;
   if (!scene || !api?.reconcileBoard) return false;
@@ -74,12 +75,13 @@ async function loadScene(sceneId, manifest = window.__DND_ADVENTURE_PACK__) {
   loading = false;
   renderSceneRuntime();
   const nextStatus = document.querySelector('[data-scene-status]');
-  if (nextStatus) nextStatus.textContent = `${scene.title} is active. Hidden information remains DM-only until revealed.`;
+  if (nextStatus) nextStatus.textContent = `${scene.title} is active. Hidden information remains absent from every player projection until revealed.`;
   window.dispatchEvent(new CustomEvent('living-table:scene-loaded', { detail:{ scene, board:actual } }));
   return true;
 }
 
 function bindSceneRuntime(root, manifest) {
+  if (!root || !isDungeonMaster) return;
   const select = root.querySelector('[data-scene-select]');
   root.querySelector('[data-scene-load]')?.addEventListener('click', () => loadScene(select.value, manifest));
   root.querySelector('[data-scene-previous]')?.addEventListener('click', () => {
@@ -92,6 +94,10 @@ function bindSceneRuntime(root, manifest) {
 }
 
 export function renderSceneRuntime() {
+  if (!isDungeonMaster) {
+    document.querySelector('.scene-runtime')?.remove();
+    return;
+  }
   const manifest = window.__DND_ADVENTURE_PACK__;
   if (!sceneList(manifest).length) return;
   document.querySelector('.scene-runtime')?.remove();
@@ -103,8 +109,10 @@ export function renderSceneRuntime() {
   bindSceneRuntime(document.querySelector('.scene-runtime'), manifest);
 }
 
-window.addEventListener('living-table:session-updated', renderSceneRuntime);
-window.addEventListener('dnd:adventure-loaded', () => setTimeout(renderSceneRuntime, 120));
-window.addEventListener('DOMContentLoaded', renderSceneRuntime);
+if (isDungeonMaster) {
+  window.addEventListener('living-table:session-updated', renderSceneRuntime);
+  window.addEventListener('dnd:adventure-loaded', () => setTimeout(renderSceneRuntime, 120));
+  window.addEventListener('DOMContentLoaded', renderSceneRuntime);
+}
 window.LivingTableScenes = Object.freeze({ sceneList, findScene, boardForScene, loadScene, renderSceneRuntime });
 renderSceneRuntime();
