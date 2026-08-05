@@ -6,30 +6,29 @@
   <meta name="theme-color" content="#0a0b0d">
   <meta name="description" content="The Living Table Dungeon Master workspace.">
   <meta name="living-table-role" content="dm">
-  <meta name="build" content="strict-role-experience-20260805">
+  <meta name="build" content="spatial-scene-tracking-20260805">
   <title>The Living Table — Dungeon Master</title>
-  <link rel="stylesheet" href="styles.css?v=strict-role-1">
-  <link rel="stylesheet" href="player-board.css?v=strict-role-1">
-  <link rel="stylesheet" href="compact-stacks.css?v=strict-role-1">
-  <link rel="stylesheet" href="stack-drawer-layer.css?v=strict-role-1">
-  <link rel="stylesheet" href="card-modal.css?v=strict-role-1">
-  <link rel="stylesheet" href="workspace-polish.css?v=strict-role-1">
-  <link rel="stylesheet" href="quest-tracker.css?v=strict-role-1">
-  <link rel="stylesheet" href="encounter-scale.css?v=strict-role-1">
-  <link rel="stylesheet" href="player-ready.css?v=strict-role-1">
-  <link rel="stylesheet" href="adventure-loader.css?v=strict-role-1">
-  <link rel="stylesheet" href="library-hub.css?v=strict-role-1">
-  <link rel="stylesheet" href="player-library-filter.css?v=strict-role-1">
-  <link rel="stylesheet" href="combat-card-library.css?v=strict-role-1">
-  <link rel="stylesheet" href="card-quality-audit.css?v=strict-role-1">
-  <link rel="stylesheet" href="local-session.css?v=strict-role-1">
-  <link rel="stylesheet" href="scene-runtime.css?v=strict-role-1">
-  <link rel="stylesheet" href="pregen-character-card.css?v=strict-role-1">
-  <link rel="stylesheet" href="mobile-responsive.css?v=strict-role-1">
-  <link rel="stylesheet" href="strict-role-boundary.css?v=strict-role-1">
+  <link rel="stylesheet" href="styles.css?v=spatial-state-1">
+  <link rel="stylesheet" href="player-board.css?v=spatial-state-1">
+  <link rel="stylesheet" href="compact-stacks.css?v=spatial-state-1">
+  <link rel="stylesheet" href="stack-drawer-layer.css?v=spatial-state-1">
+  <link rel="stylesheet" href="card-modal.css?v=spatial-state-1">
+  <link rel="stylesheet" href="workspace-polish.css?v=spatial-state-1">
+  <link rel="stylesheet" href="quest-tracker.css?v=spatial-state-1">
+  <link rel="stylesheet" href="encounter-scale.css?v=spatial-state-1">
+  <link rel="stylesheet" href="player-ready.css?v=spatial-state-1">
+  <link rel="stylesheet" href="adventure-loader.css?v=spatial-state-1">
+  <link rel="stylesheet" href="library-hub.css?v=spatial-state-1">
+  <link rel="stylesheet" href="player-library-filter.css?v=spatial-state-1">
+  <link rel="stylesheet" href="combat-card-library.css?v=spatial-state-1">
+  <link rel="stylesheet" href="card-quality-audit.css?v=spatial-state-1">
+  <link rel="stylesheet" href="local-session.css?v=spatial-state-1">
+  <link rel="stylesheet" href="scene-runtime.css?v=spatial-state-1">
+  <link rel="stylesheet" href="pregen-character-card.css?v=spatial-state-1">
+  <link rel="stylesheet" href="mobile-responsive.css?v=spatial-state-1">
+  <link rel="stylesheet" href="strict-role-boundary.css?v=spatial-state-1">
+  <link rel="stylesheet" href="adventure-state-board.css?v=spatial-state-1">
   <style>
-    #app .fixed-board{display:flex!important;flex-direction:row!important;flex-wrap:nowrap!important;grid-template-columns:none!important;grid-auto-flow:initial!important;align-items:stretch!important;gap:14px!important;width:100%!important;min-width:0!important;overflow-x:auto!important;overflow-y:hidden!important;padding:4px 4px 14px!important}
-    #app .fixed-board>section.board-slot[data-slot]{display:flex!important;flex-direction:column!important;grid-column:auto!important;grid-row:auto!important;margin:0!important}
     .read-aloud-copy{padding:12px;border-left:3px solid #d9b45f;background:#17150f;font-size:1.05rem;line-height:1.55}
     .item-uses{margin-top:10px;padding:8px;border:1px solid #6c5931;border-radius:8px;background:#17150f;text-align:center}
   </style>
@@ -37,21 +36,21 @@
 <body>
   <a class="skip" href="#board">Skip to battle board</a>
   <div id="app"></div>
-  <script type="module" src="adventure-loader.js?v=strict-role-1"></script>
-  <script type="module" src="local-session.js?v=strict-role-1"></script>
-  <script type="module" src="scene-runtime.js?v=strict-role-1"></script>
-  <script type="module" src="quest-tracker.js?v=strict-role-1"></script>
-  <script defer src="encounter-slot-guard.js?v=strict-role-1"></script>
-  <script defer src="card-modal.js?v=strict-role-1"></script>
-  <script defer src="workspace-controls.js?v=strict-role-1"></script>
-  <script defer src="stack-drawer-layer.js?v=strict-role-1"></script>
-  <script type="module" src="player-ready.js?v=strict-role-1"></script>
-  <script type="module" src="player-session-bridge.js?v=strict-role-1"></script>
-  <script type="module" src="pregen-character-loader.js?v=strict-role-1"></script>
-  <script type="module" src="library-hub.js?v=strict-role-1"></script>
-  <script defer src="player-library-filter.js?v=strict-role-1"></script>
-  <script type="module" src="combat-card-library.js?v=strict-role-1"></script>
-  <script type="module" src="card-quality-audit.js?v=strict-role-1"></script>
-  <script type="module" src="strict-role-boundary.js?v=strict-role-1"></script>
+  <script type="module" src="adventure-loader.js?v=spatial-state-1"></script>
+  <script type="module" src="local-session.js?v=spatial-state-1"></script>
+  <script type="module" src="scene-runtime.js?v=spatial-state-1"></script>
+  <script type="module" src="quest-tracker.js?v=spatial-state-1"></script>
+  <script defer src="encounter-slot-guard.js?v=spatial-state-1"></script>
+  <script defer src="card-modal.js?v=spatial-state-1"></script>
+  <script defer src="workspace-controls.js?v=spatial-state-1"></script>
+  <script defer src="stack-drawer-layer.js?v=spatial-state-1"></script>
+  <script type="module" src="player-ready.js?v=spatial-state-1"></script>
+  <script type="module" src="player-session-bridge.js?v=spatial-state-1"></script>
+  <script type="module" src="pregen-character-loader.js?v=spatial-state-1"></script>
+  <script type="module" src="library-hub.js?v=spatial-state-1"></script>
+  <script defer src="player-library-filter.js?v=spatial-state-1"></script>
+  <script type="module" src="combat-card-library.js?v=spatial-state-1"></script>
+  <script type="module" src="card-quality-audit.js?v=spatial-state-1"></script>
+  <script type="module" src="strict-role-boundary.js?v=spatial-state-1"></script>
 </body>
 </html>
