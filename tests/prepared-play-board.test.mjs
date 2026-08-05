@@ -13,8 +13,8 @@ assert.match(playerHtml, /prepared-play-board\.css\?v=prepared-play-board-1/);
 assert.match(playerHtml, /prepared-play-board\.js\?v=prepared-play-board-1/);
 assert.match(dmHtml, /prepared-play-board-20260805/);
 assert.match(playerHtml, /prepared-play-board-20260805/);
-assert.match(dmHtml, /live-play-priority\.css\?v=board-first-live-2/);
-assert.match(playerHtml, /live-play-priority\.css\?v=board-first-live-2/);
+assert.match(dmHtml, /live-play-priority\.css\?v=board-first-live-3/);
+assert.match(playerHtml, /live-play-priority\.css\?v=board-first-live-3/);
 
 assert.match(runtime, /CONTEXT_SLOT_IDS/);
 assert.match(runtime, /location/);
