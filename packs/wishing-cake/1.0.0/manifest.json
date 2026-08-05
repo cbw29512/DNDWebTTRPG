@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 2,
+  "schemaVersion": 3,
   "spatialModelVersion": 2,
   "packId": "wishing-cake",
   "releaseId": "wishing-cake-1.0.0",
@@ -7,7 +7,10 @@
   "title": "The Wishing Cake",
   "subtitle": "A Birthday Adventure for Wendy",
   "version": "1.0.0",
-  "systems": ["dnd-2014", "dnd-2024"],
+  "systems": [
+    "dnd-2014",
+    "dnd-2024"
+  ],
   "estimatedHours": "3–4",
   "recommendedLevel": 3,
   "playerCount": "4–6",
@@ -27,8 +30,9 @@
     "pregeneratedCharacters": 1
   },
   "persistentBoard": {
-    "location": ["location"],
-    "objective": ["objective"]
+    "location": [
+      "location"
+    ]
   },
   "scenes": [
     {
@@ -42,14 +46,28 @@
       "roomId": "room",
       "roomTitle": "Grand Celebration Hall",
       "sceneCardId": "scene-stolen-wish",
+      "questIds": [],
       "board": {
-        "npc": ["caretaker", "npc-boris", "npc-pip", "npc-lute"],
-        "monster": ["priest"],
+        "npc": [
+          "caretaker",
+          "npc-boris",
+          "npc-pip",
+          "npc-lute"
+        ],
+        "monster": [
+          "priest"
+        ],
         "hazard": [],
-        "objective": ["objective"],
-        "treasure": ["lantern"]
+        "treasure": [
+          "lantern"
+        ]
       },
-      "exits": [{"sceneId": "holding-cells", "label": "Follow the stolen wish below"}]
+      "exits": [
+        {
+          "sceneId": "holding-cells",
+          "label": "Follow the stolen wish below"
+        }
+      ]
     },
     {
       "id": "holding-cells",
@@ -62,8 +80,21 @@
       "roomId": "room-holding-cells",
       "roomTitle": "Holding Cells",
       "sceneCardId": "scene-holding-cells",
-      "board": {"npc": [], "monster": ["skeleton"], "hazard": [], "objective": ["objective"], "treasure": []},
-      "exits": [{"sceneId": "wish-hall", "label": "Western passage"}]
+      "questIds": [],
+      "board": {
+        "npc": [],
+        "monster": [
+          "skeleton"
+        ],
+        "hazard": [],
+        "treasure": []
+      },
+      "exits": [
+        {
+          "sceneId": "wish-hall",
+          "label": "Western passage"
+        }
+      ]
     },
     {
       "id": "wish-hall",
@@ -76,10 +107,22 @@
       "roomId": "room-wish-hall",
       "roomTitle": "Hall of Rejected Wishes",
       "sceneCardId": "scene-wish-hall",
-      "board": {"npc": [], "monster": [], "hazard": [], "objective": ["objective"], "treasure": []},
+      "questIds": [],
+      "board": {
+        "npc": [],
+        "monster": [],
+        "hazard": [],
+        "treasure": []
+      },
       "exits": [
-        {"sceneId": "soul-cellar", "label": "North to the Soul Cellar"},
-        {"sceneId": "pinata-pen", "label": "Toward the Piñata Pen"}
+        {
+          "sceneId": "soul-cellar",
+          "label": "North to the Soul Cellar"
+        },
+        {
+          "sceneId": "pinata-pen",
+          "label": "Toward the Piñata Pen"
+        }
       ]
     },
     {
@@ -93,8 +136,23 @@
       "roomId": "room-soul-cellar",
       "roomTitle": "Soul Cellar",
       "sceneCardId": "scene-soul-cellar",
-      "board": {"npc": ["npc-merrit"], "monster": [], "hazard": [], "objective": ["objective", "objective-free-souls"], "treasure": []},
-      "exits": [{"sceneId": "wish-hall", "label": "Return to the Hall"}]
+      "questIds": [
+        "objective-free-souls"
+      ],
+      "board": {
+        "npc": [
+          "npc-merrit"
+        ],
+        "monster": [],
+        "hazard": [],
+        "treasure": []
+      },
+      "exits": [
+        {
+          "sceneId": "wish-hall",
+          "label": "Return to the Hall"
+        }
+      ]
     },
     {
       "id": "pinata-pen",
@@ -107,8 +165,23 @@
       "roomId": "room-pinata-pen",
       "roomTitle": "Piñata Pen",
       "sceneCardId": "scene-pinata-pen",
-      "board": {"npc": [], "monster": ["monster-pinata-mimic"], "hazard": ["hazard-exploding-pinata"], "objective": ["objective"], "treasure": []},
-      "exits": [{"sceneId": "wrapping-room", "label": "Western doors"}]
+      "questIds": [],
+      "board": {
+        "npc": [],
+        "monster": [
+          "monster-pinata-mimic"
+        ],
+        "hazard": [
+          "hazard-exploding-pinata"
+        ],
+        "treasure": []
+      },
+      "exits": [
+        {
+          "sceneId": "wrapping-room",
+          "label": "Western doors"
+        }
+      ]
     },
     {
       "id": "wrapping-room",
@@ -121,8 +194,23 @@
       "roomId": "room-wrapping",
       "roomTitle": "Wrapping Room",
       "sceneCardId": "scene-wrapping-room",
-      "board": {"npc": [], "monster": [], "hazard": ["hazard-wrapping-machine"], "objective": ["objective"], "treasure": ["item-wish-crown"]},
-      "exits": [{"sceneId": "cult-room", "label": "Beyond the conveyor"}]
+      "questIds": [],
+      "board": {
+        "npc": [],
+        "monster": [],
+        "hazard": [
+          "hazard-wrapping-machine"
+        ],
+        "treasure": [
+          "item-wish-crown"
+        ]
+      },
+      "exits": [
+        {
+          "sceneId": "cult-room",
+          "label": "Beyond the conveyor"
+        }
+      ]
     },
     {
       "id": "cult-room",
@@ -135,8 +223,21 @@
       "roomId": "room-cult",
       "roomTitle": "Birthday Cult Room",
       "sceneCardId": "scene-cult-room",
-      "board": {"npc": [], "monster": ["priest"], "hazard": [], "objective": ["objective"], "treasure": []},
-      "exits": [{"sceneId": "cake-chamber", "label": "Northern door"}]
+      "questIds": [],
+      "board": {
+        "npc": [],
+        "monster": [
+          "priest"
+        ],
+        "hazard": [],
+        "treasure": []
+      },
+      "exits": [
+        {
+          "sceneId": "cake-chamber",
+          "label": "Northern door"
+        }
+      ]
     },
     {
       "id": "cake-chamber",
@@ -149,28 +250,53 @@
       "roomId": "room-cake-chamber",
       "roomTitle": "Cake Chamber",
       "sceneCardId": "scene-cake-chamber",
+      "questIds": [],
       "board": {
-        "npc": ["npc-sepulchral"],
-        "monster": ["monster-sepulchral", "priest"],
-        "hazard": ["hazard-wish-circle"],
-        "objective": ["objective"],
-        "treasure": ["treasure", "lantern"]
+        "npc": [
+          "npc-sepulchral"
+        ],
+        "monster": [
+          "monster-sepulchral",
+          "priest"
+        ],
+        "hazard": [
+          "hazard-wish-circle"
+        ],
+        "treasure": [
+          "treasure",
+          "lantern"
+        ]
       },
       "exits": []
     }
   ],
   "startingBoard": {
-    "location": ["location"],
-    "site": ["site-wishing-cake-inn"],
-    "room": ["room"],
-    "scene": ["scene-stolen-wish"],
-    "npc": ["caretaker", "npc-boris", "npc-pip", "npc-lute"],
-    "monster": ["priest"],
+    "location": [
+      "location"
+    ],
+    "site": [
+      "site-wishing-cake-inn"
+    ],
+    "room": [
+      "room"
+    ],
+    "npc": [
+      "caretaker",
+      "npc-boris",
+      "npc-pip",
+      "npc-lute"
+    ],
+    "monster": [
+      "priest"
+    ],
     "hazard": [],
-    "objective": ["objective"],
-    "treasure": ["lantern"]
+    "treasure": [
+      "lantern"
+    ]
   },
-  "startingQuests": ["objective"],
+  "startingQuests": [
+    "objective"
+  ],
   "cardModule": "../../../src/wishing-cake-pack.js",
   "sessionFactory": "../../../src/encounter.js",
   "offline": {
