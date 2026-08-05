@@ -10,7 +10,7 @@
   "estimatedHours": "3–4",
   "recommendedLevel": 3,
   "playerCount": "4–6",
-  "entrySceneId": "room",
+  "entrySceneId": "opening-inn",
   "sourceRepository": "cbw29512/DungeonCards",
   "runtimeRepository": "cbw29512/DNDWebTTRPG",
   "counts": {
@@ -23,6 +23,104 @@
     "items": 8,
     "pregeneratedCharacters": 1
   },
+  "persistentBoard": {
+    "location": ["location"]
+  },
+  "scenes": [
+    {
+      "id": "opening-inn",
+      "order": 1,
+      "title": "Opening: The Stolen Wish",
+      "locationId": "location",
+      "locationTitle": "The Wishing Cake Inn",
+      "roomId": "room",
+      "board": {
+        "npc": ["caretaker", "npc-boris", "npc-pip", "npc-lute"],
+        "monster": ["priest"],
+        "hazard": [],
+        "treasure": ["birthday-spark-tokens"]
+      },
+      "exits": [{"sceneId": "holding-cells", "label": "Follow the stolen wish below"}]
+    },
+    {
+      "id": "holding-cells",
+      "order": 2,
+      "title": "Room 1: Holding Cells",
+      "locationId": "location",
+      "locationTitle": "The Wishing Cake Inn — Celebration Halls",
+      "roomId": "room-holding-cells",
+      "board": {"npc": [], "monster": ["skeleton"], "hazard": [], "treasure": []},
+      "exits": [{"sceneId": "wish-hall", "label": "Western passage"}]
+    },
+    {
+      "id": "wish-hall",
+      "order": 3,
+      "title": "Room 2: Hall of Rejected Wishes",
+      "locationId": "location",
+      "locationTitle": "The Wishing Cake Inn — Celebration Halls",
+      "roomId": "room-wish-hall",
+      "board": {"npc": [], "monster": [], "hazard": [], "treasure": []},
+      "exits": [
+        {"sceneId": "soul-cellar", "label": "North to the Soul Cellar"},
+        {"sceneId": "pinata-pen", "label": "Toward the Piñata Pen"}
+      ]
+    },
+    {
+      "id": "soul-cellar",
+      "order": 4,
+      "title": "Room 3: Soul Cellar",
+      "locationId": "location",
+      "locationTitle": "The Wishing Cake Inn — Celebration Halls",
+      "roomId": "room-soul-cellar",
+      "board": {"npc": ["npc-merrit"], "monster": [], "hazard": [], "treasure": []},
+      "exits": [{"sceneId": "wish-hall", "label": "Return to the Hall"}]
+    },
+    {
+      "id": "pinata-pen",
+      "order": 5,
+      "title": "Room 4: Piñata Pen",
+      "locationId": "location",
+      "locationTitle": "The Wishing Cake Inn — Celebration Halls",
+      "roomId": "room-pinata-pen",
+      "board": {"npc": [], "monster": ["monster-pinata-mimic"], "hazard": [], "treasure": []},
+      "exits": [{"sceneId": "wrapping-room", "label": "Western doors"}]
+    },
+    {
+      "id": "wrapping-room",
+      "order": 6,
+      "title": "Room 5: Wrapping Room",
+      "locationId": "location",
+      "locationTitle": "The Wishing Cake Inn — Celebration Halls",
+      "roomId": "room-wrapping",
+      "board": {"npc": [], "monster": [], "hazard": [], "treasure": []},
+      "exits": [{"sceneId": "cult-room", "label": "Beyond the conveyor"}]
+    },
+    {
+      "id": "cult-room",
+      "order": 7,
+      "title": "Room 6: Birthday Cult Room",
+      "locationId": "location",
+      "locationTitle": "The Wishing Cake Inn — Celebration Halls",
+      "roomId": "room-cult",
+      "board": {"npc": [], "monster": ["priest"], "hazard": [], "treasure": []},
+      "exits": [{"sceneId": "cake-chamber", "label": "Northern door"}]
+    },
+    {
+      "id": "cake-chamber",
+      "order": 8,
+      "title": "Room 7: Cake Chamber",
+      "locationId": "location",
+      "locationTitle": "The Wishing Cake Inn — Celebration Halls",
+      "roomId": "room-cake-chamber",
+      "board": {
+        "npc": ["npc-sepulchral"],
+        "monster": ["priest"],
+        "hazard": [],
+        "treasure": ["birthday-spark-tokens"]
+      },
+      "exits": []
+    }
+  ],
   "startingBoard": {
     "location": ["location"],
     "room": ["room"],
