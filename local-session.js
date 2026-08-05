@@ -3,11 +3,11 @@ import { activateCharacterCard } from './src/player/character-cards.js';
 export const LOCAL_SESSION_KEY = 'living-table-local-session-v1';
 const SLOT_IDS = ['location','room','npc','monster','hazard','treasure'];
 const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
-
 const clone = value => JSON.parse(JSON.stringify(value));
 const safeParse = value => { try { return JSON.parse(value); } catch { return null; } };
 
 export function createLocalSession(manifest, selectedSystem = manifest.systems?.[0] || 'dnd-2014') {
+  const openingBoard = clone(manifest.startingBoard || {});
   return {
     schemaVersion: 1,
     sessionId: `${manifest.packId}-${Date.now()}`,
@@ -18,7 +18,8 @@ export function createLocalSession(manifest, selectedSystem = manifest.systems?.
     selectedSystem,
     status: 'prepared',
     currentSceneId: manifest.entrySceneId,
-    board: clone(manifest.startingBoard || {}),
+    openingBoard,
+    board: clone(openingBoard),
     quests: clone(manifest.startingQuests || []),
     players: [{ seatId:'seat-1', characterId:'wendy-birthday-hero', claimedBy:null, ready:false }],
     createdAt: new Date().toISOString(),
@@ -27,7 +28,9 @@ export function createLocalSession(manifest, selectedSystem = manifest.systems?.
 }
 
 export function loadLocalSession(storage = localStorage) {
-  return safeParse(storage.getItem(LOCAL_SESSION_KEY));
+  const session = safeParse(storage.getItem(LOCAL_SESSION_KEY));
+  if (session && !session.openingBoard) session.openingBoard = clone(session.board || {});
+  return session;
 }
 
 export function saveLocalSession(session, storage = localStorage) {
@@ -95,8 +98,7 @@ export async function reconcileBoard(targetBoard, { onProgress = () => {} } = {}
     let slot = document.querySelector(`[data-slot="${slotId}"]`);
     if (!slot) continue;
     await openStack(slot);
-    let existing = uniqueInstances(document.querySelector(`[data-slot="${slotId}"]`));
-
+    const existing = uniqueInstances(document.querySelector(`[data-slot="${slotId}"]`));
     const remaining = [...desired];
     const removals = [];
     existing.forEach(instance => {
@@ -104,7 +106,6 @@ export async function reconcileBoard(targetBoard, { onProgress = () => {} } = {}
       if (match >= 0) remaining.splice(match, 1);
       else removals.push(instance);
     });
-
     for (const instance of removals) {
       onProgress(`Removing ${instance.cardId} from ${slotId}`);
       await removeOne(slotId, instance.instanceId);
@@ -145,16 +146,16 @@ function message(text) {
   if (node) node.textContent = text;
 }
 
-async function restoreSession(session = loadLocalSession()) {
+async function applySessionBoard(session, targetBoard = session.board, finalStatus = session.status) {
   if (!session || applying) return;
   applying = true;
-  message('Building the opening board from the adventure manifest…');
+  message('Building the board from the saved adventure session…');
   activateCharacterCard(session.players?.[0]?.characterId || 'wendy-birthday-hero');
-  const actual = await reconcileBoard(session.board, { onProgress:message });
-  saveLocalSession({ ...session, board:actual, status:'ready' });
+  const actual = await reconcileBoard(targetBoard, { onProgress:message });
+  saveLocalSession({ ...session, board:actual, status:finalStatus || 'ready' });
   applying = false;
   renderToolbar();
-  message('Opening board, quest references, edition, and Wendy’s pregen are saved locally.');
+  message('Board, quest references, edition, and Wendy’s pregen are saved locally.');
 }
 
 function bindToolbar() {
@@ -165,14 +166,17 @@ function bindToolbar() {
     renderToolbar();
     message('Session saved in this browser.');
   });
-  document.querySelector('[data-session-restore]')?.addEventListener('click', () => restoreSession());
+  document.querySelector('[data-session-restore]')?.addEventListener('click', async () => {
+    const session = loadLocalSession();
+    if (session) await applySessionBoard(session, session.openingBoard, 'ready');
+  });
   document.querySelector('[data-session-reset]')?.addEventListener('click', async () => {
     const session = loadLocalSession();
     if (!session || !confirm('Reset this local session to the adventure opening board?')) return;
     const manifest = window.__DND_ADVENTURE_PACK__;
-    const fresh = manifest ? createLocalSession(manifest, session.selectedSystem) : { ...session, status:'prepared' };
+    const fresh = manifest ? createLocalSession(manifest, session.selectedSystem) : { ...session, board:clone(session.openingBoard), status:'prepared' };
     saveLocalSession(fresh);
-    await restoreSession(fresh);
+    await applySessionBoard(fresh, fresh.openingBoard, 'ready');
   });
 }
 
@@ -192,14 +196,14 @@ window.addEventListener('dnd:adventure-loaded', async event => {
   saveLocalSession(session);
   renderToolbar();
   await delay(100);
-  await restoreSession(session);
+  await applySessionBoard(session, session.openingBoard, 'ready');
 });
 
 const app = document.querySelector('#app');
 if (app) new MutationObserver(scheduleBoardSave).observe(app, { childList:true, subtree:true });
 
-window.LivingTableLocalSession = Object.freeze({ createLocalSession, loadLocalSession, saveLocalSession, clearLocalSession, readBoardFromDom, reconcileBoard, restoreSession });
+window.LivingTableLocalSession = Object.freeze({ createLocalSession, loadLocalSession, saveLocalSession, clearLocalSession, readBoardFromDom, reconcileBoard, applySessionBoard });
 
 renderToolbar();
 const saved = loadLocalSession();
-if (saved) setTimeout(() => restoreSession(saved), 180);
+if (saved) setTimeout(() => applySessionBoard(saved, saved.board, saved.status), 180);
