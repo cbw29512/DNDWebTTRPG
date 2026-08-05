@@ -1,7 +1,14 @@
 import { ROLES, validateSession } from "./schema.js";
 import { wishingCakeCards } from "./wishing-cake-cards.js";
+import { wishingCakeSpatialCards } from "./wishing-cake-spatial-cards.js";
 
 export const createRuinedChapelSession = () => {
+  const legacySpatialIds = new Set(["location", "room"]);
+  const cards = [
+    ...wishingCakeSpatialCards,
+    ...wishingCakeCards.filter(card => !legacySpatialIds.has(card.id))
+  ];
+
   const session = validateSession({
     id: "wishing-cake-birthday-example",
     participants: [
@@ -14,7 +21,7 @@ export const createRuinedChapelSession = () => {
       { id:"animated-present-b", name:"Animated Present B", kind:"monster", controllerId:"dm-1", initiative:14, hp:{current:18,max:18}, ac:14, publicStatus:"Wrapped and restless", private:{tactics:"Harass a spellcaster and surrender to genuine kindness."} },
       { id:"sepulchral", name:"Sepulchral", kind:"monster", controllerId:"dm-1", initiative:12, hp:{current:80,max:80}, ac:15, publicStatus:"Guarding the Wish Circle", private:{tactics:"Protect the cake, divide the party, and plead once bloodied."} }
     ],
-    cards: wishingCakeCards
+    cards
   });
 
   session.cards.forEach(card => { card.face = structuredClone(card.playerFace); });
