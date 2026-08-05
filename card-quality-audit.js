@@ -36,16 +36,39 @@ export function auditCatalog(cards) {
 const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
 function reportMarkup(report){
   const problem=report.results.filter(item=>item.status!=='ready');
-  return `<section class="library-section card-quality-audit"><header class="library-heading"><div><small>SELLABLE CARD QUALITY GATE</small><h3>All-card audit</h3><p>${report.counts.total} imported cards checked. A card is not considered production-ready while it lacks artwork, game shorthand, a stable ID, or a usable back.</p></div></header><div class="quality-counts"><span><b>${report.counts.ready}</b> Ready</span><span><b>${report.counts['missing-art']}</b> Missing art</span><span><b>${report.counts['needs-content']}</b> Needs content</span><span><b>${report.counts.blocked}</b> Blocked</span></div><details ${problem.length?'open':''}><summary>${problem.length} cards still need work</summary><div class="quality-list">${problem.slice(0,250).map(item=>`<article class="quality-row status-${item.status}"><div><strong>${esc(item.title)}</strong><small>${esc(item.kind)} · ${esc(item.id)}</small></div><span>${esc(item.status.replace('-',' '))}</span><p>${item.issues.map(esc).join(' · ')}</p></article>`).join('')||'<p>Every imported card passed the current automated checks.</p>'}</div></details></section>`;
-}
-
-function mount(report){
-  const panel=document.querySelector('#library-panel');
-  if (!panel || panel.hidden || !document.querySelector('[data-library-tab="dm"].active')) return;
-  panel.querySelector('.card-quality-audit')?.remove();
-  panel.insertAdjacentHTML('afterbegin',reportMarkup(report));
+  return `<section class="library-section card-quality-audit" data-quality-report-mounted="true"><header class="library-heading"><div><small>SELLABLE CARD QUALITY GATE</small><h3>All-card audit</h3><p>${report.counts.total} imported cards checked. A card is not considered production-ready while it lacks artwork, game shorthand, a stable ID, or a usable back.</p></div></header><div class="quality-counts"><span><b>${report.counts.ready}</b> Ready</span><span><b>${report.counts['missing-art']}</b> Missing art</span><span><b>${report.counts['needs-content']}</b> Needs content</span><span><b>${report.counts.blocked}</b> Blocked</span></div><details><summary>${problem.length} cards still need work</summary><div class="quality-list">${problem.slice(0,250).map(item=>`<article class="quality-row status-${item.status}"><div><strong>${esc(item.title)}</strong><small>${esc(item.kind)} · ${esc(item.id)}</small></div><span>${esc(item.status.replace('-',' '))}</span><p>${item.issues.map(esc).join(' · ')}</p></article>`).join('')||'<p>Every imported card passed the current automated checks.</p>'}</div></details></section>`;
 }
 
 let report;
-loadDungeonCardsCatalog().then(cards=>{report=auditCatalog(cards);window.DNDCardQualityAudit=report;mount(report);console.table(report.counts);});
-new MutationObserver(()=>{if(report)mount(report);}).observe(document.documentElement,{childList:true,subtree:true});
+let mountQueued=false;
+function mount() {
+  mountQueued=false;
+  if (!report) return;
+  const panel=document.querySelector('#library-panel');
+  const dmActive=Boolean(document.querySelector('.library-tabs [data-library-tab="dm"].active'));
+  if (!panel || panel.hidden || !dmActive || panel.querySelector('[data-quality-report-mounted="true"]')) return;
+  panel.insertAdjacentHTML('afterbegin',reportMarkup(report));
+}
+function scheduleMount() {
+  if (mountQueued) return;
+  mountQueued=true;
+  requestAnimationFrame(mount);
+}
+
+loadDungeonCardsCatalog().then(cards=>{
+  report=auditCatalog(cards);
+  window.DNDCardQualityAudit=report;
+  scheduleMount();
+  console.table(report.counts);
+});
+
+const libraryHub=document.querySelector('.library-hub');
+if (libraryHub) {
+  new MutationObserver(records=>{
+    const needsMount=records.some(record=>[...record.addedNodes].some(node=>node.nodeType===1 && (node.matches?.('#library-panel, [data-library-tab="dm"]') || node.querySelector?.('#library-panel, [data-library-tab="dm"]'))));
+    if (needsMount || !document.querySelector('[data-quality-report-mounted="true"]')) scheduleMount();
+  }).observe(libraryHub,{childList:true,subtree:true,attributes:true,attributeFilter:['class','hidden']});
+}
+document.addEventListener('click',event=>{
+  if (event.target.closest('[data-library-tab="dm"]')) setTimeout(scheduleMount,0);
+});
