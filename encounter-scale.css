@@ -1,75 +1,96 @@
-/* Six-slot current encounter board: quests live only in the tracker below. */
-.fixed-board > .board-slot[data-slot="objective"]{
-  display:none!important;
+/* Lean encounter board. Scene progress is shown with Area; quests live in the tracker. */
+.fixed-board > .board-slot[data-slot="scene"],
+.fixed-board > .board-slot[data-slot="objective"] {
+  display: none !important;
 }
 
-#app .fixed-board > section.board-slot[data-slot]:not([data-slot="objective"]){
-  flex:1 0 208px!important;
-  width:auto!important;
-  min-width:208px!important;
-  max-width:240px!important;
-  min-height:420px!important;
+#app .fixed-board > section.board-slot[data-slot]:not([data-slot="scene"]):not([data-slot="objective"]) {
+  flex: 1 0 208px !important;
+  width: auto !important;
+  min-width: 208px !important;
+  max-width: 240px !important;
+  min-height: 420px !important;
 }
 
-.fixed-board{
-  justify-content:space-between;
-  gap:14px!important;
+.fixed-board {
+  justify-content: space-between;
+  gap: 14px !important;
 }
 
-.single-card-holder{
-  min-height:320px!important;
-  padding:10px!important;
+.single-card-holder {
+  min-height: 320px !important;
+  padding: 10px !important;
 }
 
 .single-card-holder > .tarot-card,
 .card-stack,
-.stack-toggle{
-  width:184px!important;
-  max-width:184px!important;
+.stack-toggle {
+  width: 184px !important;
+  max-width: 184px !important;
 }
 
-.tarot-card{
-  flex-basis:184px!important;
+.tarot-card {
+  flex-basis: 184px !important;
 }
 
-.empty-slot{
-  width:184px!important;
-  min-height:318px!important;
+.empty-slot {
+  width: 184px !important;
+  min-height: 318px !important;
 }
 
-.card-art{
-  height:106px;
-  font-size:2.8rem;
+.card-art {
+  height: 106px;
+  font-size: 2.8rem;
 }
 
-.image-only-card h3{
-  font-size:1.08rem;
+.image-only-card h3 {
+  font-size: 1.08rem;
 }
 
-.stack-shadow{
-  inset:0 0 36px;
+.stack-shadow {
+  inset: 0 0 36px;
 }
 
-@media(max-width:1350px){
-  #app .fixed-board > section.board-slot[data-slot]:not([data-slot="objective"]){
-    flex:0 0 196px!important;
-    width:196px!important;
-    min-width:196px!important;
-    max-width:196px!important;
+.area-current-scene {
+  display: block;
+  width: 100%;
+  margin-top: 6px;
+  color: #f0d990;
+  font-size: .72rem;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+@media (max-width: 1350px) {
+  #app .fixed-board > section.board-slot[data-slot]:not([data-slot="scene"]):not([data-slot="objective"]) {
+    flex: 0 0 196px !important;
+    width: 196px !important;
+    min-width: 196px !important;
+    max-width: 196px !important;
   }
-  .single-card-holder > .tarot-card,.card-stack,.stack-toggle{width:172px!important;max-width:172px!important}
-  .tarot-card{flex-basis:172px!important}
-  .empty-slot{width:172px!important}
+  .single-card-holder > .tarot-card,
+  .card-stack,
+  .stack-toggle {
+    width: 172px !important;
+    max-width: 172px !important;
+  }
+  .tarot-card { flex-basis: 172px !important; }
+  .empty-slot { width: 172px !important; }
 }
 
-@media(max-width:900px){
-  #app .fixed-board > section.board-slot[data-slot]:not([data-slot="objective"]){
-    flex:0 0 184px!important;
-    width:184px!important;
-    min-width:184px!important;
-    max-width:184px!important;
+@media (max-width: 900px) {
+  #app .fixed-board > section.board-slot[data-slot]:not([data-slot="scene"]):not([data-slot="objective"]) {
+    flex: 0 0 184px !important;
+    width: 184px !important;
+    min-width: 184px !important;
+    max-width: 184px !important;
   }
-  .single-card-holder > .tarot-card,.card-stack,.stack-toggle{width:160px!important;max-width:160px!important}
-  .tarot-card{flex-basis:160px!important}
-  .empty-slot{width:160px!important}
+  .single-card-holder > .tarot-card,
+  .card-stack,
+  .stack-toggle {
+    width: 160px !important;
+    max-width: 160px !important;
+  }
+  .tarot-card { flex-basis: 160px !important; }
+  .empty-slot { width: 160px !important; }
 }
