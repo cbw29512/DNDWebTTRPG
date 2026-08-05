@@ -31,7 +31,7 @@ assert.match(runtime, /currentSceneCardId/);
 assert.match(runtime, /roomHistory/);
 assert.match(runtime, /eventHistory/);
 assert.match(runtime, /active Scene is carried by the Area card/);
-assert.match(html, /scene-runtime\.js/);
-assert.match(html, /source-board-model-20260805/);
+assert.match(html, /scene-runtime\.js\?v=board-first-live-1/);
+assert.match(html, /board-first-live-play-20260805/);
 
 console.log('scene progress, quest activation, and seven-slot board reconciliation checks passed');
