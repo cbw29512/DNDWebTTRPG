@@ -47,3 +47,13 @@ Last updated: 2026-08-05
 43. Room cards contain picture-first fronts, player read-aloud information, and DM-only checks, DCs, triggers, secrets, consequences, related cards, and conditional exits.
 44. Room transitions may be triggered by player actions. Example: turning a torch bracket after a successful DC 15 check can reveal a secret door and change the current Room to `secret-room-1` while the Location remains the castle.
 45. Location and Room are not interchangeable terms in manifests, state, UI labels, tests, or documentation. `docs/SCENE_MODEL.md` is the canonical spatial definition.
+46. DM and player experiences use separate entry points and immutable runtime roles. There is no in-session DM/Player view switch.
+47. The DM controls the adventure, rooms, scenes, NPCs, monsters, hazards, hidden information, reveals, adjudication, consequences, pacing, and progression.
+48. A player controls only the claimed character and character-owned cards, resources, actions, spells, equipment, and choices.
+49. Player interfaces never expose world-card mutation controls such as monster attacks, monster initiative, NPC checks, scene loading, hidden-card inspection, reveal/hide, or adventure-deck construction.
+50. The interface follows the core table rhythm: the DM describes the scene, players describe their characters' actions, and the DM adjudicates and narrates the result.
+51. Social interaction, exploration, and combat are equal product pillars. The application must not become a combat-only dashboard.
+52. Player-safe projection is a payload boundary. DM-only information must be absent before rendering; CSS hiding is not security.
+53. Static DM and player routes are interaction prototypes only. Secure role enforcement requires server-verified account, campaign membership, role, seat, and player-safe projection.
+54. `docs/DND_PLAY_MODEL.md` is the canonical reference for role responsibilities, table rhythm, three-pillar interface requirements, and ease-of-use acceptance tests.
+55. Rules content and compatibility remain edition-labeled against SRD 5.1 for the 2014 rules and SRD 5.2.1 for revised 2024/5.5e rules. Non-SRD protected expression is not copied into the product.
