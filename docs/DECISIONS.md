@@ -77,3 +77,6 @@ Last updated: 2026-08-05
 73. NPC instances retain important dialogue, promises, lies, favors, relationship state, knowledge, last known place, and unresolved business.
 74. Immutable adventure and card definitions remain separate from mutable campaign instances. Play never mutates the purchased source package.
 75. `docs/GAME_STATE_MEMORY_MODEL.md` and `docs/DND_PAIN_POINTS.md` are canonical references for tracking scope, exact resume, and burden-reduction priorities.
+76. Decision 67 is superseded: the live board's spatial context is **Location → Site → Area**. Current Scene remains session progress and appears as concise context on the Area and in DM adventure controls, not as a separate board slot.
+77. Decision 68 is refined: loading a Scene prepares the exact Location, Site, Area, NPCs, monsters, hazards, treasure, transitions, and saved state. A separate Scene card is optional source content and is not required on the live board.
+78. Objectives and quests appear in the dedicated Quest Tracker rather than consuming a live encounter-board slot. Quest definitions and quest state remain authoritative even though their board column is removed.
