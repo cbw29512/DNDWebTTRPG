@@ -1,5 +1,6 @@
 import { createRuinedChapelSession } from "./src/encounter.js";
 import { loadSession, updateSession } from "./src/session/session-state.js";
+import { isDungeonMaster } from "./src/role-context.js";
 
 const encounter = createRuinedChapelSession();
 const objectiveCards = encounter.cards.filter(card => card.type === "objective");
@@ -44,10 +45,8 @@ function questCard(card, isDM) {
   </article>`;
 }
 
-function isDMView() { return Boolean(document.querySelector('[data-role="dm"].selected')); }
-
 function trackerState() {
-  const isDM = isDMView();
+  const isDM = isDungeonMaster;
   const state = normalizedQuestState();
   const renderKey = JSON.stringify({
     isDM,
@@ -67,7 +66,7 @@ function trackerMarkup(snapshot) {
   const mainMarkup = mainQuest ? `<div class="quest-entry main-quest">${questCard(mainQuest, isDM)}</div>` : "";
   const sideMarkup = visibleSideQuests.map(card => `<div class="quest-entry side-quest">${questCard(card, isDM)}${isDM ? `<button type="button" class="quest-remove" data-remove-side-quest="${escapeHtml(card.id)}">Remove</button>` : ""}</div>`).join("");
   const empty = !sideMarkup ? '<div class="quest-empty">Side quests appear here as the party discovers them.</div>' : "";
-  return `<section class="panel quest-tracker" data-quest-render-key="${escapeHtml(renderKey)}" aria-labelledby="questTrackerTitle"><header class="quest-tracker-header"><div><small>SAVED WITH THE ADVENTURE SESSION</small><h2 id="questTrackerTitle">Quest Tracker</h2></div><p>Main and side quests now persist with the local adventure session.</p></header>${controls}<div class="quest-row">${mainMarkup}${sideMarkup}${empty}</div></section>`;
+  return `<section class="panel quest-tracker" data-quest-render-key="${escapeHtml(renderKey)}" aria-labelledby="questTrackerTitle"><header class="quest-tracker-header"><div><small>SAVED WITH THE ADVENTURE SESSION</small><h2 id="questTrackerTitle">Quest Tracker</h2></div><p>Main and side quests persist with the adventure session instead of occupying the encounter board.</p></header>${controls}<div class="quest-row">${mainMarkup}${sideMarkup}${empty}</div></section>`;
 }
 
 function bindTracker(tracker) {
@@ -122,9 +121,6 @@ if (appRoot) {
   bootObserver.observe(appRoot, { childList:true });
 }
 
-document.addEventListener("click", event => {
-  if (event.target.closest('[data-role]')) scheduleTrackerRender();
-}, true);
 window.addEventListener("living-table:session-updated", scheduleTrackerRender);
 window.addEventListener("DOMContentLoaded", scheduleTrackerRender);
 scheduleTrackerRender();
