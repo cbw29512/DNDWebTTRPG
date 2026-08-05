@@ -11,11 +11,13 @@ const freeDice = [20, 12, 10, 8, 6, 4, 100];
 
 const SLOTS = Object.freeze([
   { id: "location", label: "Location", icon: "⌖", accepts: ["location"], stackable: false },
-  { id: "room", label: "Room / Scene", icon: "▣", accepts: ["room"], stackable: false },
+  { id: "site", label: "Site", icon: "◆", accepts: ["site"], stackable: false },
+  { id: "room", label: "Area / Room", icon: "▣", accepts: ["room"], stackable: false },
+  { id: "scene", label: "Current Scene", icon: "▶", accepts: ["scene"], stackable: false },
   { id: "npc", label: "NPCs", icon: "♟", accepts: ["npc"], stackable: true },
   { id: "monster", label: "Monsters", icon: "☠", accepts: ["monster"], stackable: true },
   { id: "hazard", label: "Traps / Hazards", icon: "⚠", accepts: ["hazard"], stackable: true },
-  { id: "objective", label: "Objective / Quest", icon: "◆", accepts: ["objective"], stackable: false },
+  { id: "objective", label: "Objective / Quest", icon: "◇", accepts: ["objective"], stackable: false },
   { id: "treasure", label: "Treasure / Rewards", icon: "✦", accepts: ["treasure", "item"], stackable: true }
 ]);
 
@@ -34,7 +36,9 @@ const makeInstance = cardId => {
 };
 const board = {
   location: [makeInstance("location")],
+  site: [makeInstance("site-wishing-cake-inn")],
   room: [makeInstance("room")],
+  scene: [makeInstance("scene-stolen-wish")],
   npc: [makeInstance("caretaker")],
   monster: [makeInstance("priest"), makeInstance("skeleton"), makeInstance("skeleton"), makeInstance("skeleton"), makeInstance("skeleton")],
   hazard: [],
@@ -213,7 +217,7 @@ function bind() {
 
 function render() {
   const projected = projection(); const isDM = viewRole === ROLES.DM;
-  const boardMarkup = `<main class="panel encounter-board"><header class="board-header"><div><small>${isDM ? "RUN THE CURRENT ENCOUNTER" : "EXPERIENCE THE CURRENT ENCOUNTER"}</small><h1>${isDM ? "Dungeon Master Card Board" : "Revealed Adventure Cards"}</h1></div><p>${isDM ? "Describe the scene, hear the players’ actions, adjudicate the result, and reveal what happens next." : "Choose what your character does from the information and cards the Dungeon Master reveals."}</p></header><div class="fixed-board">${SLOTS.map(slot => renderSlot(slot, projected, isDM)).join("")}</div></main>`;
+  const boardMarkup = `<main class="panel encounter-board"><header class="board-header"><div><small>${isDM ? "RUN THE CURRENT ADVENTURE STATE" : "EXPERIENCE THE CURRENT ADVENTURE"}</small><h1>${isDM ? "Dungeon Master Card Board" : "Revealed Adventure Cards"}</h1></div><p>${isDM ? "Track where the party is, what is happening now, the people and threats present, and every lasting result." : "See where your character is, what is happening, and the cards the Dungeon Master has revealed."}</p></header><div class="fixed-board">${SLOTS.map(slot => renderSlot(slot, projected, isDM)).join("")}</div></main>`;
   document.querySelector("#app").innerHTML = `<div class="app"><header class="topbar"><div class="brand">⬡ THE LIVING TABLE<br><small>${isDM ? "Dungeon Master Table" : "Player Table"}</small></div><div class="dice" aria-label="Freeform dice roller">${freeDice.map(die => `<button data-die="${die}">d${die}</button>`).join("")}<button data-d20-mode="advantage">Adv.</button><button data-d20-mode="disadvantage">Dis.</button></div><div class="result" aria-live="polite">${state.roll}<br>${state.total !== null ? `<strong>${state.total}</strong><small>${state.rollDetail}</small>` : state.rollDetail}</div></header>${isDM ? `<div class="workspace dm-workspace">${renderDeck()}${boardMarkup}${renderInitiative(true)}</div>` : `<div class="player-layout">${boardMarkup}${renderInitiative(false)}${renderPlayerStation(projected)}</div>`}${pickerMarkup()}</div>`;
   bind();
 }
