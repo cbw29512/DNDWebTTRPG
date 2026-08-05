@@ -1,8 +1,16 @@
 # Project Control and Anti-Drift Charter
 
-Last updated: 2026-08-04
+Last updated: 2026-08-05
 
 This document is the operational source of truth for keeping The Living Table aligned while implementation continues.
+
+## North Star
+
+The whole reason The Living Table exists is to make D&D easier to track and easier to play from both the Dungeon Master and player perspectives.
+
+The system should remove setup, lookup, calculation, repeated entry, scattered notes, and bookkeeping so the group can spend more time describing, deciding, roleplaying, rolling, and reacting. Automation supports the DM and players; it does not replace player intent, imagination, roleplay, or DM adjudication.
+
+Every proposed feature must identify the burden it removes. A feature that creates more tracking than it eliminates must be redesigned or rejected. `docs/NORTH_STAR.md` is the highest-level product filter.
 
 ## Canonical repositories
 
@@ -119,7 +127,8 @@ A feature is complete only when:
 - the deployed behavior is browser-tested;
 - accessibility is reviewed;
 - documentation and the implementation ledger are updated;
-- known limitations are stated honestly.
+- known limitations are stated honestly;
+- a DM/player playtest demonstrates that the feature reduces rather than increases tracking burden.
 
 A merged prototype is not automatically a completed feature.
 
@@ -127,14 +136,16 @@ A merged prototype is not automatically a completed feature.
 
 Every meaningful PR must answer:
 
-1. Which milestone does this advance?
-2. Which canonical state owns the new data?
-3. Does it duplicate anything from `DNDCards`?
-4. Does it expose DM-only information to players?
-5. Does it introduce a new observer, interval, listener, or render loop?
-6. What automated and browser tests prove it works?
-7. What documentation and ledger entries must change?
-8. Does it conflict with any approved decision?
+1. Which DM or player burden does this remove?
+2. Which milestone does this advance?
+3. Which canonical state owns the new data?
+4. Does it duplicate anything from `DNDCards`?
+5. Does it expose DM-only information to players?
+6. Does it introduce a new observer, interval, listener, or render loop?
+7. What automated and browser tests prove it works?
+8. What documentation and ledger entries must change?
+9. Does it conflict with any approved decision?
+10. Does it make the game easier to track and play, or merely add another interface to manage?
 
 ## Anti-drift rules
 
@@ -148,6 +159,8 @@ Every meaningful PR must answer:
 - Do not add visual features that destabilize the central play path.
 - Do not use full-document `MutationObserver` rendering without strict guards and a documented reason.
 - Do not change the product flow without recording an approved decision.
+- Do not add tracking that requires the DM or players to maintain the same fact in more than one place.
+- Do not automate away player choices, roleplay, improvisation, or the DM’s final ruling authority.
 
 ## Required maintenance
 
@@ -158,4 +171,5 @@ After every major build:
 - update `docs/DECISIONS.md` when product behavior changes;
 - record exact PR and merge SHA;
 - preserve unresolved limitations;
-- identify the next milestone and acceptance test.
+- identify the next milestone and acceptance test;
+- state which DM or player burden the change removed.
