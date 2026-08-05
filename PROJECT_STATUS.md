@@ -1,118 +1,136 @@
 # The Living Table — Project Status
 
-Last updated: 2026-08-03
+Last updated: 2026-08-04
 
-This is the source of truth for scope, current state, and execution order.
+This is the source of truth for current implementation state. Product-control rules and milestone order live in `docs/PROJECT_CONTROL.md`; exact PR history lives in `docs/IMPLEMENTATION_LEDGER.md`.
 
 ## Product goal
 
-Deliver a card-driven synchronized online tabletop where the DM reveals the world and players take complete turns from their character cards.
+Deliver a card-driven synchronized online tabletop where a DM selects a ready-to-run adventure, invites players, loads ordered scenes, and runs the game while players act from complete character and item cards.
 
-**Commercial/content promise:** buy or download a ready-to-run one-shot or dungeon pack, load it into The Living Table, invite friends, and play with minimal preparation.
+**Commercial promise:** buy or download a prepared adventure, load it, invite friends, claim pregens, and play with minimal preparation.
 
-## Implemented now
+## Canonical repositories
 
-- Dedicated repository and product identity
-- Product vision, MVP specification, architecture, decisions, command/event model, visibility model, D&D repository integration ledger, and adventure-pack product specification
-- Static Ruined Chapel battle-board prototype
-- Top-mounted dice roller with correct standard, advantage, and disadvantage behavior
-- Revisioned command dispatcher for rolls, reveals, turns, and undo
-- Typed structured events with monotonic IDs and human-readable logs
-- In-memory DM undo with preserved event history
-- Shared participant, actor, card, audience, and session schemas
-- Canonical Ruined Chapel encounter data separated from UI rendering
-- Role-filtered DM and player projections
-- Player projection omits unrevealed cards, DM card faces, monster HP, monster AC, tactics, reactions, and DM notes
-- DM View / Player View visual audit switch
-- Authoritative source-repository registry with exactly one primary rules catalog source
-- `DungeonCards` designated as the primary card/rules source authority
-- `monstercardforge`, `DNDCards`, `CharacterForge`, `DungeonMaps`, campaign, teaching, language, and art repositories assigned explicit adapter or review boundaries
-- Portable adventure-pack requirements, import-security boundary, runtime-copy model, and first-party launch candidates documented
-- Deterministic tests for dice, state transitions, undo, schemas, authorization boundaries, hidden-data leakage, and source-registry drift
-- Responsive single-column fallback and visible keyboard focus
+- `cbw29512/DNDWebTTRPG`: website, runtime, sessions, campaigns, and multiplayer
+- `cbw29512/DNDCards`: authoritative reusable card definitions, artwork, and print assets
+- Production branch: `main`
 
-## Prototype audit findings corrected
+## Implemented local prototype
 
-- Advantage/disadvantage previously rolled one d20.
-- Monster turns previously displayed `Your Turn`.
-- Placeholder action controls looked operational.
-- DM and player information previously came from one unfiltered UI object.
-- Cross-repository ownership was previously implicit, which risked duplicate catalogs and conflicting architecture.
-- Adventure delivery was previously treated as encounter data rather than a first-class portable product.
+- Card-driven DM board with DM/Player inspection views
+- Card placement, reveal, hide, flip, remove, grouped stacks, and basic initiative
+- Expanded card groups anchored below the selected stack with outside-click dismissal
+- DM Library and Player Library
+- Player Library search and section filters
+- Version-pinned `DNDCards` catalog import
+- Version-pinned relative artwork resolution from `DNDCards`
+- Polished tarot-style front/back catalog previews
+- Card-type shorthand renderers for monsters, characters, items, NPCs, rooms, hazards, rules, events, quests, and spells
+- Automated card-quality audit for missing art, content, shorthand, IDs, and combat information
+- RPG equipment doll with legal slots, equip/unequip, attunement, derived statistics, consumables, and charges
+- Adventure Master Card loader
+- Browser-local canonical adventure session
+- Browser-local board persistence and opening-board restore/reset
+- Quest state integrated into the local session
+- Player HP, action economy, ready state, equipment, edition, and item-resource capture integrated into the local session
+- Permanent DM/player playtest audit
+- Recursive card-audit lockup fixed
 
-## Adventure-pack decision
+## Current stability concerns
 
-The pack is an executable game package, not merely a PDF. It may contain:
+- Several older modules still use broad or render-triggering `MutationObserver` patterns.
+- Browser smoke tests are not yet established for the complete deployed flow.
+- Player equipment drag/drop needs regression testing after session integration.
+- Visual card audits are still required for crop, overflow, font size, contrast, and mobile behavior.
+- Dynamic catalog loading depends on a pinned CDN-hosted module and assets.
 
-- rooms, scenes, maps, zones, and tokens;
-- NPC, monster, hazard, clue, objective, item, treasure, spell, and feature cards;
-- public/player-safe and DM-only card faces;
-- encounters, initiative groups, triggers, requirements, consequences, and endings;
-- pregenerated characters;
-- read-aloud text, DM guidance, fallback paths, handouts, and optional media;
-- exact system/edition, source, license, attribution, compatibility, and checksum metadata.
+## Important prototype boundaries
 
-Loading a pack creates a fresh independent runtime session. Playing never mutates the acquired source package.
+- Single browser/device only
+- DM/Player switching is not authentication
+- No accounts, password reset, provider login, or persistent user identity
+- No real campaign records, memberships, invitations, or join codes
+- No lobby, character reservations, claiming, or server-backed ready checks
+- No shared authoritative server or real-time multiplayer synchronization
+- No reconnect or cross-device persistence
+- No complete server-side player-safe projection
+- No complete combat-resolution engine
+- No complete six-character pregen roster
+- The current Wendy character is not a full edition-specific D&D 5e character sheet
+- Adventure loading does not yet execute an ordered scene manifest with automatic room-content loading
+- Final commercial-art rights and 300-DPI print output are not certified
 
-See `docs/ADVENTURE_PACKS.md`.
+## Locked prepared-adventure behavior
 
-## Repository reuse decisions
+Prepared adventures must include an ordered scene path. Loading a room or scene automatically prepares:
 
-- `DungeonCards`: canonical card-platform concepts, exact edition identity, versioned SRD exports, character/encounter adapters, and source metadata.
-- `monstercardforge`: session-console, player-display, recovery, campaign handoff, encounter, NPC, loot, and magic-item workflow patterns.
-- `DNDCards`: card-driven battle-board and reveal UX concepts; review and rebuild rather than wholesale copy.
-- `CharacterForge`: character workflow and import candidate; older application architecture will not be embedded.
-- `DungeonMaps`: future synchronized position/map service after the core card combat loop.
-- `dnd-campaign-portal`: campaign, roster, handout, and player-access concepts.
-- Teaching, language, instruction, and original-art repositories: post-MVP content candidates requiring licensing/provenance review.
-- Empty or superseded repositories: no runtime dependency.
+- room/location card;
+- every NPC assigned to the scene;
+- encounter monsters;
+- hazards and traps;
+- clues and checks;
+- quests and objectives;
+- treasure and rewards;
+- triggers and next-scene links.
 
-See `docs/DND_REPOSITORY_INTEGRATION.md` for the complete ledger and release gates.
+Prepared content loads for the DM, but hidden information remains unrevealed and absent from player projections until the DM or a trigger reveals it.
 
-## Prototype limitations
+Homebrew mode is the only mode where a DM manually constructs and orders scenes. Once saved, that adventure follows the same automatic scene-loading behavior.
 
-- Single browser only; the view switch is an inspection tool, not authentication
-- No authoritative server, WebSocket synchronization, persistence, login, seat tokens, or reconnect
-- Dice remain client-side and are not server-authoritative
-- Undo remains in-memory rather than persisted compensating events
-- Action resolution controls remain disabled placeholders
-- No modifiers, formulas, targeting, attacks versus AC, saves, damage, healing, conditions, concentration, spell spending, or item consumption
-- The event log is not yet audience-filtered
-- Source adapters are registered but the first deterministic cross-repository data import is not yet implemented
-- No `.ltpack` importer/exporter, manifest validator, archive sanitizer, checksum verification, pack library, or fresh-session creation flow yet
-- No browser-level accessibility, visual regression, or deployment smoke tests yet
+## Locked card standard
 
-## MVP workstreams
+### Front
 
-1. Shared schemas and deterministic state engine — **foundation implemented; runtime packaging remains**
-2. Portable adventure-pack schema, validation, import, and fresh-session creation — **new primary milestone**
-3. Server-authoritative sessions and WebSocket sync
-4. Role-filtered DM and player projections — **prototype implemented**
-5. Card definitions, instances, zones, and reveals — **in progress; align with DungeonCards**
-6. Initiative/turn state machine
-7. Dice, commands, resolution confirmation, and event history
-8. Character resources, spells, items, conditions, and effects — **CharacterForge/DungeonCards adapters planned**
-9. Ruined Chapel end-to-end encounter — **convert into the first valid importable pack**
-10. Accessibility, security, reconnect, and playtest hardening
+- Artwork
+- Name
+- Card type
+- CR, rarity, level, role, or equivalent badge
+
+### Back
+
+- Compact game shorthand sufficient to run the card
+- HP, armor, movement, melee, ranged, spells, DCs, saves, damage, traits, reactions, resources, and charges as applicable
+
+## Current execution order
+
+1. Remove or strictly guard risky observer-driven rendering and add browser smoke coverage.
+2. Add ordered scene manifests and automatic room-content loading.
+3. Complete one local Wishing Cake play path from manifest through scene advancement and save/resume.
+4. Build six complete legal level-three pregens with explicit 2014/2024 identity.
+5. Build campaign creation, join codes, lobby, character claiming, and ready checks.
+6. Add authoritative multiplayer synchronization, reconnect, and player-safe projections.
+7. Complete combat resolution, conditions, spell/resource spending, treasure transfer, DM override, and event history.
+8. Finish artwork, commercial-rights review, visual QA, and 300-DPI print output.
+
+## Next acceptance test
+
+1. DM loads The Wishing Cake.
+2. Runtime creates a fresh session from the selected manifest version and edition.
+3. Runtime displays the ordered scene list.
+4. DM loads the opening scene.
+5. The exact assigned room, NPC, monster, hazard, clue, quest, and treasure cards are prepared automatically.
+6. Players receive only player-safe and revealed cards.
+7. DM advances to the next scene without manually rebuilding the board.
+8. Browser closes and reopens with the same scene, board, quest, character, equipment, and resource state.
 
 ## Non-negotiable gates
 
-- Hidden DM data must be absent from player payloads
-- DM override and undo
-- Every mutation logged as an event
-- D&D editions explicitly versioned
-- Original or properly licensed content only
-- Exactly one primary rules catalog source; no handwritten duplicate SRD catalogs
-- Every import records source repository, source path/commit, schema version, edition, and licensing boundary
-- Imported packs are untrusted data: no executable scripts, active HTML, path traversal, undeclared remote assets, or broken references
-- Playing a pack never modifies its immutable source definition
-- Customers retain an exportable/downloadable copy of acquired pack data
-- Keyboard-capable encounter loop
-- Deterministic tests before rule controls are called functional
-- Placeholder controls visibly disabled or labeled
-- Deployed behavior visually reviewed
-- Status, integration ledger, and issues updated with every meaningful cross-repository change
+- Hidden DM data is absent from player payloads.
+- DM retains override and undo authority.
+- Every meaningful mutation is logged as an event in the final authoritative architecture.
+- D&D 2014 and 2024 remain explicitly versioned.
+- Only original or properly licensed material is shipped.
+- `DNDCards` remains the card-definition authority; the runtime does not duplicate the catalog.
+- Imported packages are treated as untrusted data.
+- Playing never mutates the immutable source adventure definition.
+- Customers retain an exportable copy of acquired pack data.
+- Keyboard-capable gameplay and accessible contrast are required.
+- Tests are only reported as passed when actually executed.
+- Deployed behavior is visually reviewed before a feature is called complete.
+- Every meaningful PR updates the implementation ledger or status.
+- New full-document observers or uncontrolled render loops are prohibited.
 
 ## Definition of Done
 
-A feature is complete only when implementation, automated tests, permission/visibility tests, accessibility review, documentation, issue status, and deployed visual verification are complete.
+A feature is complete only when implementation, executed automated tests, permission/visibility tests, accessibility review, documentation, ledger/status updates, and deployed browser verification are complete.

@@ -10,41 +10,30 @@ The Living Table brings the live table feeling online without turning the game i
 
 The DM controls a battle board, flips room/NPC/monster/item/hazard cards into play, and chooses what each player can see. Players take turns from their own character cards while HP, actions, spell slots, item uses, conditions, concentration, initiative, and revealed information stay synchronized.
 
-Complete one-shots and dungeon packs can be loaded as executable adventure packages. A pack can include its rooms, maps, encounters, monsters, NPCs, hazards, clues, treasures, pregens, branching flow, DM guidance, visibility rules, and licensing metadata. Loading a pack creates a fresh independent session that can be played as supplied or adapted by the DM.
+Complete one-shots and dungeon packs can be loaded as executable adventure packages. Prepared adventures contain an ordered scene path. Loading a scene prepares its room, NPCs, monsters, hazards, clues, quests, and treasure automatically while the DM retains reveal control. A saved homebrew adventure must behave the same way after the DM orders and links its scenes.
 
-## MVP goal
+## Canonical repositories
 
-Prove one complete D&D 5e combat loop loaded from a versioned adventure pack:
+- Runtime, website, sessions, campaigns, and multiplayer: `cbw29512/DNDWebTTRPG`
+- Reusable card definitions, artwork, and print assets: `cbw29512/DNDCards`
+- Production branch: `main`
+- Current public project URL: `https://github.com/cbw29512/DNDWebTTRPG`
 
-1. DM imports The Ruined Chapel pack.
-2. The platform validates its system, contents, references, and license metadata.
-3. DM creates a fresh encounter session.
-4. Players join with included or imported character cards.
-5. DM reveals a room and monsters.
-6. Initiative begins.
-7. The active player rolls dice and spends actions/resources.
-8. The DM runs monster turns and can override anything.
-9. HP, conditions, spell slots, item uses, and turn state update.
-10. Combat ends and treasure is revealed and assigned.
-11. The session saves independently from the original pack.
+The runtime consumes versioned card definitions from `DNDCards`; it must not become a duplicate handwritten card catalog.
 
-## Current repository state
+## Current milestone
 
-The first static prototype establishes:
+Stabilize the browser runtime, then make one ordered Wishing Cake adventure run from manifest through scene loading and save/resume.
 
-- top-mounted dice roller;
-- DM encounter deck;
-- shared battle board;
-- revealed and unrevealed cards;
-- initiative order;
-- active-player turn controls;
-- character/resource panels;
-- player-facing visibility model;
-- deterministic demo state for testing.
+The immediate acceptance test is:
 
-## Adventure packs
-
-See `docs/ADVENTURE_PACKS.md` for the portable pack format, import security rules, commercial boundary, and first-party launch candidates.
+1. Load The Wishing Cake manifest.
+2. Receive an ordered scene list.
+3. Load the opening scene.
+4. Automatically prepare every card assigned to that scene.
+5. Keep hidden content DM-only.
+6. Advance without rebuilding the board manually.
+7. Save and recover the exact scene, quest, board, and character state.
 
 ## Run locally
 
@@ -56,13 +45,19 @@ Open `http://localhost:8000`.
 
 ## Project tracking
 
-- `PROJECT_STATUS.md` — source of truth for completed, prototype, missing, and blocked work.
+Read these before making a meaningful product change:
+
+- `docs/PROJECT_CONTROL.md` — canonical repositories, locked product flow, milestone order, Definition of Done, and anti-drift rules.
+- `docs/IMPLEMENTATION_LEDGER.md` — exact PRs, merge SHAs, delivered behavior, remaining boundaries, and next acceptance test.
+- `PROJECT_STATUS.md` — current implemented, prototype, missing, and blocked work.
+- `docs/DECISIONS.md` — approved product decisions.
 - `docs/PRODUCT_VISION.md` — full product concept.
 - `docs/MVP_SPEC.md` — first playable milestone.
 - `docs/ADVENTURE_PACKS.md` — ready-to-run adventure and dungeon-pack specification.
 - `docs/ARCHITECTURE.md` — state, cards, visibility, turns, and synchronization model.
-- `docs/DECISIONS.md` — approved product decisions.
 - GitHub Issues — implementation backlog and acceptance criteria.
+
+Every major PR must update the status or ledger and must state what was actually tested. A merged prototype is not automatically a completed feature.
 
 ## Rules and branding boundary
 
