@@ -8,8 +8,8 @@ const [html, js, css, manifest] = await Promise.all([
   readFile('packs/wishing-cake/1.0.0/manifest.json','utf8')
 ]);
 
-assert.match(html,/local-session\.js\?v=source-board-model-1/);
-assert.match(html,/local-session\.css\?v=source-board-model-1/);
+assert.match(html,/local-session\.js\?v=board-first-live-1/);
+assert.match(html,/local-session\.css\?v=board-first-live-1/);
 assert.doesNotMatch(html,/encounter-slot-guard/);
 assert.match(js,/living-table-local-session-v1/);
 assert.match(js,/schemaVersion: 3/);
