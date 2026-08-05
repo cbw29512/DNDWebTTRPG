@@ -46,9 +46,20 @@ function questCard(card, isDM) {
 
 function isDMView() { return Boolean(document.querySelector('[data-role="dm"].selected')); }
 
-function trackerMarkup() {
+function trackerState() {
   const isDM = isDMView();
   const state = normalizedQuestState();
+  const renderKey = JSON.stringify({
+    isDM,
+    mainQuestId:state.mainQuestId,
+    active:[...state.active].sort(),
+    revealed:[...state.revealed].sort()
+  });
+  return { isDM, state, renderKey };
+}
+
+function trackerMarkup(snapshot) {
+  const { isDM, state, renderKey } = snapshot;
   const mainQuest = objectiveCards.find(card => card.id === state.mainQuestId);
   const visibleSideQuests = objectiveCards.filter(card => state.active.has(card.id) && (isDM || state.revealed.has(card.id)));
   const available = objectiveCards.filter(card => card.id !== state.mainQuestId && !state.active.has(card.id));
@@ -56,7 +67,7 @@ function trackerMarkup() {
   const mainMarkup = mainQuest ? `<div class="quest-entry main-quest">${questCard(mainQuest, isDM)}</div>` : "";
   const sideMarkup = visibleSideQuests.map(card => `<div class="quest-entry side-quest">${questCard(card, isDM)}${isDM ? `<button type="button" class="quest-remove" data-remove-side-quest="${escapeHtml(card.id)}">Remove</button>` : ""}</div>`).join("");
   const empty = !sideMarkup ? '<div class="quest-empty">Side quests appear here as the party discovers them.</div>' : "";
-  return `<section class="panel quest-tracker" aria-labelledby="questTrackerTitle"><header class="quest-tracker-header"><div><small>SAVED WITH THE ADVENTURE SESSION</small><h2 id="questTrackerTitle">Quest Tracker</h2></div><p>Main and side quests now persist with the local adventure session.</p></header>${controls}<div class="quest-row">${mainMarkup}${sideMarkup}${empty}</div></section>`;
+  return `<section class="panel quest-tracker" data-quest-render-key="${escapeHtml(renderKey)}" aria-labelledby="questTrackerTitle"><header class="quest-tracker-header"><div><small>SAVED WITH THE ADVENTURE SESSION</small><h2 id="questTrackerTitle">Quest Tracker</h2></div><p>Main and side quests now persist with the local adventure session.</p></header>${controls}<div class="quest-row">${mainMarkup}${sideMarkup}${empty}</div></section>`;
 }
 
 function bindTracker(tracker) {
@@ -67,32 +78,53 @@ function bindTracker(tracker) {
     state.active.add(id);
     state.revealed.add(id);
     saveQuestState(state);
-    renderTracker();
+    scheduleTrackerRender();
   });
   tracker.querySelectorAll("[data-remove-side-quest]").forEach(button => button.addEventListener("click", () => {
     const state = normalizedQuestState();
     state.active.delete(button.dataset.removeSideQuest);
     state.revealed.delete(button.dataset.removeSideQuest);
     saveQuestState(state);
-    renderTracker();
+    scheduleTrackerRender();
   }));
 }
 
-let rendering = false;
+let renderQueued = false;
 function renderTracker() {
-  if (rendering) return;
   const app = document.querySelector("#app .app");
-  if (!app) return;
-  rendering = true;
-  app.querySelector(".quest-tracker")?.remove();
-  app.insertAdjacentHTML("beforeend", trackerMarkup());
-  const tracker = app.querySelector(".quest-tracker");
-  if (tracker) bindTracker(tracker);
-  rendering = false;
+  if (!app) return false;
+  const snapshot = trackerState();
+  const existing = app.querySelector(":scope > .quest-tracker");
+  if (existing?.dataset.questRenderKey === snapshot.renderKey) return true;
+  const next = document.createElement("template");
+  next.innerHTML = trackerMarkup(snapshot).trim();
+  const tracker = next.content.firstElementChild;
+  if (!tracker) return false;
+  existing?.replaceWith(tracker) ?? app.append(tracker);
+  bindTracker(tracker);
+  return true;
+}
+
+function scheduleTrackerRender() {
+  if (renderQueued) return;
+  renderQueued = true;
+  requestAnimationFrame(() => {
+    renderQueued = false;
+    renderTracker();
+  });
 }
 
 const appRoot = document.querySelector("#app");
-if (appRoot) new MutationObserver(renderTracker).observe(appRoot, { childList:true });
-window.addEventListener("living-table:session-updated", renderTracker);
-window.addEventListener("DOMContentLoaded", renderTracker);
-renderTracker();
+if (appRoot) {
+  const bootObserver = new MutationObserver(() => {
+    if (renderTracker()) bootObserver.disconnect();
+  });
+  bootObserver.observe(appRoot, { childList:true });
+}
+
+document.addEventListener("click", event => {
+  if (event.target.closest('[data-role]')) scheduleTrackerRender();
+}, true);
+window.addEventListener("living-table:session-updated", scheduleTrackerRender);
+window.addEventListener("DOMContentLoaded", scheduleTrackerRender);
+scheduleTrackerRender();
