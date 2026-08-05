@@ -1,0 +1,17 @@
+import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
+const [html,js,css]=await Promise.all([readFile('index.html','utf8'),readFile('combat-card-library.js','utf8'),readFile('combat-card-library.css','utf8')]);
+assert.match(html,/combat-card-library\.css/);
+assert.match(html,/combat-card-library\.js/);
+assert.match(html,/combat-shorthand-library-20260804/);
+assert.match(js,/hp:'HP'/);
+assert.match(js,/armor:'🛡'/);
+assert.match(js,/melee:'⚔'/);
+assert.match(js,/ranged:'➶'/);
+assert.match(js,/spell:'✦'/);
+assert.match(js,/challengeLabel/);
+assert.match(js,/raw\?\.actions/);
+assert.match(js,/raw\?\.abilities/);
+assert.match(css,/combat-tarot-front/);
+assert.match(css,/combat-tarot-back/);
+console.log('combat shorthand card library tests passed');
