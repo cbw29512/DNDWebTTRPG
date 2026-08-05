@@ -1,5 +1,5 @@
 export const ROLES = Object.freeze({ DM: "dm", PLAYER: "player" });
-export const CARD_TYPES = Object.freeze({ LOCATION:"location", ROOM:"room", NPC:"npc", MONSTER:"monster", HAZARD:"hazard", OBJECTIVE:"objective", TREASURE:"treasure", CHARACTER:"character", SPELL:"spell", ITEM:"item", FEATURE:"feature", CONDITION:"condition", EFFECT:"effect" });
+export const CARD_TYPES = Object.freeze({ LOCATION:"location", SITE:"site", ROOM:"room", SCENE:"scene", NPC:"npc", MONSTER:"monster", HAZARD:"hazard", OBJECTIVE:"objective", TREASURE:"treasure", CHARACTER:"character", SPELL:"spell", ITEM:"item", FEATURE:"feature", CONDITION:"condition", EFFECT:"effect" });
 export const AUDIENCES = Object.freeze({ DM_ONLY:"dm-only", EVERYONE:"everyone", CONTROLLER:"controller", SELECTED:"selected" });
 
 const nonEmpty = (value, name) => { if (typeof value !== "string" || value.trim() === "") throw new TypeError(`${name} must be a non-empty string.`); };

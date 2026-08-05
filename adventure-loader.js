@@ -15,17 +15,24 @@ async function fetchManifest(key) {
   const response = await fetch(path, { cache: "no-store" });
   if (!response.ok) throw new Error(`Adventure manifest failed to load (${response.status}).`);
   const manifest = await response.json();
-  if (manifest.schemaVersion !== 1 || !manifest.releaseId || !manifest.entrySceneId) {
+  if (![1, 2].includes(manifest.schemaVersion) || !manifest.releaseId || !manifest.entrySceneId) {
     throw new Error("Adventure manifest is incomplete or incompatible.");
+  }
+  if (manifest.schemaVersion >= 2 && (!manifest.scenes?.every(scene => scene.locationId && scene.siteId && scene.roomId && scene.sceneCardId))) {
+    throw new Error("Adventure spatial hierarchy is incomplete.");
   }
   return manifest;
 }
 
 function countLine(counts) {
   return [
-    `${counts.rooms} rooms`, `${counts.npcs} NPCs`, `${counts.monsters} monsters`,
+    counts.locations !== undefined ? `${counts.locations} location` : null,
+    counts.sites !== undefined ? `${counts.sites} sites` : null,
+    `${counts.rooms} areas`,
+    counts.scenes !== undefined ? `${counts.scenes} scenes` : null,
+    `${counts.npcs} NPCs`, `${counts.monsters} monsters`,
     `${counts.hazards} hazards`, `${counts.items} items`, `${counts.quests} quests`
-  ].join(" · ");
+  ].filter(Boolean).join(" · ");
 }
 
 function showLoader(manifest) {

@@ -17,16 +17,23 @@ function boardForScene(scene, manifest) {
   const board = clone(scene?.board || {});
   return {
     location: [...new Set([...(persistent.location || []), scene.locationId].filter(Boolean))],
+    site: [scene.siteId].filter(Boolean),
     room: [scene.roomId].filter(Boolean),
+    scene: [scene.sceneCardId].filter(Boolean),
     npc: [...new Set([...(persistent.npc || []), ...(board.npc || [])])],
     monster: [...new Set(board.monster || [])],
     hazard: [...new Set(board.hazard || [])],
+    objective: [...new Set([...(persistent.objective || []), ...(board.objective || [])])],
     treasure: [...new Set(board.treasure || [])]
   };
 }
 
 function sceneLabel(scene) {
   return `${scene.order}. ${scene.title}`;
+}
+
+function breadcrumb(scene) {
+  return [scene.locationTitle, scene.siteTitle, scene.roomTitle].filter(Boolean).map(esc).join(' → ');
 }
 
 function sceneControlsMarkup(manifest, activeId) {
@@ -39,11 +46,11 @@ function sceneControlsMarkup(manifest, activeId) {
     return target ? `<button type="button" data-load-scene="${esc(target.id)}">${esc(exit.label || target.title)}</button>` : '';
   }).join('');
   return `<section class="scene-runtime" aria-labelledby="scene-runtime-title">
-    <div class="scene-runtime-heading"><div><small>DM SCENE CONTROL · LOCATION → ROOM</small><h2 id="scene-runtime-title">${esc(manifest.title)}</h2><p><strong>${esc(active.locationTitle)}</strong> / ${esc(active.title)}</p></div><div class="scene-runtime-progress">Room ${activeIndex + 1} of ${scenes.length}</div></div>
-    <label>Current room<select data-scene-select>${scenes.map(scene => `<option value="${esc(scene.id)}" ${scene.id === active.id ? 'selected' : ''}>${esc(sceneLabel(scene))}</option>`).join('')}</select></label>
-    <div class="scene-runtime-actions"><button type="button" data-scene-previous ${activeIndex < 1 ? 'disabled' : ''}>← Previous</button><button type="button" data-scene-load>Load Room</button><button type="button" data-scene-next ${activeIndex >= scenes.length - 1 ? 'disabled' : ''}>Next →</button></div>
-    ${exits ? `<div class="scene-runtime-exits"><small>CONNECTED AREAS</small>${exits}</div>` : ''}
-    <p data-scene-status aria-live="polite">Loading a room keeps the broad Location active and prepares every card assigned to the immediate area. Players receive only revealed player-safe cards.</p>
+    <div class="scene-runtime-heading"><div><small>DM ADVENTURE CONTROL</small><h2 id="scene-runtime-title">${esc(manifest.title)}</h2><p class="scene-breadcrumb">${breadcrumb(active)}</p><p><strong>Current scene:</strong> ${esc(active.title)}</p></div><div class="scene-runtime-progress">Scene ${activeIndex + 1} of ${scenes.length}</div></div>
+    <label>Current scene<select data-scene-select>${scenes.map(scene => `<option value="${esc(scene.id)}" ${scene.id === active.id ? 'selected' : ''}>${esc(sceneLabel(scene))}</option>`).join('')}</select></label>
+    <div class="scene-runtime-actions"><button type="button" data-scene-previous ${activeIndex < 1 ? 'disabled' : ''}>← Previous</button><button type="button" data-scene-load>Load Scene</button><button type="button" data-scene-next ${activeIndex >= scenes.length - 1 ? 'disabled' : ''}>Next →</button></div>
+    ${exits ? `<div class="scene-runtime-exits"><small>CONNECTED PATHS</small>${exits}</div>` : ''}
+    <p data-scene-status aria-live="polite">Location, Site, and Area describe where the party is. Scene describes what is happening there. Players receive only revealed player-safe cards.</p>
   </section>`;
 }
 
@@ -56,26 +63,39 @@ async function loadScene(sceneId, manifest = window.__DND_ADVENTURE_PACK__) {
   if (!scene || !api?.reconcileBoard) return false;
   loading = true;
   const status = document.querySelector('[data-scene-status]');
-  if (status) status.textContent = `Preparing ${scene.locationTitle} / ${scene.title}…`;
+  if (status) status.textContent = `Preparing ${[scene.locationTitle, scene.siteTitle, scene.roomTitle, scene.title].filter(Boolean).join(' / ')}…`;
   const targetBoard = boardForScene(scene, manifest);
   const actual = await api.reconcileBoard(targetBoard, { onProgress:text => { const node=document.querySelector('[data-scene-status]'); if(node) node.textContent=text; } });
   const session = loadLocalSession() || api.createLocalSession(manifest, manifest.selectedSystem);
   const history = [...(session.roomHistory || [])];
-  if (session.currentSceneId && history.at(-1) !== session.currentSceneId) history.push(session.currentSceneId);
+  if (session.currentRoomId && history.at(-1) !== session.currentRoomId) history.push(session.currentRoomId);
+  const eventHistory = [...(session.eventHistory || []), {
+    id: `scene-${Date.now()}`,
+    type: 'scene-loaded',
+    sceneId: scene.id,
+    locationId: scene.locationId,
+    siteId: scene.siteId,
+    roomId: scene.roomId,
+    sceneCardId: scene.sceneCardId,
+    at: new Date().toISOString()
+  }];
   saveLocalSession({
     ...session,
     currentSceneId: scene.id,
     currentLocationId: scene.locationId,
+    currentSiteId: scene.siteId,
     currentRoomId: scene.roomId,
+    currentSceneCardId: scene.sceneCardId,
     board: actual,
     roomHistory: history,
     discoveredScenes: [...new Set([...(session.discoveredScenes || []), scene.id])],
+    eventHistory,
     status: 'in-progress'
   });
   loading = false;
   renderSceneRuntime();
   const nextStatus = document.querySelector('[data-scene-status]');
-  if (nextStatus) nextStatus.textContent = `${scene.title} is active. Hidden information remains absent from every player projection until revealed.`;
+  if (nextStatus) nextStatus.textContent = `${scene.roomTitle}: ${scene.title} is active. The exact adventure state is saved; hidden information remains absent from player projections until revealed.`;
   window.dispatchEvent(new CustomEvent('living-table:scene-loaded', { detail:{ scene, board:actual } }));
   return true;
 }
