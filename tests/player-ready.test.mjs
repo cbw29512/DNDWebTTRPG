@@ -39,7 +39,7 @@ assert.match(player, /data-unequip-item/);
 assert.match(player, /data-equipment-slot/);
 assert.match(player, /data-drop-slot/);
 assert.match(player, /data-use-item/);
-assert.match(player, /character equipment paper doll/i);
+assert.match(player, /RPG Equipment Doll/);
 assert.match(player, /observe\(app, \{ childList: true \}\)/);
 assert.doesNotMatch(player, /subtree:\s*true/);
 
