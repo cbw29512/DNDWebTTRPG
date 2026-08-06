@@ -8,6 +8,7 @@ const dm = read('index.html');
 const player = read('player.html');
 const redirect = read('dm.html');
 const packageJson = JSON.parse(read('package.json'));
+const runner = read('tests/run-all.mjs');
 
 function localAssets(html) {
   return [...html.matchAll(/(?:href|src)="([^"#?]+)(?:\?[^"#]*)?"/g)]
@@ -66,16 +67,15 @@ for (const html of [dm, player]) {
   );
 }
 
-const testFiles = fs.readdirSync(path.join(root, 'tests'))
-  .filter(file => file.endsWith('.test.mjs'))
-  .sort();
-const testCommand = packageJson.scripts?.test ?? '';
-for (const file of testFiles) {
-  assert.match(testCommand, new RegExp(`tests/${file.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`), `npm test must execute ${file}.`);
-}
+assert.equal(packageJson.scripts?.test, 'node tests/run-all.mjs');
+assert.match(runner, /file\.endsWith\('\.test\.mjs'\)/, 'The runner must discover every regression file.');
+assert.match(runner, /\.sort\(/, 'The runner must execute tests in a deterministic order.');
+assert.match(runner, /spawnSync\(process\.execPath/, 'The runner must execute each test with the current Node runtime.');
+assert.match(runner, /result\.status !== 0/, 'The runner must stop the suite when any test fails.');
 
 const status = read('PROJECT_STATUS.md');
 assert.doesNotMatch(status, /complete test suite could not be executed/i, 'Project status must not claim CI cannot run after CI is active.');
-assert.match(status, /automated regression suite/i, 'Project status should record active automated regression coverage.');
+assert.match(status, /Automated regression coverage/, 'Project status should record active automated regression coverage.');
 
-console.log(`System audit passed: ${localAssets(dm).length + localAssets(player).length} route asset references and ${testFiles.length} regression files checked.`);
+const testFiles = fs.readdirSync(path.join(root, 'tests')).filter(file => file.endsWith('.test.mjs'));
+console.log(`System audit passed: ${localAssets(dm).length + localAssets(player).length} route asset references and ${testFiles.length} automatically discovered regression files checked.`);
