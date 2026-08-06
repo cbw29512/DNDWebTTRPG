@@ -5,6 +5,8 @@ const html = fs.readFileSync('index.html', 'utf8');
 const playerHtml = fs.readFileSync('player.html', 'utf8');
 const app = fs.readFileSync('src/app.js', 'utf8');
 const player = fs.readFileSync('player-ready.js', 'utf8');
+const characters = fs.readFileSync('src/player/character-cards.js', 'utf8');
+const items = fs.readFileSync('src/player/item-system.js', 'utf8');
 const modal = fs.readFileSync('card-modal.js', 'utf8');
 const controls = fs.readFileSync('workspace-controls.js', 'utf8');
 const quest = fs.readFileSync('quest-tracker.js', 'utf8');
@@ -37,11 +39,13 @@ assert.match(player, /data-unequip-item/);
 assert.match(player, /data-equipment-slot/);
 assert.match(player, /data-drop-slot/);
 assert.match(player, /data-use-item/);
-assert.match(player, /Wendy’s Birthday Hero/);
-assert.match(player, /Birthday Spark/);
-assert.match(player, /character equipment paper doll/);
-assert.match(player, /Healing Candy/);
+assert.match(player, /character equipment paper doll/i);
 assert.match(player, /observe\(app, \{ childList: true \}\)/);
 assert.doesNotMatch(player, /subtree:\s*true/);
 
-console.log('Route-derived DM controls and the current interactive player equipment station are wired and protected.');
+assert.match(characters, /Wendy’s Birthday Hero/);
+assert.match(characters, /Birthday Spark/);
+assert.match(items, /birthday-spark/);
+assert.match(items, /potion-healing/);
+
+console.log('Route-derived DM controls, player equipment wiring, character content, and item resources are protected.');
