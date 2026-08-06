@@ -2,21 +2,19 @@
   "schemaVersion": 3,
   "spatialModelVersion": 2,
   "packId": "wishing-cake",
-  "releaseId": "wishing-cake-1.0.0",
+  "releaseId": "wishing-cake-1.0.0-playtest",
   "adventureCode": "WISH-CAKE-001",
   "title": "The Wishing Cake",
   "subtitle": "A Birthday Adventure for Wendy",
-  "version": "1.0.0",
-  "systems": [
-    "dnd-2014",
-    "dnd-2024"
-  ],
+  "version": "1.0.0-playtest",
+  "systems": ["dnd-2014", "dnd-2024"],
   "estimatedHours": "3–4",
   "recommendedLevel": 3,
   "playerCount": "4–6",
   "entrySceneId": "opening-inn",
   "sourceRepository": "cbw29512/DungeonCards",
   "runtimeRepository": "cbw29512/DNDWebTTRPG",
+  "playtestStatus": "content-audited",
   "counts": {
     "locations": 1,
     "sites": 2,
@@ -29,11 +27,7 @@
     "items": 8,
     "pregeneratedCharacters": 1
   },
-  "persistentBoard": {
-    "location": [
-      "location"
-    ]
-  },
+  "persistentBoard": { "location": ["location"] },
   "scenes": [
     {
       "id": "opening-inn",
@@ -48,26 +42,16 @@
       "sceneCardId": "scene-stolen-wish",
       "questIds": [],
       "board": {
-        "npc": [
-          "caretaker",
-          "npc-boris",
-          "npc-pip",
-          "npc-lute"
-        ],
-        "monster": [
-          "priest"
-        ],
+        "npc": ["caretaker", "npc-boris", "npc-pip", "npc-lute"],
+        "monster": ["priest", "priest"],
         "hazard": [],
-        "treasure": [
-          "lantern"
-        ]
+        "treasure": ["lantern"]
       },
-      "exits": [
-        {
-          "sceneId": "holding-cells",
-          "label": "Follow the stolen wish below"
-        }
-      ]
+      "scaling": {
+        "fourCharacters": "Use both Animated Presents for a standard group; remove one for an inexperienced or depleted group.",
+        "fiveOrSixCharacters": "Use both Animated Presents at full hit points."
+      },
+      "exits": [{ "sceneId": "holding-cells", "label": "Activate the marked cellar passage" }]
     },
     {
       "id": "holding-cells",
@@ -81,20 +65,12 @@
       "roomTitle": "Holding Cells",
       "sceneCardId": "scene-holding-cells",
       "questIds": [],
-      "board": {
-        "npc": [],
-        "monster": [
-          "skeleton"
-        ],
-        "hazard": [],
-        "treasure": []
+      "board": { "npc": [], "monster": ["skeleton"], "hazard": [], "treasure": [] },
+      "scaling": {
+        "fourCharacters": "One Paper Plate Mimic.",
+        "fiveOrSixCharacters": "Add a second Paper Plate Mimic over the western threshold."
       },
-      "exits": [
-        {
-          "sceneId": "wish-hall",
-          "label": "Western passage"
-        }
-      ]
+      "exits": [{ "sceneId": "wish-hall", "label": "Western passage" }]
     },
     {
       "id": "wish-hall",
@@ -108,21 +84,10 @@
       "roomTitle": "Hall of Rejected Wishes",
       "sceneCardId": "scene-wish-hall",
       "questIds": [],
-      "board": {
-        "npc": [],
-        "monster": [],
-        "hazard": [],
-        "treasure": []
-      },
+      "board": { "npc": [], "monster": [], "hazard": [], "treasure": [] },
       "exits": [
-        {
-          "sceneId": "soul-cellar",
-          "label": "North to the Soul Cellar"
-        },
-        {
-          "sceneId": "pinata-pen",
-          "label": "Toward the Piñata Pen"
-        }
+        { "sceneId": "soul-cellar", "label": "North to the optional Soul Cellar" },
+        { "sceneId": "pinata-pen", "label": "West toward the Piñata Pen" }
       ]
     },
     {
@@ -136,23 +101,9 @@
       "roomId": "room-soul-cellar",
       "roomTitle": "Soul Cellar",
       "sceneCardId": "scene-soul-cellar",
-      "questIds": [
-        "objective-free-souls"
-      ],
-      "board": {
-        "npc": [
-          "npc-merrit"
-        ],
-        "monster": [],
-        "hazard": [],
-        "treasure": []
-      },
-      "exits": [
-        {
-          "sceneId": "wish-hall",
-          "label": "Return to the Hall"
-        }
-      ]
+      "questIds": ["objective-free-souls"],
+      "board": { "npc": ["npc-merrit"], "monster": [], "hazard": [], "treasure": [] },
+      "exits": [{ "sceneId": "wish-hall", "label": "Return to the Hall of Rejected Wishes" }]
     },
     {
       "id": "pinata-pen",
@@ -168,20 +119,15 @@
       "questIds": [],
       "board": {
         "npc": [],
-        "monster": [
-          "monster-pinata-mimic"
-        ],
-        "hazard": [
-          "hazard-exploding-pinata"
-        ],
-        "treasure": []
+        "monster": ["monster-pinata-mimic"],
+        "hazard": ["hazard-exploding-pinata"],
+        "treasure": ["item-candy"]
       },
-      "exits": [
-        {
-          "sceneId": "wrapping-room",
-          "label": "Western doors"
-        }
-      ]
+      "scaling": {
+        "fourCharacters": "Set the Piñata Mimic to 55 hit points.",
+        "fiveOrSixCharacters": "Set the Piñata Mimic to 70 hit points."
+      },
+      "exits": [{ "sceneId": "wrapping-room", "label": "Western doors" }]
     },
     {
       "id": "wrapping-room",
@@ -198,19 +144,10 @@
       "board": {
         "npc": [],
         "monster": [],
-        "hazard": [
-          "hazard-wrapping-machine"
-        ],
-        "treasure": [
-          "item-wish-crown"
-        ]
+        "hazard": ["hazard-wrapping-machine"],
+        "treasure": ["item-wish-crown"]
       },
-      "exits": [
-        {
-          "sceneId": "cult-room",
-          "label": "Beyond the conveyor"
-        }
-      ]
+      "exits": [{ "sceneId": "cult-room", "label": "Beyond the conveyor" }]
     },
     {
       "id": "cult-room",
@@ -224,20 +161,12 @@
       "roomTitle": "Birthday Cult Room",
       "sceneCardId": "scene-cult-room",
       "questIds": [],
-      "board": {
-        "npc": [],
-        "monster": [
-          "priest"
-        ],
-        "hazard": [],
-        "treasure": []
+      "board": { "npc": [], "monster": [], "hazard": [], "treasure": [] },
+      "dynamicPlacements": {
+        "wrongAnswer": "Add one Animated Present to Monsters, maximum two.",
+        "thirdWrongAnswer": "Open the northern door and record 8 temporary hit points for Sepulchral."
       },
-      "exits": [
-        {
-          "sceneId": "cake-chamber",
-          "label": "Northern door"
-        }
-      ]
+      "exits": [{ "sceneId": "cake-chamber", "label": "Northern door" }]
     },
     {
       "id": "cake-chamber",
@@ -252,55 +181,30 @@
       "sceneCardId": "scene-cake-chamber",
       "questIds": [],
       "board": {
-        "npc": [
-          "npc-sepulchral"
-        ],
-        "monster": [
-          "monster-sepulchral",
-          "priest"
-        ],
-        "hazard": [
-          "hazard-wish-circle"
-        ],
-        "treasure": [
-          "treasure",
-          "lantern"
-        ]
+        "npc": [],
+        "monster": ["monster-sepulchral", "priest"],
+        "hazard": ["hazard-wish-circle"],
+        "treasure": ["treasure", "lantern"]
+      },
+      "scaling": {
+        "fourCharacters": "Sepulchral plus one Animated Present.",
+        "fiveOrSixCharacters": "Add a second Animated Present.",
+        "restOrThreePuzzleFailures": "Give Sepulchral 8 temporary hit points and begin the ritual clock in round 2."
       },
       "exits": []
     }
   ],
   "startingBoard": {
-    "location": [
-      "location"
-    ],
-    "site": [
-      "site-wishing-cake-inn"
-    ],
-    "room": [
-      "room"
-    ],
-    "npc": [
-      "caretaker",
-      "npc-boris",
-      "npc-pip",
-      "npc-lute"
-    ],
-    "monster": [
-      "priest"
-    ],
+    "location": ["location"],
+    "site": ["site-wishing-cake-inn"],
+    "room": ["room"],
+    "npc": ["caretaker", "npc-boris", "npc-pip", "npc-lute"],
+    "monster": ["priest", "priest"],
     "hazard": [],
-    "treasure": [
-      "lantern"
-    ]
+    "treasure": ["lantern"]
   },
-  "startingQuests": [
-    "objective"
-  ],
+  "startingQuests": ["objective"],
   "cardModule": "../../../src/wishing-cake-pack.js",
   "sessionFactory": "../../../src/encounter.js",
-  "offline": {
-    "cacheable": true,
-    "pinVersionOnStart": true
-  }
+  "offline": { "cacheable": true, "pinVersionOnStart": true }
 }
