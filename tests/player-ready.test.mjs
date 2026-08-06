@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 
 const html = fs.readFileSync('index.html', 'utf8');
+const playerHtml = fs.readFileSync('player.html', 'utf8');
 const app = fs.readFileSync('src/app.js', 'utf8');
 const player = fs.readFileSync('player-ready.js', 'utf8');
 const modal = fs.readFileSync('card-modal.js', 'utf8');
@@ -10,8 +11,11 @@ const quest = fs.readFileSync('quest-tracker.js', 'utf8');
 
 assert.match(html, /player-ready\.css/);
 assert.match(html, /player-ready\.js/);
-assert.match(app, /data-role="dm"/);
-assert.match(app, /data-role="player"/);
+assert.match(html, /<body class="role-dm live-play-board-first">/);
+assert.match(playerHtml, /<body class="role-player live-play-board-first">/);
+assert.match(app, /resolveRuntimeRole/);
+assert.match(app, /viewRole === ROLES\.DM/);
+assert.match(app, /isDM \? "Dungeon Master Card Board" : "Revealed Adventure Cards"/);
 assert.match(app, /data-die/);
 assert.match(app, /data-open-picker/);
 assert.match(app, /data-place-card/);
@@ -38,4 +42,4 @@ assert.match(player, /Healing Candy/);
 assert.match(player, /observe\(app, \{ childList: true \}\)/);
 assert.doesNotMatch(player, /subtree:\s*true/);
 
-console.log('DM controls and the interactive player-ready station are wired and protected.');
+console.log('Route-derived DM controls and the interactive player-ready station are wired and protected.');
