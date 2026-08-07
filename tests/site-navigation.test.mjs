@@ -21,9 +21,12 @@ assert.match(shell,/href="\.\/\?dm=1"/,'The shell must expose a direct DM worksp
 assert.match(shell,/href="\.\/player\.html"/,'The Player Table must be directly discoverable.');
 assert.match(shell,/Run The Wishing Cake/);
 assert.match(shell,/HOW IT WORKS/);
-assert.match(shell,/Advance the Scene/);
-assert.match(shell,/Open the Player Table/);
-assert.match(shell,/Remote-device synchronization is not part of this local prototype yet/,'Landing copy must state the current synchronization boundary.');
+assert.match(shell,/same game at the same time/,'Hero copy must state that DM and players play simultaneously.');
+assert.match(shell,/The DM Plays the World/,'The DM must be described as an active participant running the world, not a software operator.');
+assert.match(shell,/Players Act on the Same Table/,'Player copy must describe participation in the same live table.');
+assert.match(shell,/Cards replace page hunting, not roleplaying/,'Landing copy must preserve the core tabletop promise.');
+assert.match(shell,/shared language of play/,'Landing copy must explain cards as the common gameplay layer.');
+assert.match(shell,/Remote-device synchronization is not part of this prototype yet/,'Landing copy must state the current synchronization boundary.');
 assert.match(shell,/site-home-active/);
 assert.match(shell,/living-table-local-session-v1/);
 
@@ -40,4 +43,4 @@ assert.match(sceneRuntime,/data-load-scene/);
 assert.match(prepared,/event\.isTrusted/,'Scene-engine synthetic clicks must bypass the trusted-user mutation lock.');
 assert.doesNotMatch(prepared,/removeAttribute\("data-open-picker"\)/);
 
-console.log('Public landing, Home/DM/Player navigation, visible scene controls, and scene-engine lock separation passed.');
+console.log('Shared-table product messaging, Home/DM/Player navigation, visible scene controls, and scene-engine lock separation passed.');
