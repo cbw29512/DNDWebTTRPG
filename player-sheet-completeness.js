@@ -33,5 +33,11 @@ if(isPlayer){
   }
   function render(){const sheet=document.querySelector('#app .full-character-sheet');if(!sheet)return;sheet.querySelector('.sheet-completeness')?.remove();const {character,edition}=current();const state=load(character,edition);const wrapper=document.createElement('div');wrapper.innerHTML=markup(character,edition,state);const panel=wrapper.firstElementChild;const spell=Array.from(sheet.querySelectorAll('.sheet-panel')).find(node=>node.querySelector('h3')?.textContent==='Spellcasting');if(spell)spell.insertAdjacentElement('afterend',panel);else sheet.append(panel);bind(panel,character,edition,state);}
   let scheduled=false;const schedule=()=>{if(scheduled)return;scheduled=true;requestAnimationFrame(()=>{scheduled=false;render();});};
-  window.addEventListener('living-table:character-loaded',schedule);window.addEventListener('living-table:session-updated',schedule);document.addEventListener('click',event=>{if(event.target.closest('[data-edition-toggle],[data-full-sheet-edition]'))setTimeout(schedule,40);},true);const app=document.querySelector('#app');if(app)new MutationObserver(schedule).observe(app,{childList:true,subtree:true});window.addEventListener('DOMContentLoaded',schedule);setTimeout(schedule,300);
+  window.addEventListener('living-table:character-loaded',schedule);
+  window.addEventListener('living-table:session-updated',schedule);
+  document.addEventListener('click',event=>{if(event.target.closest('[data-edition-toggle],[data-full-sheet-edition]'))setTimeout(schedule,40);},true);
+  const app=document.querySelector('#app');
+  if(app)new MutationObserver(()=>{const sheet=app.querySelector('.full-character-sheet');if(sheet&&!sheet.querySelector('.sheet-completeness'))schedule();}).observe(app,{childList:true,subtree:true});
+  window.addEventListener('DOMContentLoaded',schedule);
+  setTimeout(schedule,300);
 }
