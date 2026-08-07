@@ -8,7 +8,11 @@
 </head>
 <body>
   <p>Opening the Dungeon Master workspace…</p>
-  <script>location.replace('./' + location.search + location.hash);</script>
-  <noscript><a href="./">Open the Dungeon Master workspace</a></noscript>
+  <script>
+    const params = new URLSearchParams(location.search);
+    params.set('dm', '1');
+    location.replace('./?' + params.toString() + location.hash);
+  </script>
+  <noscript><a href="./?dm=1">Open the Dungeon Master workspace</a></noscript>
 </body>
 </html>

@@ -82,16 +82,20 @@ function lockPreparedContextSlots() {
     slot.dataset.preparedContext = "true";
     slot.setAttribute("aria-label", `${CONTEXT_LABELS[slotId]} — controlled by the prepared adventure`);
 
-    slot.querySelectorAll("[data-open-picker]").forEach(button => {
-      button.disabled = true;
-      button.removeAttribute("data-open-picker");
-      if (button.classList.contains("empty-slot")) {
-        const label = button.querySelector("strong");
-        if (label) label.textContent = "Loaded by the adventure";
-      }
+    /*
+     * Keep the internal picker/remove hooks in the DOM so the scene reconciler
+     * can replace Location/Site/Area programmatically. They are hidden by CSS,
+     * removed from keyboard navigation, and trusted user interactions are
+     * blocked below. Stripping these hooks also strips the scene engine's only
+     * path for changing prepared spatial context.
+     */
+    slot.querySelectorAll("[data-open-picker], [data-remove-instance]").forEach(button => {
+      button.setAttribute("aria-disabled", "true");
+      button.tabIndex = -1;
     });
 
-    slot.querySelectorAll("[data-remove-instance]").forEach(button => button.remove());
+    const emptyLabel = slot.querySelector(".empty-slot strong");
+    if (emptyLabel) emptyLabel.textContent = "Loaded by the adventure";
   }
 }
 
@@ -203,7 +207,11 @@ function blockPreparedContextMutation(event) {
   const slot = event.target?.closest?.("[data-prepared-context='true']");
   if (!slot) return;
 
-  if (event.type === "click" && event.target.closest("[data-open-picker], .slot-add")) {
+  /* Programmatic clicks are the trusted scene reconciler updating spatial
+     context. Only real user input is blocked from editing prepared slots. */
+  if (event.type === "click" && !event.isTrusted) return;
+
+  if (event.type === "click" && event.target.closest("[data-open-picker], .slot-add, [data-remove-instance]")) {
     event.preventDefault();
     event.stopImmediatePropagation();
   }
