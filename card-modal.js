@@ -1,3 +1,4 @@
+(() => {
 const cardDetails = new Map();
 let activeSource = null;
 
@@ -154,3 +155,4 @@ const observer = new MutationObserver(records => {
 });
 observer.observe(document.documentElement, { childList: true, subtree: true });
 enhanceCards();
+})();

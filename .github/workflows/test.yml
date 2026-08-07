@@ -25,3 +25,50 @@ jobs:
 
       - name: Run complete regression suite
         run: npm test
+
+  browser:
+    needs: test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install Playwright test runner
+        run: npm install --no-save @playwright/test@1.55.0
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Start static playtest server
+        run: |
+          python3 -m http.server 4173 --bind 127.0.0.1 > /tmp/living-table-server.log 2>&1 &
+          for i in {1..30}; do
+            if curl --fail --silent http://127.0.0.1:4173/ > /dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          cat /tmp/living-table-server.log
+          exit 1
+
+      - name: Run rendered Chromium suite
+        env:
+          PLAYWRIGHT_BASE_URL: http://127.0.0.1:4173
+        run: npx playwright test
+
+      - name: Upload browser failure evidence
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: browser-failure-evidence
+          path: |
+            playwright-report
+            test-results/browser
+          if-no-files-found: ignore
+          retention-days: 14
