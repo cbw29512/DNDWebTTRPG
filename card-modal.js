@@ -24,6 +24,17 @@ function controlKey(button, index) {
   return match ? `${match[0]}:${match[1]}` : `control:${index}:${button.textContent?.trim() || "button"}`;
 }
 
+function unlockPageFromModal() {
+  document.body?.classList.remove("modal-open");
+  document.documentElement.style.removeProperty("--modal-scrollbar-compensation");
+}
+
+function forceClosedInitialState() {
+  document.querySelectorAll(".large-card-backdrop").forEach(node => node.remove());
+  unlockPageFromModal();
+  activeSource = null;
+}
+
 function rememberCard(card) {
   if (!(card instanceof HTMLElement) || card.dataset.modalReady === "true") return;
   const key = cardKey(card);
@@ -78,11 +89,6 @@ function lockPageForModal() {
   document.body.classList.add("modal-open");
 }
 
-function unlockPageFromModal() {
-  document.body.classList.remove("modal-open");
-  document.documentElement.style.removeProperty("--modal-scrollbar-compensation");
-}
-
 function removeExistingModal({ restoreFocus = true } = {}) {
   document.querySelector(".large-card-backdrop")?.remove();
   unlockPageFromModal();
@@ -99,9 +105,6 @@ function openModal(card) {
   const details = cardDetails.get(card.dataset.modalKey);
   if (!details) return;
 
-  // Remove a prior modal without restoring focus. The old implementation called
-  // closeModal() here, which focused the clicked card during the opening path and
-  // activated focus-driven visual transforms before the dialog appeared.
   removeExistingModal({ restoreFocus: false });
   activeSource = card;
 
@@ -172,6 +175,12 @@ const observer = new MutationObserver(records => {
     });
   }
 });
+
+// A page must always initialize with every card closed. Browsers can restore a
+// previous DOM from the back/forward cache, so enforce the same invariant on
+// pageshow as well as first execution.
+forceClosedInitialState();
+window.addEventListener("pageshow", forceClosedInitialState);
 observer.observe(document.documentElement, { childList: true, subtree: true });
 enhanceCards();
 })();
