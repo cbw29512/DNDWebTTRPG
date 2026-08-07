@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 1200" role="img" aria-labelledby="title desc">
+  <title id="title">Wendy’s Birthday Hero</title>
+  <desc id="desc">A determined human champion with a rapier and shield, wearing a birthday ribbon beneath warm magical lantern light.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#131a24"/><stop offset=".55" stop-color="#243647"/><stop offset="1" stop-color="#3b203e"/></linearGradient>
+    <linearGradient id="coat" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#2f6e72"/><stop offset="1" stop-color="#173b43"/></linearGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fff0a8"/><stop offset=".45" stop-color="#d6a83e"/><stop offset="1" stop-color="#8a5b1f"/></linearGradient>
+    <radialGradient id="glow"><stop stop-color="#ffeaa2" stop-opacity=".8"/><stop offset="1" stop-color="#f1bd45" stop-opacity="0"/></radialGradient>
+  </defs>
+  <rect width="800" height="1200" fill="url(#bg)"/>
+  <circle cx="120" cy="170" r="150" fill="url(#glow)"/><circle cx="690" cy="270" r="170" fill="url(#glow)"/>
+  <g opacity=".55" fill="#f5c85e"><circle cx="110" cy="120" r="10"/><circle cx="170" cy="220" r="7"/><circle cx="675" cy="190" r="9"/><circle cx="620" cy="320" r="6"/><circle cx="725" cy="365" r="8"/></g>
+  <path d="M153 1090c30-250 72-441 181-516h135c109 75 151 266 181 516z" fill="url(#coat)" stroke="#d3ad5a" stroke-width="10"/>
+  <path d="M322 574c-10 78-62 149-134 202l40 68c95-43 151-114 174-205z" fill="#d8a17b" stroke="#3c2520" stroke-width="8"/>
+  <path d="M480 578c9 76 57 145 126 196l-38 70c-93-44-145-112-168-204z" fill="#d8a17b" stroke="#3c2520" stroke-width="8"/>
+  <ellipse cx="400" cy="421" rx="150" ry="176" fill="#e0aa82" stroke="#3c2520" stroke-width="9"/>
+  <path d="M252 398c5-143 75-226 164-226 92 0 151 59 160 183-57-35-113-54-166-55-56-2-107 31-158 98z" fill="#3c271f"/>
+  <path d="M268 402c45-63 95-94 146-95 55-1 110 18 160 51-1 47-11 86-26 119-19-56-63-89-137-96-60-5-105 2-143 21z" fill="#4e3024"/>
+  <ellipse cx="340" cy="425" rx="17" ry="12" fill="#1c2526"/><ellipse cx="462" cy="425" rx="17" ry="12" fill="#1c2526"/>
+  <path d="M367 499c20 17 45 17 67 0" fill="none" stroke="#8b4d45" stroke-width="9" stroke-linecap="round"/>
+  <path d="M290 350c70-48 161-49 233-10l-20-88-101 40-94-43z" fill="url(#gold)" stroke="#754a18" stroke-width="8"/>
+  <circle cx="401" cy="291" r="17" fill="#8b3e82"/>
+  <path d="M322 590h156l37 84-113 53-117-51z" fill="#f0e2c4" stroke="#735f3f" stroke-width="8"/>
+  <path d="M328 610c48 21 97 21 146 0l-19 62-54 23-55-22z" fill="#b8546e"/>
+  <path d="M188 763l144 154" stroke="#d8d4cd" stroke-width="23" stroke-linecap="round"/><path d="M168 745l52 10-38 38z" fill="url(#gold)"/><path d="M320 901l44 45" stroke="#8b5d2d" stroke-width="26" stroke-linecap="round"/>
+  <ellipse cx="588" cy="825" rx="112" ry="142" fill="#7e5424" stroke="#e0bb61" stroke-width="12"/><path d="M516 818l72-78 72 78-72 99z" fill="#213f51" stroke="#e0bb61" stroke-width="9"/><circle cx="588" cy="828" r="24" fill="#e5bf55"/>
+  <path d="M534 1090l-61-196 35-22 80 218z" fill="#232329" stroke="#b98d45" stroke-width="8"/><path d="M273 1090l61-196-35-22-80 218z" fill="#232329" stroke="#b98d45" stroke-width="8"/>
+  <g transform="translate(104 1000)"><path d="M0 60c80-55 145-55 225 0 80-55 145-55 225 0" fill="none" stroke="#d8b45c" stroke-width="14"/><circle cx="40" cy="40" r="13" fill="#8e4a83"/><circle cx="110" cy="26" r="13" fill="#4e8890"/><circle cx="190" cy="42" r="13" fill="#d16a61"/><circle cx="270" cy="28" r="13" fill="#d8b45c"/><circle cx="350" cy="43" r="13" fill="#6e7fb3"/></g>
+</svg>
