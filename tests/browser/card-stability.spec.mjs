@@ -22,6 +22,9 @@ test('opening and closing a card modal does not move the card or page', async ({
 
   const card=page.locator('.fixed-board .tarot-card.image-only-card').first();
   await expect(card).toBeVisible();
+  await card.scrollIntoViewIfNeeded();
+  await page.waitForTimeout(50);
+
   const before=await box(card);
   const scrollBefore=await page.evaluate(()=>({x:scrollX,y:scrollY,width:document.documentElement.clientWidth}));
 
