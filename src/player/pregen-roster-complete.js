@@ -9,6 +9,8 @@ const byId=Object.fromEntries(roster.map(c=>[c.id,c]));
  c.profiles['dnd-2024'].spellDetails={cantrips:[],known:[],prepared:[],alwaysPrepared:[],spellbook:[],origin:[],lineage:[]};
  c.profiles['dnd-2024'].weaponProficiencies=['Simple weapons','Martial weapons with the Finesse or Light property'];
  c.profiles['dnd-2024'].tools=['Thieves’ Tools'];
+ const fastHands=c.profiles['dnd-2024'].features.find(feature=>feature.name==='Fast Hands');
+ if(fastHands) fastHands.summary='As a Bonus Action, make the listed Sleight of Hand checks, take the Utilize action, or take the Magic action to use a magic item that requires that action.';
 }
 
 // Wizard: three Wizard cantrips; 10-spell level-3 spellbook in 2014, expanded by Evoker/Sage/Elf sources in 2024.
@@ -25,7 +27,7 @@ const byId=Object.fromEntries(roster.map(c=>[c.id,c]));
   cantrips:['Fire Bolt','Ray of Frost','Mage Hand'],known:[],
   prepared:['Mage Armor','Magic Missile','Shield','Misty Step','Scorching Ray','Web'],alwaysPrepared:[],
   spellbook:['Detect Magic','Feather Fall','Mage Armor','Magic Missile','Sleep','Thunderwave','Misty Step','Web','Scorching Ray','Shatter','Burning Hands','Gust of Wind'],
-  origin:['Guidance — Magic Initiate (Wizard)','Light — Magic Initiate (Wizard)','Shield — Magic Initiate free 1/Long Rest'],
+  origin:['Light — Magic Initiate (Wizard)','Mending — Magic Initiate (Wizard)','Shield — Magic Initiate free 1/Long Rest'],
   lineage:['Prestidigitation — High Elf lineage','Detect Magic — High Elf lineage at level 3']
  };
 }
