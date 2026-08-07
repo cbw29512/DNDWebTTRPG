@@ -1,8 +1,9 @@
 import assert from "node:assert/strict";
-import { characterCard, itemCards, slotLabels, createInventory, canEquip, deriveStats, equipItem, unequipItem, useItem, attunementCount, resolveWeaponAbility } from "../src/player/item-system.js";
+import { characterCard, itemCards, slotLabels, createInventory, canEquip, deriveStats, equipItem, unequipItem, useItem, attunementCount, resolveWeaponAbility, itemUseAction } from "../src/player/item-system.js";
 
 const inventory = createInventory();
-const state = { edition:"2014", equipped:{ head:null,neck:null,shoulders:null,armor:null,hands:null,mainHand:null,offHand:null,ring1:null,ring2:null,feet:null,wondrous:null } };
+const blankEquipment=()=>({ head:null,neck:null,shoulders:null,armor:null,hands:null,mainHand:null,offHand:null,ring1:null,ring2:null,feet:null,wondrous:null });
+const state = { edition:"2014", equipped:blankEquipment() };
 
 assert.equal(characterCard.base.baseAc,13);
 assert.equal(itemCards.every(item => item.source === "SRD" || item.source === "Wishing Cake"),true);
@@ -14,9 +15,16 @@ assert.equal(slotLabels.offHand,"Hand 2");
 const rapier=inventory.find(item=>item.id==="rapier");
 const shield=inventory.find(item=>item.id==="shield");
 const shortbow=inventory.find(item=>item.id==="shortbow");
+const chainMail=inventory.find(item=>item.id==="chain-mail");
+const potion=inventory.find(item=>item.id==="potion-healing");
 assert.deepEqual(rapier.validSlots,["mainHand","offHand"],"One-handed weapons must work in either hand");
 assert.deepEqual(shield.validSlots,["mainHand","offHand"],"A shield must not be hard-coded to a fake off-hand-only rule");
 assert.ok(shortbow.attack.properties.includes("ammunition"),"Shortbow must carry its Ammunition property");
+assert.equal(chainMail.strengthRequirement,13);
+assert.equal(shield.donDoff["dnd-2014"].don,"1 Action");
+assert.equal(shield.donDoff["dnd-2024"].don,"Utilize Action");
+assert.equal(itemUseAction(potion,"2014"),"Action");
+assert.equal(itemUseAction(potion,"2024"),"Bonus Action");
 assert.equal(resolveWeaponAbility(rapier,{strength:18,dexterity:12}),"strength","Finesse must allow Strength when Strength is better");
 assert.equal(resolveWeaponAbility(rapier,{strength:10,dexterity:16}),"dexterity","Finesse must allow Dexterity when Dexterity is better");
 
@@ -58,7 +66,7 @@ assert.equal(stats.attackProfile.damageDice,"1d8");
 assert.equal(state.equipped.mainHand,"longbow");
 assert.equal(state.equipped.offHand,"longbow","An active Two-Handed weapon must reserve both hand positions in the doll");
 
-const twoHandedState={edition:"2024",equipped:{head:null,neck:null,shoulders:null,armor:"leather-armor",hands:null,mainHand:"rapier",offHand:"shield",ring1:null,ring2:null,feet:null,wondrous:null}};
+const twoHandedState={edition:"2024",equipped:{...blankEquipment(),armor:"leather-armor",mainHand:"rapier",offHand:"shield"}};
 const bowEquip=equipItem(twoHandedState,inventory,"longbow","mainHand");
 assert.equal(bowEquip.ok,true);
 assert.ok(bowEquip.stowed.includes("rapier"));
@@ -72,15 +80,43 @@ assert.deepEqual(shieldEquip.stowed,["longbow"]);
 assert.equal(twoHandedState.equipped.mainHand,null,"Equipping a one-handed item must release the two-handed grip from both hands");
 assert.equal(twoHandedState.equipped.offHand,"shield");
 
-const eitherHandState={edition:"2014",equipped:{head:null,neck:null,shoulders:null,armor:null,hands:null,mainHand:null,offHand:null,ring1:null,ring2:null,feet:null,wondrous:null}};
+const eitherHandState={edition:"2014",equipped:blankEquipment()};
 assert.equal(equipItem(eitherHandState,inventory,"rapier","offHand").ok,true);
 assert.equal(eitherHandState.equipped.offHand,"rapier");
 assert.equal(deriveStats(eitherHandState,inventory).attackProfile.name,"Rapier");
 assert.equal(equipItem(eitherHandState,inventory,"shield","mainHand").ok,true);
 assert.equal(eitherHandState.equipped.mainHand,"shield");
 assert.equal(eitherHandState.equipped.offHand,"rapier");
+const secondShield={...shield,id:"shield-two",effects:shield.effects.map(x=>({...x}))};
+inventory.push(secondShield);
+assert.equal(equipItem(eitherHandState,inventory,"shield-two","offHand").ok,false,"A second Shield must be rejected in the active loadout");
 
-const potion=inventory.find(item=>item.id==="potion-healing");
+const weakHeavyArmorCharacter={
+ base:{...characterCard.base,speed:30,abilities:{...characterCard.base.abilities,strength:10}},
+ profiles:{
+  "dnd-2014":{...characterCard.profiles["dnd-2014"],abilities:{...characterCard.profiles["dnd-2014"].abilities,strength:10},armorTraining:["Heavy armor","Shields"]},
+  "dnd-2024":{...characterCard.profiles["dnd-2024"],abilities:{...characterCard.profiles["dnd-2024"].abilities,strength:10},armorTraining:["Heavy armor","Shields"]}
+ }
+};
+const heavyArmorState={edition:"2024",equipped:{...blankEquipment(),armor:"chain-mail"}};
+assert.equal(deriveStats(heavyArmorState,inventory,weakHeavyArmorCharacter).speed,20,"Chain Mail with Strength below 13 must reduce Speed by 10 ft.");
+
+const untrainedShieldCharacter={
+ base:characterCard.base,
+ profiles:{"dnd-2024":{...characterCard.profiles["dnd-2024"],armorTraining:["Light armor","Medium armor","Heavy armor"]}}
+};
+const untrainedShieldState={edition:"2024",equipped:{...blankEquipment(),armor:"leather-armor",offHand:"shield"}};
+const untrainedShieldStats=deriveStats(untrainedShieldState,inventory,untrainedShieldCharacter);
+assert.equal(untrainedShieldStats.ac,14,"2024 Shield must not grant +2 AC without Shield training");
+assert.ok(untrainedShieldStats.traits.some(x=>x.includes("Untrained Shields")));
+
+const weakDexHeavyCharacter={
+ base:characterCard.base,
+ profiles:{"dnd-2024":{...characterCard.profiles["dnd-2024"],abilities:{...characterCard.profiles["dnd-2024"].abilities,dexterity:12}}}
+};
+const heavyBowState={edition:"2024",equipped:{...blankEquipment(),mainHand:"longbow",offHand:"longbow"}};
+assert.ok(deriveStats(heavyBowState,inventory,weakDexHeavyCharacter).traits.some(x=>x.includes("Heavy Longbow attacks require Dexterity 13")),"2024 Heavy ranged weapon threshold must be enforced as Disadvantage metadata");
+
 assert.equal(useItem(potion).ok,true);
 assert.equal(potion.consumable.count,1);
 const candle=inventory.find(item=>item.id==="birthday-spark");
@@ -95,4 +131,4 @@ assert.equal(attunementCount(state,inventory),3);
 inventory.push(fakeAttuned("attuned-c","head"));
 assert.equal(equipItem(state,inventory,"attuned-c","head").ok,false);
 
-console.log("Rules-driven item cards, hand occupancy, Finesse choice, ammunition, corrected saves, Archery math, two-handed equipment, attunement, traits, and uses passed.");
+console.log("Rules-driven item cards, hand occupancy, Finesse choice, ammunition, armor training, Strength requirements, Heavy property, shield rules, potion actions, corrected saves, Archery math, two-handed equipment, attunement, traits, and uses passed.");
