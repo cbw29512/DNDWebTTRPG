@@ -28,7 +28,7 @@ const byId=Object.fromEntries(roster.map(c=>[c.id,c]));
   prepared:['Mage Armor','Magic Missile','Shield','Misty Step','Scorching Ray','Web'],alwaysPrepared:[],
   spellbook:['Detect Magic','Feather Fall','Mage Armor','Magic Missile','Sleep','Thunderwave','Misty Step','Web','Scorching Ray','Shatter','Burning Hands','Gust of Wind'],
   origin:['Light — Magic Initiate (Wizard)','Mending — Magic Initiate (Wizard)','Shield — Magic Initiate free 1/Long Rest'],
-  lineage:['Prestidigitation — High Elf lineage','Detect Magic — High Elf lineage at level 3']
+  lineage:['Prestidigitation — High Elf lineage','Detect Magic — High Elf lineage at level 3; free 1/Long Rest']
  };
 }
 
@@ -59,7 +59,7 @@ const byId=Object.fromEntries(roster.map(c=>[c.id,c]));
  const c=byId['fern-hunter']; const p24=c.profiles['dnd-2024'];
  c.profiles['dnd-2014'].spellDetails={cantrips:[],known:['Hunter’s Mark','Cure Wounds','Goodberry'],prepared:[],alwaysPrepared:[],spellbook:[],origin:[],lineage:[]};
  if(!p24.skillProficiencies.includes('insight')) p24.skillProficiencies.push('insight');
- p24.spellDetails={cantrips:[],known:[],prepared:['Cure Wounds','Goodberry','Ensnaring Strike','Fog Cloud'],alwaysPrepared:['Hunter’s Mark — Favored Enemy'],spellbook:[],origin:[],lineage:['Druidcraft — Wood Elf lineage','Longstrider — Wood Elf lineage at level 3']};
+ p24.spellDetails={cantrips:[],known:[],prepared:['Cure Wounds','Goodberry','Ensnaring Strike','Fog Cloud'],alwaysPrepared:['Hunter’s Mark — Favored Enemy'],spellbook:[],origin:[],lineage:['Druidcraft — Wood Elf lineage','Longstrider — Wood Elf lineage at level 3; free 1/Long Rest']};
 }
 
 // Lore Bard: use a simple dagger in both editions. The 2014 list remains SRD 5.1-only; Dissonant Whispers is available in SRD 5.2.1 and is kept only on the 2024 profile.
