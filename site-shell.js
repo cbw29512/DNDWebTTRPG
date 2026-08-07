@@ -34,11 +34,11 @@ function landingMarkup() {
     <section class="landing-hero" aria-labelledby="landing-title">
       <div>
         <span class="landing-eyebrow">A shared card-driven tabletop RPG</span>
-        <h1 id="landing-title">Play the adventure.<br><em>Together at one living table.</em></h1>
+        <h1 id="landing-title">Run the adventure.<br><em>Together at one living table.</em></h1>
         <p class="landing-lede">The Living Table keeps the Dungeon Master and players in the same game at the same time. The DM runs the world, plays its creatures and characters, and reveals cards as the story changes. Players see and use the scenes, clues, threats, equipment, spells, and character information meant for them—without exposing DM-only information.</p>
         <p class="landing-heart"><strong>Cards replace page hunting, not roleplaying.</strong> They put the right rules and story information on the table when it matters so everyone can stay in the adventure.</p>
         <div class="landing-actions">
-          <a class="landing-action primary" href="./?launch=1">Play The Wishing Cake</a>
+          <a class="landing-action primary" href="./?launch=1">Run The Wishing Cake</a>
           <a class="landing-action" href="./?dm=1">${resumeLabel}</a>
           <a class="landing-action" href="./player.html">Join as a Player</a>
         </div>
@@ -54,7 +54,7 @@ function landingMarkup() {
 
     <section class="landing-section" id="how-it-works" aria-labelledby="how-title">
       <small>HOW IT WORKS</small>
-      <h2 id="how-title">One adventure. Two views. One table.</h2>
+      <h2 id="how-title">From adventure pack to live table—together.</h2>
       <p class="landing-lede">The DM and players play simultaneously. Each role gets the information and controls it needs, while both sides stay anchored to the same scene, encounter, characters, and story.</p>
       <div class="how-grid">
         <article class="how-card"><b>1</b><h3>Sit Down Together</h3><p>Choose an adventure and rules edition. The DM takes the DM Table; each player takes the Player Table and their character. Everyone is now playing the same session.</p></article>
@@ -78,7 +78,7 @@ function landingMarkup() {
 
     <section class="landing-section landing-pack" aria-labelledby="pack-title">
       <div><small>READY TO PLAYTEST</small><h2 id="pack-title">The Wishing Cake</h2><p class="landing-lede">A whimsical dark-fantasy birthday one-shot built around Wendy's stolen wish. The DM and players move through eight shared scenes with puzzles, hazards, roleplay, combat, and a finale that can end through force or reconciliation.</p><div class="landing-pack-meta"><span>Level 3</span><span>4–6 players</span><span>3–4 hours</span><span>D&D 2014 / 2024</span></div></div>
-      <a class="landing-action primary" href="./?launch=1">Play The Wishing Cake</a>
+      <a class="landing-action primary" href="./?launch=1">Run The Wishing Cake</a>
     </section>
   </main>`;
 }
