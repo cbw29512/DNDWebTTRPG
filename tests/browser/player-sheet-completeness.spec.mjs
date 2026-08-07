@@ -10,7 +10,8 @@ for(const id of pregens){
       const sheet=page.locator('.full-character-sheet');
       const complete=sheet.locator('.sheet-completeness');
       await expect(complete).toBeVisible();
-      for(const label of ['Temporary Hit Points','Death Saves','Inspiration','Exhaustion','Conditions','Advancement','Currency','Personality','Ideal','Bond','Flaw'])await expect(complete.getByText(label,{exact:true})).toBeVisible();
+      const inspiration=edition==='2024'?'Heroic Inspiration':'Inspiration';
+      for(const label of ['Temporary Hit Points','Death Saves',inspiration,'Exhaustion','Conditions','Advancement','Currency','Alignment','Appearance','Backstory','Personality','Ideal','Bond','Flaw'])await expect(complete.getByText(label,{exact:true})).toBeVisible();
       await expect(sheet.locator('.sheet-abilities .sheet-ability')).toHaveCount(6);
       await expect(sheet.locator('.sheet-skills li')).toHaveCount(18);
       await expect(sheet.getByRole('heading',{name:'Saving Throws'})).toBeVisible();
