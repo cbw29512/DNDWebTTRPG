@@ -60,7 +60,7 @@ const playerHtml=fs.readFileSync('player.html','utf8');
 const sheetJs=fs.readFileSync('player-character-sheet.js','utf8');
 const completenessJs=fs.readFileSync('player-sheet-completeness.js','utf8');
 assert.match(playerHtml,/player-sheet-completeness\.js/,'Player route must load the complete-sheet tracker layer');
-for(const label of ['Temporary Hit Points','Death Saves','Inspiration','Exhaustion','Conditions','Advancement','Currency','Personality','Ideal','Bond','Flaw']){
+for(const label of ['Temporary Hit Points','Death Saves','Inspiration','Heroic Inspiration','Exhaustion','Conditions','Advancement','Currency','Alignment','Appearance','Backstory','Personality','Ideal','Bond','Flaw']){
   assert.match(completenessJs,new RegExp(label.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),'i'),`Complete player sheet must expose ${label}`);
 }
 assert.match(sheetJs,/Saving Throws/);
