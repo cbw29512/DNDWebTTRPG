@@ -27,7 +27,7 @@ for(const character of characterCards){
 }
 
 const tracking=fs.readFileSync('player-sheet-tracking.js','utf8');
-for(const label of ['Player Name','Alignment','Size','Species','Class / Level','Background','Hit Die','Senses','Advancement','Temporary HP','Death Saves','Exhaustion','Conditions','Currency','Personality','Ideal','Bond','Flaw'])assert.match(tracking,new RegExp(label.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')),`Player sheet tracking must render ${label}`);
+for(const label of ['Player Name','Alignment','Size','Species','Class / Level','Background','Hit Die','Senses','Experience Points','Temporary HP','Death Saves','Exhaustion','Conditions','Currency','Personality','Ideal','Bond','Flaw'])assert.match(tracking,new RegExp(label.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')),`Player sheet tracking must render ${label}`);
 assert.match(tracking,/Heroic Inspiration/);
 assert.match(tracking,/Inspiration/);
 assert.match(tracking,/living-table-sheet-state-v1/,'Player sheet state must persist per character and edition');
