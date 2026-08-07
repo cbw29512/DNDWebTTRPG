@@ -6,6 +6,7 @@ const esc=value=>String(value??'').replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&
 let activeCharacter=resolveRequestedCharacter();
 let activeEdition=resolveRequestedEdition();
 let scheduled=false;
+let observer=null;
 
 function key(){return `living-table-sheet-state-v1:${activeCharacter.id}:${normalizeEdition(activeEdition)}`;}
 function defaults(){return {playerName:'',tempHp:0,inspiration:false,deathSuccesses:0,deathFailures:0,exhaustion:0,conditions:[],currency:{cp:0,sp:0,ep:0,gp:0,pp:0}};}
@@ -61,20 +62,24 @@ function persist(panel){
  panel.querySelectorAll('[data-sheet-currency]').forEach(input=>input.addEventListener('change',()=>{state.currency={...defaults().currency,...state.currency,[input.dataset.sheetCurrency]:valueNumber(input.value,0,999999)};input.value=state.currency[input.dataset.sheetCurrency];save(state);}));
 }
 
+function observe(){const app=document.querySelector('#app');if(app&&observer)observer.observe(app,{childList:true,subtree:true});}
 function render(){
  scheduled=false;
  const sheet=document.querySelector('#app .full-character-sheet');
  if(!sheet)return;
  activeEdition=currentEdition();
- sheet.querySelector('.sheet-tracking-panel')?.remove();
- const attacks=sheet.querySelector('.sheet-attacks');
- const wrapper=document.createElement('div');wrapper.innerHTML=markup();
- const panel=wrapper.firstElementChild;
- if(attacks)sheet.insertBefore(panel,attacks);else sheet.append(panel);
- persist(panel);
+ observer?.disconnect();
+ try{
+  sheet.querySelector('.sheet-tracking-panel')?.remove();
+  const attacks=sheet.querySelector('.sheet-attacks');
+  const wrapper=document.createElement('div');wrapper.innerHTML=markup();
+  const panel=wrapper.firstElementChild;
+  if(attacks)sheet.insertBefore(panel,attacks);else sheet.append(panel);
+  persist(panel);
+ } finally { observe(); }
 }
 function schedule(){if(scheduled)return;scheduled=true;requestAnimationFrame(render);}
 window.addEventListener('living-table:character-loaded',event=>{activeCharacter=event.detail.character||resolveRequestedCharacter();activeEdition=event.detail.edition||resolveRequestedEdition();schedule();});
 document.addEventListener('click',event=>{if(event.target.closest('#app [data-edition-toggle],#app [data-full-sheet-edition]'))setTimeout(schedule,40);},true);
-const app=document.querySelector('#app');if(app)new MutationObserver(schedule).observe(app,{childList:true,subtree:true});
+observer=new MutationObserver(schedule);observe();
 window.addEventListener('DOMContentLoaded',schedule);setTimeout(schedule,260);
