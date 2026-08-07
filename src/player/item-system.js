@@ -30,6 +30,8 @@ export function deriveStats(state, inventory, activeCharacter = characterCard) {
   const base=activeCharacter.base;
   const items=equippedItems(state,inventory);
   const stats={...base,ac:base.baseAc,abilities:{...base.abilities},saves:{...base.saves},traits:[],attackProfile:null};
+  const profileKey=String(state.edition||'2014').includes('2024')?'dnd-2024':'dnd-2014';
+  const activeProfile=activeCharacter.profiles?.[profileKey] || activeCharacter.profiles?.['dnd-2014'];
 
   for(const item of items){
     for(const effect of item.effects){
@@ -48,7 +50,10 @@ export function deriveStats(state, inventory, activeCharacter = characterCard) {
       if(effect.kind==="trait")stats.traits.push(effect.label);
       if(effect.kind==="advantage")stats.traits.push(`Advantage: ${effect.target}`);
     }
-    if(item.attack)stats.attackProfile={...item.attack,name:item.name};
+    if(item.attack){
+      stats.attackProfile={...item.attack,name:item.name};
+      if(item.attack.kind==="ranged" && activeProfile?.fightingStyle?.name==="Archery") stats.attack+=2;
+    }
   }
 
   return stats;
