@@ -14,10 +14,11 @@ test('all Wishing Cake monster DM cards render their approved stat blocks',async
   const deck=page.locator('.adventure-deck');
   await expect(deck).toBeVisible();
   for(const monster of monsters){
-    const card=deck.locator(`[data-card-id="${monster.id}"]`).first();
+    const card=deck.locator(`.tarot-card[data-card-id="${monster.id}"]`).first();
     await expect(card,`${monster.title} card missing from DM deck`).toBeAttached();
     await expect(card).toContainText(monster.title);
-    const back=card.locator('.tarot-back');
+    const back=card.locator('.tarot-face.tarot-back');
+    await expect(back,`${monster.title} DM back missing`).toBeAttached();
     for(const text of monster.checks)await expect(back,`${monster.title} missing ${text}`).toContainText(text);
   }
 });
