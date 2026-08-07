@@ -9,7 +9,7 @@ let scheduled=false;
 let observer=null;
 
 function key(){return `living-table-sheet-state-v1:${activeCharacter.id}:${normalizeEdition(activeEdition)}`;}
-function defaults(){return {playerName:'',tempHp:0,inspiration:false,deathSuccesses:0,deathFailures:0,exhaustion:0,conditions:[],currency:{cp:0,sp:0,ep:0,gp:0,pp:0}};}
+function defaults(){return {playerName:'',xp:0,tempHp:0,inspiration:false,deathSuccesses:0,deathFailures:0,exhaustion:0,conditions:[],currency:{cp:0,sp:0,ep:0,gp:0,pp:0}};}
 function load(){try{return {...defaults(),...JSON.parse(localStorage.getItem(key())||'{}')};}catch{return defaults();}}
 function save(state){localStorage.setItem(key(),JSON.stringify(state));}
 function currentEdition(){const sheet=document.querySelector('#app .full-character-sheet');const text=sheet?.querySelector('.full-sheet-header p')?.textContent||'';return text.includes('2024 / SRD 5.2.1')?'dnd-2024':'dnd-2014';}
@@ -34,7 +34,7 @@ function markup(){
    <div><small>Background</small><strong>${esc(profile.background)}</strong></div>
    <div><small>Hit Die</small><strong>${esc(profile.hitDie)}</strong></div>
    <div><small>Senses</small><strong>${esc(senses)}</strong></div>
-   <div><small>Advancement</small><strong>Level ${profile.level}</strong><span>DM-managed milestone / XP</span></div>
+   <label>Experience Points<input data-sheet-number="xp" type="number" min="0" max="9999999" value="${valueNumber(state.xp,0,9999999)}"><small>Use 0 when the campaign advances by milestone.</small></label>
   </div>
   <div class="sheet-tracker-grid">
    <label>Temporary HP<input data-sheet-number="tempHp" type="number" min="0" max="999" value="${valueNumber(state.tempHp,0,999)}"></label>
