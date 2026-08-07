@@ -69,15 +69,23 @@ function landingMarkup() {
   </main>`;
 }
 
-function insertMarkup(markup, position='afterbegin') {
+function elementFromMarkup(markup) {
   const template = document.createElement('template');
   template.innerHTML = markup.trim();
-  document.body.insertAdjacentElement(position, template.content.firstElementChild);
+  return template.content.firstElementChild;
 }
 
-insertMarkup(navMarkup());
+const nav = elementFromMarkup(navMarkup());
+const skip = document.querySelector('.skip');
+if (skip) skip.insertAdjacentElement('afterend', nav);
+else document.body.prepend(nav);
+
 if (showHome) {
   document.body.classList.add('site-home-active');
   document.title = 'The Living Table — Card-Driven Tabletop Adventures';
-  insertMarkup(landingMarkup(), 'beforeend');
+  if (skip) {
+    skip.href = '#how-it-works';
+    skip.textContent = 'Skip to how it works';
+  }
+  document.body.append(elementFromMarkup(landingMarkup()));
 }
