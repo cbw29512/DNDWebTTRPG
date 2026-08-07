@@ -8,14 +8,21 @@ const sourceKeyByLabel=Object.freeze({
   'Origin':'origin',
   'Lineage':'lineage'
 });
-
+const sourceLabelByGroup=Object.freeze({
+  cantrips:'Class',
+  known:'Class',
+  prepared:'Class',
+  alwaysPrepared:'Class',
+  origin:'Origin',
+  lineage:'Lineage'
+});
 const classGroups=new Set(['cantrips','known','prepared','alwaysPrepared']);
 
 function defaultRule(profile,group){
   return {
     ability:profile?.spellcastingAbility||null,
-    usesSlots:classGroups.has(group),
-    sourceLabel:sourceKeyByLabel[group]||group,
+    usesSlots:classGroups.has(group)&&group!=='cantrips',
+    sourceLabel:sourceLabelByGroup[group]||group,
     freeUsesBySpell:{},
     resourceBySpell:{}
   };
