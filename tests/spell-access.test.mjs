@@ -62,4 +62,13 @@ assert.equal(spellSaveDcForAbility(mixedProfile,'intelligence'),15);
 assert.equal(spellSaveDcForAbility(mixedProfile,'charisma'),13);
 assert.equal(spellCombatSummaryForAccess(getSpellCard('Guiding Bolt','dnd-2024'),mixedProfile,originAccess),'Spell attack +5','Origin spell must use CHA rather than the profile INT class ability');
 
+// Safe defaults for future homebrew profiles: class cantrips are class-labeled and never consume slots.
+const defaultCantrip=spellAccesses({name:'Fire Bolt',sources:['Cantrip']},mixedProfile)[0];
+assert.equal(defaultCantrip.label,'Class');
+assert.equal(defaultCantrip.ability,'intelligence');
+assert.equal(defaultCantrip.usesSlots,false);
+const defaultPrepared=spellAccesses({name:'Shield',sources:['Prepared']},mixedProfile)[0];
+assert.equal(defaultPrepared.label,'Class');
+assert.equal(defaultPrepared.usesSlots,true);
+
 console.log('Source-aware spellcasting access audit passed.');
