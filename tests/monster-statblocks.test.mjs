@@ -40,12 +40,15 @@ assert.equal(pinata.combat.shortcuts.find(x=>x.id==='candy-burst').recharge,'5â€
 
 const boss=monsterCards.find(card=>card.id==='monster-sepulchral');
 assert.match(boss.dmFace.abilities,/STR 8 \(-1\)/);
+assert.match(boss.dmFace.abilities,/DEX 14 \(\+2\)/);
 assert.match(boss.dmFace.challenge,/PB \+2/);
+assert.equal(boss.dmFace.ac,'13 (15 with Mage Armor; 20 against the triggering attack with Shield)','Mage Armor must be 13 + DEX (+2), then Shield adds +5');
 assert.match(boss.dmFace.actions.join(' '),/Staff[\s\S]*\+1[\s\S]*1d6 âˆ’ 1/,'Sepulchral staff must agree with STR -1 and PB +2');
 assert.equal(boss.combat.shortcuts.find(x=>x.id==='staff').attackBonus,1);
 assert.equal(boss.combat.shortcuts.find(x=>x.id==='staff').damage[0].dice,'1d6-1');
 assert.equal(boss.combat.spellSaveDc,13);
 assert.equal(boss.combat.spellAttackBonus,5);
+assert.match(boss.combat.shortcuts.find(x=>x.id==='shield').text,/AC becomes 20/);
 assert.doesNotMatch(boss.dmFace.traits.join(' '),/1\/Turn/,'Halfling Lucky must not be given a fake once-per-turn limit');
 
 console.log('All Wishing Cake monster cards use complete, canonical, internally consistent stat blocks.');
