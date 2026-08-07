@@ -1,14 +1,16 @@
 import { characterCard, itemCards, slotLabels, createInventory, validSlots, equippedItems, attunementCount, deriveStats, equipItem, unequipItem, useItem } from "./src/player/item-system.js";
+import { resolveRequestedEdition } from "./src/player/character-cards.js";
 
-const inventory = createInventory();
+const inventory = createInventory(characterCard.ownedItemIds);
+const initialEdition = resolveRequestedEdition().includes("2024") ? "2024" : "2014";
 const state = {
   ready:false,
   hp:characterCard.base.maxHp,
   actions:{ action:true, bonus:true, reaction:true },
-  equipped:{ head:"keeper-crown", neck:null, shoulders:"cloak-protection", armor:"leather-armor", hands:null, mainHand:"rapier", offHand:"shield", ring1:null, ring2:null, feet:"boots-elvenkind", wondrous:"birthday-spark" },
+  equipped:{ ...characterCard.startingEquipment },
   selectedSlot:null,
-  edition:"2014",
-  message:"Drag an item card onto a compatible doll slot. Base statistics come from the character card."
+  edition:initialEdition,
+  message:"Drag an owned item card onto a compatible doll slot. The full rules-accurate character sheet appears below the equipment doll."
 };
 
 const esc = value => String(value ?? "").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;");
@@ -36,7 +38,7 @@ function slotCard(slot) {
 
 function statMarkup(stats) {
   const currentAttack = stats.attackProfile ? `${stats.attackProfile.name}: ${fmt(stats.attack)} to hit, ${stats.attackProfile.damageDice} ${fmt(stats.damage)} ${stats.attackProfile.damageType}` : `${fmt(stats.attack)} to hit`;
-  return `<div class="derived-stat-strip"><div><small>AC</small><strong>${stats.ac}</strong><span>Base ${characterCard.base.baseAc}</span></div><div><small>Speed</small><strong>${stats.speed} ft.</strong></div><div><small>Attack</small><strong>${fmt(stats.attack)}</strong></div><div><small>Damage</small><strong>${fmt(stats.damage)}</strong></div><div><small>Attuned</small><strong>${attunementCount(state,inventory)}/3</strong></div></div><p class="active-attack"><strong>Active attack:</strong> ${esc(currentAttack)}</p>`;
+  return `<div class="derived-stat-strip"><div><small>AC</small><strong>${stats.ac}</strong><span>Unarmored ${characterCard.base.baseAc}</span></div><div><small>Speed</small><strong>${stats.speed} ft.</strong></div><div><small>Attack</small><strong>${fmt(stats.attack)}</strong></div><div><small>Damage Mod</small><strong>${fmt(stats.damage)}</strong></div><div><small>Attuned</small><strong>${attunementCount(state,inventory)}/3</strong></div></div><p class="active-attack"><strong>Active attack:</strong> ${esc(currentAttack)}</p>`;
 }
 
 function stationMarkup() {
@@ -45,17 +47,17 @@ function stationMarkup() {
   const abilities = Object.entries(stats.abilities).map(([name,value]) => `<div><small>${name.slice(0,3).toUpperCase()}</small><strong>${value}</strong></div>`).join("");
   const saves = Object.entries(stats.saves).map(([name,value]) => `<span>${name.slice(0,3).toUpperCase()} ${fmt(value)}</span>`).join("");
   const traits = stats.traits.length ? stats.traits.map(text=>`<span>${esc(text)}</span>`).join("") : "<span>No conditional item traits</span>";
-  return `<header class="player-station-header"><div><small>PLAYER CHARACTER CARD + EQUIPMENT CARDS</small><h2>${esc(characterCard.name)}</h2><p>${esc(characterCard.classLine)} · ${state.edition} rules preview</p></div><div class="player-head-actions"><button type="button" data-edition-toggle>Use ${state.edition === "2014" ? "2024" : "2014"} rules</button><button type="button" class="ready-button ${state.ready ? "is-ready" : ""}" data-player-ready>${state.ready ? "✓ Ready to Play" : "Mark Ready"}</button></div></header>
+  return `<header class="player-station-header"><div><small>PLAYER CHARACTER + RPG EQUIPMENT DOLL</small><h2>${esc(characterCard.name)}</h2><p>${esc(characterCard.classLine)} · ${state.edition} rules</p></div><div class="player-head-actions"><button type="button" data-edition-toggle>Use ${state.edition === "2014" ? "2024" : "2014"} rules</button><button type="button" class="ready-button ${state.ready ? "is-ready" : ""}" data-player-ready>${state.ready ? "✓ Ready to Play" : "Mark Ready"}</button></div></header>
   <div class="player-status-bar"><div class="hp-controls"><strong>HP ${state.hp}/${stats.maxHp}</strong><button data-hp-change="-1">−1</button><button data-hp-change="1">+1</button></div><div class="action-economy">${actions}<button data-reset-turn>Reset Turn</button></div></div>
   ${statMarkup(stats)}
-  <div class="player-station-grid rpg-station-grid"><article class="player-card-near-doll character-source-card"><span class="category-ribbon">PLAYER CHARACTER CARD</span><h3>${esc(characterCard.name)}</h3><div class="ability-grid">${abilities}</div><div class="save-row">${saves}</div>${characterCard.features.map(text=>`<p>${esc(text)}</p>`).join("")}<div class="trait-row">${traits}</div><div class="inside-card-rolls"><button data-player-roll="check">Check</button><button data-player-roll="save">Dex Save</button><button data-player-roll="attack">Attack</button></div></article>
-  <section class="rpg-paper-doll"><div class="doll-title"><strong>RPG Equipment Doll</strong><small>Drag cards to legal slots; click a slot to filter/equip</small></div><div class="rpg-silhouette" aria-hidden="true"><div class="silhouette-head"></div><div class="silhouette-torso"></div><div class="silhouette-arm left"></div><div class="silhouette-arm right"></div><div class="silhouette-leg left"></div><div class="silhouette-leg right"></div></div>${Object.keys(slotLabels).map(slotCard).join("")}</section>
-  <section class="backpack magic-inventory"><header><span class="backpack-icon">🎴</span><div><h3>Item Card Deck</h3><small>${state.selectedSlot ? `Compatible with ${slotLabels[state.selectedSlot]}` : "SRD cards and clearly labeled adventure cards"}</small></div></header><div class="item-legend"><span class="srd-key">SRD item</span><span class="custom-key">Adventure item</span></div><div class="backpack-cards">${inventory.filter(item => !state.selectedSlot || validSlots(item).includes(state.selectedSlot)).map(itemCard).join("")}</div></section></div>
+  <div class="player-station-grid rpg-station-grid"><article class="player-card-near-doll character-source-card"><span class="category-ribbon">PLAYER CHARACTER CARD</span><h3>${esc(characterCard.name)}</h3><div class="ability-grid">${abilities}</div><div class="save-row">${saves}</div>${characterCard.features.map(text=>`<p>${esc(text)}</p>`).join("")}<div class="trait-row">${traits}</div><div class="inside-card-rolls"><button data-player-roll="check">DEX Check</button><button data-player-roll="save">DEX Save</button><button data-player-roll="attack">Active Attack</button></div></article>
+  <section class="rpg-paper-doll"><div class="doll-title"><strong>RPG Equipment Doll</strong><small>Drag owned cards to legal slots; click a slot to filter/equip</small></div><div class="rpg-silhouette" aria-hidden="true"><div class="silhouette-head"></div><div class="silhouette-torso"></div><div class="silhouette-arm left"></div><div class="silhouette-arm right"></div><div class="silhouette-leg left"></div><div class="silhouette-leg right"></div></div>${Object.keys(slotLabels).map(slotCard).join("")}</section>
+  <section class="backpack magic-inventory"><header><span class="backpack-icon">🎴</span><div><h3>Backpack / Item Cards</h3><small>${state.selectedSlot ? `Compatible with ${slotLabels[state.selectedSlot]}` : "Owned SRD gear and clearly labeled adventure items"}</small></div></header><div class="item-legend"><span class="srd-key">SRD item</span><span class="custom-key">Adventure item</span></div><div class="backpack-cards">${inventory.filter(item => !state.selectedSlot || validSlots(item).includes(state.selectedSlot)).map(itemCard).join("")}</div></section></div>
   <p class="player-feedback" aria-live="polite">${esc(state.message)}</p>`;
 }
 
 function chooseSlot(item) { return state.selectedSlot && validSlots(item).includes(state.selectedSlot) ? state.selectedSlot : validSlots(item).find(slot=>!state.equipped[slot]) ?? validSlots(item)[0]; }
-function equip(id, slot) { const item=itemById(id); const result=equipItem(state,inventory,id,slot); state.message=result.ok ? `${item.name} equipped in ${slotLabels[slot]}. All derived statistics recalculated from the character card.` : result.reason; if(result.ok) state.selectedSlot=null; enhance(); }
+function equip(id, slot) { const item=itemById(id); const result=equipItem(state,inventory,id,slot); state.message=result.ok ? `${item.name} equipped in ${slotLabels[slot]}. Derived combat statistics recalculated.` : result.reason; if(result.ok) state.selectedSlot=null; enhance(); }
 function healingRoll() { return [0,0].reduce(total=>total+Math.floor(Math.random()*4)+1,2); }
 
 function openItem(item) {
@@ -65,12 +67,12 @@ function openItem(item) {
 }
 
 function bind(station) {
-  station.querySelector("[data-player-ready]")?.addEventListener("click",()=>{state.ready=!state.ready;state.message=state.ready?"Ready. Character card, equipment, attunement, and item uses are set for this local demo.":"Ready status cleared.";enhance();});
-  station.querySelector("[data-edition-toggle]")?.addEventListener("click",()=>{state.edition=state.edition==="2014"?"2024":"2014";state.message=`Using ${state.edition} action wording. Item cards keep their edition tags visible.`;enhance();});
+  station.querySelector("[data-player-ready]")?.addEventListener("click",()=>{state.ready=!state.ready;state.message=state.ready?"Ready. Character, legal equipment, and item resources are set for this local playtest.":"Ready status cleared.";enhance();});
+  station.querySelector("[data-edition-toggle]")?.addEventListener("click",()=>{state.edition=state.edition==="2014"?"2024":"2014";state.message=`Using the ${state.edition} character profile. The full sheet below shows edition-specific features.`;enhance();});
   station.querySelectorAll("[data-spend-action]").forEach(button=>button.onclick=()=>{const key=button.dataset.spendAction;state.actions[key]=!state.actions[key];state.message=`${key} ${state.actions[key]?"restored":"spent"}.`;enhance();});
   station.querySelector("[data-reset-turn]")?.addEventListener("click",()=>{Object.keys(state.actions).forEach(key=>state.actions[key]=true);state.message="Turn resources restored.";enhance();});
   station.querySelectorAll("[data-hp-change]").forEach(button=>button.onclick=()=>{const max=deriveStats(state,inventory).maxHp;state.hp=Math.max(0,Math.min(max,state.hp+Number(button.dataset.hpChange)));state.message=`HP ${state.hp}/${max}.`;enhance();});
-  station.querySelectorAll("[data-player-roll]").forEach(button=>button.onclick=()=>{const stats=deriveStats(state,inventory);const kind=button.dataset.playerRoll;const mod=kind==="attack"?stats.attack:kind==="save"?stats.saves.dexterity:Math.floor((stats.abilities.dexterity-10)/2);state.message=`${kind}: ${Math.floor(Math.random()*20)+1+mod}`;enhance();});
+  station.querySelectorAll("[data-player-roll]").forEach(button=>button.onclick=()=>{const stats=deriveStats(state,inventory);const kind=button.dataset.playerRoll;const mod=kind==="attack"?stats.attack:kind==="save"?stats.saves.dexterity:Math.floor((stats.abilities.dexterity-10)/2);const natural=Math.floor(Math.random()*20)+1;state.message=`${kind}: d20 ${fmt(mod)} → ${natural} ${fmt(mod)} = ${natural+mod}`;enhance();});
   station.querySelectorAll("[data-equipment-slot]").forEach(button=>{button.onclick=()=>{state.selectedSlot=state.selectedSlot===button.dataset.equipmentSlot?null:button.dataset.equipmentSlot;state.message=state.selectedSlot?`${slotLabels[state.selectedSlot]} selected.`:"Slot filter cleared.";enhance();};button.ondragover=event=>{event.preventDefault();button.classList.add("drag-over")};button.ondragleave=()=>button.classList.remove("drag-over");button.ondrop=event=>{event.preventDefault();equip(event.dataTransfer.getData("text/item-id"),button.dataset.dropSlot);};});
   station.querySelectorAll("[data-drag-item]").forEach(card=>card.ondragstart=event=>{event.dataTransfer.setData("text/item-id",card.dataset.dragItem);state.message=`Dragging ${itemById(card.dataset.dragItem).name}.`;});
   station.querySelectorAll("[data-auto-equip]").forEach(button=>button.onclick=()=>{const item=itemById(button.dataset.autoEquip);const slot=chooseSlot(item);if(slot)equip(item.id,slot);});

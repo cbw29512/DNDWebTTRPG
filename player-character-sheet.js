@@ -1,0 +1,236 @@
+import {
+  defaultCharacterCard,
+  resolveRequestedCharacter,
+  resolveRequestedEdition,
+  getCharacterProfile,
+  findCharacterByImportCode,
+  activateCharacterCard,
+  ACTIVE_CHARACTER_EDITION_KEY,
+  normalizeEdition
+} from './src/player/character-cards.js';
+import { itemCards } from './src/player/item-system.js';
+import {
+  ABILITIES,
+  SKILLS,
+  abilityModifier,
+  proficiencyBonus,
+  savingThrowModifier,
+  skillModifier,
+  passivePerception,
+  spellSaveDc,
+  spellAttackBonus,
+  weaponAttackBonus,
+  weaponDamageModifier
+} from './src/dnd/rules-engine.js';
+
+const isPlayer = document.querySelector('meta[name="living-table-role"]')?.content === 'player';
+if (!isPlayer) {
+  // This module is intentionally inert on the DM route.
+} else {
+  const esc = value => String(value ?? '').replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[char]));
+  const fmt = value => value >= 0 ? `+${value}` : String(value);
+  const title = value => String(value).replace(/([A-Z])/g,' $1').replace(/^./, c => c.toUpperCase());
+  const abilityShort = ability => ability.slice(0,3).toUpperCase();
+  let activeCharacter = resolveRequestedCharacter();
+  let requestedEdition = resolveRequestedEdition();
+
+  function originalEdition() {
+    const toggle = document.querySelector('#app [data-edition-toggle]');
+    if (!toggle) return null;
+    return toggle.textContent.includes('2024') ? 'dnd-2014' : 'dnd-2024';
+  }
+
+  function edition() {
+    return originalEdition() || requestedEdition || 'dnd-2014';
+  }
+
+  function syncEdition(target) {
+    const normalized = normalizeEdition(target);
+    requestedEdition = normalized;
+    localStorage.setItem(ACTIVE_CHARACTER_EDITION_KEY, normalized);
+    const current = originalEdition();
+    const toggle = document.querySelector('#app [data-edition-toggle]');
+    if (toggle && current && current !== normalized) toggle.click();
+    scheduleRender();
+  }
+
+  function equippedItemIds() {
+    return [...document.querySelectorAll('#app .equipment-card.is-equipped[data-item-id]')].map(card => card.dataset.itemId);
+  }
+
+  function equipmentBonuses(profile) {
+    const equipped = new Set(equippedItemIds());
+    const dex = abilityModifier(profile.abilities.dexterity);
+    let ac = 10 + dex;
+    let saveBonus = 0;
+    const traits = [];
+    for (const item of itemCards.filter(entry => equipped.has(entry.id))) {
+      for (const effect of item.effects || []) {
+        if (effect.kind === 'armorFormula') {
+          const appliedDex = effect.dexCap == null ? dex : Math.min(dex, effect.dexCap);
+          ac = Math.max(ac, effect.base + appliedDex);
+        } else if (effect.kind === 'add' && effect.target === 'ac') ac += effect.value;
+        else if (effect.kind === 'allSaves') saveBonus += effect.value;
+        else if (effect.kind === 'trait') traits.push(effect.label);
+        else if (effect.kind === 'advantage') traits.push(`Advantage: ${title(effect.target)}`);
+      }
+    }
+    return { ac, saveBonus, traits };
+  }
+
+  function hpFromUi(profile) {
+    const match = document.querySelector('#app .hp-controls strong')?.textContent?.match(/HP\s+(\d+)\/(\d+)/i);
+    return match ? { current:Number(match[1]), max:Number(match[2]) } : { current:profile.maxHp, max:profile.maxHp };
+  }
+
+  function abilityMarkup(profile) {
+    return ABILITIES.map(ability => {
+      const score = profile.abilities[ability];
+      const mod = abilityModifier(score);
+      return `<article class="sheet-ability"><small>${abilityShort(ability)}</small><strong>${score}</strong><span>${fmt(mod)}</span></article>`;
+    }).join('');
+  }
+
+  function savesMarkup(profile, equipment) {
+    return ABILITIES.map(ability => {
+      const proficient = profile.saveProficiencies.includes(ability);
+      const total = savingThrowModifier(profile, ability) + equipment.saveBonus;
+      return `<li><span class="sheet-prof ${proficient ? 'is-proficient' : ''}" aria-label="${proficient ? 'Proficient' : 'Not proficient'}">${proficient ? '●' : '○'}</span><span>${title(ability)}</span><strong>${fmt(total)}</strong></li>`;
+    }).join('');
+  }
+
+  function skillsMarkup(profile) {
+    return Object.keys(SKILLS).map(skill => {
+      const proficient = profile.skillProficiencies.includes(skill);
+      const expertise = profile.expertise?.includes(skill);
+      const total = skillModifier(profile, skill);
+      const advantage = profile.rulesId === 'dnd-2024' && skill === 'athletics' && profile.features.some(feature => feature.name === 'Remarkable Athlete');
+      return `<li><span class="sheet-prof ${proficient || expertise ? 'is-proficient' : ''}">${expertise ? '◆' : proficient ? '●' : '○'}</span><span>${title(skill)} <small>(${abilityShort(SKILLS[skill])})${advantage ? ' · ADV' : ''}</small></span><strong>${fmt(total)}</strong></li>`;
+    }).join('');
+  }
+
+  function attacksMarkup(profile) {
+    return profile.attacks.map(weapon => {
+      const hit = weaponAttackBonus(profile, weapon);
+      const damageMod = weaponDamageModifier(profile, weapon);
+      const damage = `${weapon.damageDice}${damageMod ? fmt(damageMod) : ''} ${weapon.damageType}`;
+      const props = [...(weapon.properties || [])];
+      if (profile.rulesId === 'dnd-2024' && weapon.mastery) props.push(`Mastery: ${weapon.mastery}`);
+      return `<article class="sheet-attack"><header><strong>${esc(weapon.name)}</strong><span>⚔ ${fmt(hit)} to hit</span></header><p><b>💥 ${esc(damage)}</b> · ${esc(weapon.range)}</p><small>${esc(props.join(' · '))}</small></article>`;
+    }).join('');
+  }
+
+  function resourcesMarkup(profile) {
+    return profile.resources.map(resource => `<article class="sheet-resource"><header><strong>${esc(resource.name)}</strong><span>${resource.max} use${resource.max === 1 ? '' : 's'}</span></header><p>${esc(resource.action)} · ${esc(resource.effect)}</p><small>Recharge: ${esc(resource.recharge)}</small></article>`).join('');
+  }
+
+  function featuresMarkup(profile) {
+    return profile.features.map(feature => `<details class="sheet-feature"><summary><strong>${esc(feature.name)}</strong><span>${esc(feature.source)}</span></summary><p>${esc(feature.summary)}</p></details>`).join('');
+  }
+
+  function spellMarkup(profile) {
+    if (!profile.spellcastingAbility) return '<p class="sheet-empty">This pregen is not a spellcaster.</p>';
+    return `<div class="sheet-spell-core"><span>Spell ability <strong>${abilityShort(profile.spellcastingAbility)}</strong></span><span>Spell save DC <strong>${spellSaveDc(profile)}</strong></span><span>Spell attack <strong>${fmt(spellAttackBonus(profile))}</strong></span></div><div class="sheet-spell-list">${profile.spells.map(spell => `<span>${esc(spell)}</span>`).join('')}</div>`;
+  }
+
+  function inventoryMarkup() {
+    const equipped = new Set(equippedItemIds());
+    const owned = new Set(activeCharacter.ownedItemIds || []);
+    return itemCards.filter(item => owned.has(item.id)).map(item => `<li><span>${equipped.has(item.id) ? '●' : '○'}</span><strong>${esc(item.name)}</strong><small>${esc(item.category)} · ${esc(item.source)}</small></li>`).join('');
+  }
+
+  function sheetMarkup() {
+    const profile = getCharacterProfile(activeCharacter, edition());
+    const equipment = equipmentBonuses(profile);
+    const hp = hpFromUi(profile);
+    const pb = proficiencyBonus(profile.level);
+    const importCode = activeCharacter.back.importCodes[profile.rulesId];
+    const qrPath = activeCharacter.back.qrPaths[profile.rulesId];
+    const initiativeNote = profile.initiative.advantage ? ' with Advantage' : '';
+    return `<section class="full-character-sheet" aria-labelledby="full-sheet-title">
+      <header class="full-sheet-header">
+        <div><small>FULL PLAYER CHARACTER SHEET</small><h2 id="full-sheet-title">${esc(activeCharacter.name)}</h2><p>${esc(profile.species)} ${esc(profile.className)} ${profile.level} · ${esc(profile.subclass)} · ${esc(profile.background)} · ${profile.rulesId === 'dnd-2024' ? '2024 / SRD 5.2.1' : '2014 / SRD 5.1'}</p></div>
+        <div class="sheet-header-actions"><button type="button" data-full-sheet-edition="${profile.rulesId === 'dnd-2014' ? 'dnd-2024' : 'dnd-2014'}">Switch to ${profile.rulesId === 'dnd-2014' ? '2024' : '2014'}</button><a href="${esc(qrPath)}">Open this build</a></div>
+      </header>
+
+      <section class="sheet-import" aria-label="Load pre-generated character"><div><small>CHARACTER IMPORT CODE</small><strong>${esc(importCode)}</strong><span>Printed on the back of the pregen card. QR can point to the same import path.</span></div><form data-character-code-form><label for="characterCode">Enter a card code</label><div><input id="characterCode" name="code" autocomplete="off" placeholder="WC-WENDY-F3-14"><button type="submit">Load Character</button></div><p data-character-code-status aria-live="polite"></p></form></section>
+
+      <section class="sheet-combat-core">
+        <article><small>Armor Class</small><strong>${equipment.ac}</strong><span>Equipped armor + shield</span></article>
+        <article><small>Hit Points</small><strong>${hp.current}/${hp.max}</strong><span>Max ${profile.maxHp}</span></article>
+        <article><small>Initiative</small><strong>${fmt(profile.initiative.modifier)}</strong><span>DEX${initiativeNote}</span></article>
+        <article><small>Speed</small><strong>${profile.speed}</strong><span>feet</span></article>
+        <article><small>Proficiency</small><strong>${fmt(pb)}</strong><span>Level ${profile.level}</span></article>
+        <article><small>Passive Perception</small><strong>${passivePerception(profile)}</strong><span>10 + Perception</span></article>
+        <article><small>Hit Dice</small><strong>${profile.hitDice.remaining}/${profile.hitDice.total}</strong><span>${esc(profile.hitDice.die)}</span></article>
+        <article><small>Critical</small><strong>${profile.criticalRange.join('–')}</strong><span>natural d20</span></article>
+      </section>
+
+      <div class="sheet-abilities">${abilityMarkup(profile)}</div>
+
+      <div class="full-sheet-columns">
+        <section class="sheet-panel"><h3>Saving Throws</h3><ul class="sheet-number-list">${savesMarkup(profile,equipment)}</ul></section>
+        <section class="sheet-panel sheet-skills"><h3>Skills</h3><ul class="sheet-number-list">${skillsMarkup(profile)}</ul></section>
+        <section class="sheet-panel"><h3>Proficiencies & Languages</h3><dl class="sheet-proficiencies"><dt>Armor</dt><dd>${esc(profile.armorTraining.join(', '))}</dd><dt>Weapons</dt><dd>${esc(profile.weaponProficiencies.join(', '))}</dd><dt>Tools</dt><dd>${esc(profile.tools.join(', '))}</dd><dt>Languages</dt><dd>${esc(profile.languages.join(', '))}</dd></dl></section>
+      </div>
+
+      <section class="sheet-panel sheet-attacks"><h3>Attacks & Combat Shortcuts</h3><div class="sheet-card-grid">${attacksMarkup(profile)}</div><p class="sheet-rule-note">Attack rolls use a d20. Damage rolls use the weapon's listed damage dice. A d20 is never substituted for weapon damage.</p></section>
+      <section class="sheet-panel"><h3>Class / Species / Background Resources</h3><div class="sheet-card-grid">${resourcesMarkup(profile)}</div></section>
+      <section class="sheet-panel"><h3>Features & Traits</h3><div class="sheet-feature-list">${featuresMarkup(profile)}</div></section>
+      <section class="sheet-panel"><h3>Spellcasting</h3>${spellMarkup(profile)}</section>
+
+      <div class="full-sheet-columns lower">
+        <section class="sheet-panel"><h3>Equipment & Backpack</h3><ul class="sheet-inventory">${inventoryMarkup()}</ul></section>
+        <section class="sheet-panel"><h3>Rules Notes</h3><ul class="sheet-notes">${[...(profile.originNotes || []),...(profile.equipmentNotes || [])].map(note => `<li>${esc(note)}</li>`).join('')}</ul></section>
+        <section class="sheet-panel"><h3>Adventure Traits</h3><ul class="sheet-notes"><li>Birthday Spark is a Wishing Cake story item, not an SRD class feature.</li>${equipment.traits.map(trait => `<li>${esc(trait)}</li>`).join('')}</ul></section>
+      </div>
+    </section>`;
+  }
+
+  let scheduled = false;
+  function render() {
+    scheduled = false;
+    const station = document.querySelector('#app .player-station');
+    if (!station) return;
+    station.querySelector('.full-character-sheet')?.remove();
+    const feedback = station.querySelector('.player-feedback');
+    const wrapper = document.createElement('div');
+    wrapper.innerHTML = sheetMarkup();
+    station.insertBefore(wrapper.firstElementChild, feedback || null);
+    bind();
+  }
+
+  function scheduleRender() {
+    if (scheduled) return;
+    scheduled = true;
+    requestAnimationFrame(render);
+  }
+
+  function bind() {
+    const sheet = document.querySelector('#app .full-character-sheet');
+    sheet?.querySelector('[data-full-sheet-edition]')?.addEventListener('click', event => syncEdition(event.currentTarget.dataset.fullSheetEdition));
+    sheet?.querySelector('[data-character-code-form]')?.addEventListener('submit', event => {
+      event.preventDefault();
+      const status = event.currentTarget.querySelector('[data-character-code-status]');
+      const match = findCharacterByImportCode(new FormData(event.currentTarget).get('code'));
+      if (!match) { status.textContent = 'Character code not found.'; return; }
+      activeCharacter = activateCharacterCard(match.character.id, localStorage, match.edition);
+      status.textContent = `${match.character.name} loaded.`;
+      syncEdition(match.edition);
+    });
+  }
+
+  document.addEventListener('click', event => {
+    if (event.target.closest('#app [data-edition-toggle], #app [data-auto-equip], #app [data-unequip-item], #app [data-hp-change], #app [data-use-item]')) setTimeout(scheduleRender, 30);
+  }, true);
+  window.addEventListener('living-table:character-loaded', event => {
+    activeCharacter = event.detail.character || defaultCharacterCard;
+    if (event.detail.edition) requestedEdition = event.detail.edition;
+    scheduleRender();
+  });
+  window.addEventListener('living-table:session-updated', scheduleRender);
+  const app = document.querySelector('#app');
+  if (app) new MutationObserver(scheduleRender).observe(app, { childList:true });
+  window.addEventListener('DOMContentLoaded', () => { syncEdition(requestedEdition); scheduleRender(); });
+  setTimeout(() => { syncEdition(requestedEdition); scheduleRender(); }, 220);
+}
