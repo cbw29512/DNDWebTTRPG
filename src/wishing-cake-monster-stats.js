@@ -117,7 +117,7 @@ export const wishingCakeMonsterStats = freeze({
     dmFace: freeze({
       sizeType:'Small humanoid (halfling), neutral',
       proficiencyBonus:'+2',
-      ac:'13 (16 with Mage Armor; 21 against the triggering attack with Shield)',
+      ac:'13 (15 with Mage Armor; 20 against the triggering attack with Shield)',
       hp:'58 (13d6 + 13)',
       speed:'25 ft.',
       abilities:'STR 8 (-1), DEX 14 (+2), CON 12 (+1), INT 16 (+3), WIS 12 (+1), CHA 14 (+2)',
@@ -145,7 +145,7 @@ export const wishingCakeMonsterStats = freeze({
         'Staff. Melee Weapon Attack: +1 to hit, reach 5 ft., one target. Hit: 2 (1d6 − 1) bludgeoning damage.',
         'Fire Bolt. Ranged Spell Attack: +5 to hit, range 120 ft., one target. Hit: 11 (2d10) fire damage.'
       ],
-      tactics:'Mage armor is already active. Use suggestion to create a clear, reasonable course such as “carry the crown away from the circle.” Use hypnotic pattern only when it will not remove most of the party from play. Save shield for a meaningful hit and misty step to reposition.',
+      tactics:'Mage Armor is already active. Use Suggestion to create a clear, reasonable course such as “carry the crown away from the circle.” Use Hypnotic Pattern only when it will not remove most of the party from play. Save Shield for a meaningful hit and Misty Step to reposition.',
       bloodied:'At 29 HP or fewer, pause for parley before continuing combat.',
       defeat:'At 0 HP he falls unconscious and his staff becomes a wooden party horn; death is not required for victory.'
     }),
@@ -157,7 +157,7 @@ export const wishingCakeMonsterStats = freeze({
         attack('staff','Staff',1,[{dice:'1d6-1',type:'bludgeoning'}],{reach:'5 ft.'}),
         attack('fire-bolt','Fire Bolt',5,[{dice:'2d10',type:'fire'}],{range:'120 ft.',attackType:'spell'}),
         freeze({id:'spell-save',label:'Spell Save',kind:'dc',icon:'✦',text:'Spell save DC 13 · spell attack +5'}),
-        freeze({id:'shield',label:'Shield',kind:'note',icon:'⛨',text:'Reaction: +5 AC until start of next turn, including against triggering attack; consumes a 1st-level spell slot.'})
+        freeze({id:'shield',label:'Shield',kind:'note',icon:'⛨',text:'Reaction: AC becomes 20 against the triggering attack and stays +5 until the start of Sepulchral’s next turn; consumes a 1st-level spell slot.'})
       ]),
       resources:freeze({spellSlots:freeze({1:4,2:3,3:2})})
     })
