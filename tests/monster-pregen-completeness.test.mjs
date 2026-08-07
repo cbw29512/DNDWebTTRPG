@@ -3,6 +3,7 @@ import fs from 'node:fs';
 import { wishingCakePackCards } from '../src/wishing-cake-pack.js';
 import { characterCards } from '../src/player/character-cards.js';
 
+const normalizeRulesText=value=>String(value??'').toLowerCase().replace(/[–—]/g,'-').replace(/\s+/g,'');
 const monsters=wishingCakePackCards.filter(card=>card.type==='monster');
 assert.ok(monsters.length>=4,'Wishing Cake must expose all encounter monster cards');
 
@@ -19,6 +20,7 @@ for(const monster of monsters){
   assert.ok(monster.combat,`${monster.title}: missing structured combat rules`);
 
   const printed=[...(monster.dmFace.traits||[]),...(monster.dmFace.actions||[]),monster.dmFace.spellcasting||'',monster.dmFace.reactions||''].join(' ');
+  const normalizedPrinted=normalizeRulesText(printed);
   for(const shortcut of monster.combat.shortcuts||[]){
     if(shortcut.kind==='attack'){
       assert.equal(typeof shortcut.attackBonus,'number',`${monster.title} ${shortcut.label}: missing attack bonus`);
@@ -26,13 +28,13 @@ for(const monster of monsters){
       assert.match(printed,new RegExp(`\\+${shortcut.attackBonus}\\s+to hit`,'i'),`${monster.title} ${shortcut.label}: printed attack bonus does not match shortcut +${shortcut.attackBonus}`);
       for(const part of shortcut.damage){
         assert.doesNotMatch(part.dice,/d20/i,`${monster.title} ${shortcut.label}: damage may not use d20`);
-        assert.ok(printed.includes(part.dice),`${monster.title} ${shortcut.label}: printed stat block must include ${part.dice}`);
+        assert.ok(normalizedPrinted.includes(normalizeRulesText(part.dice)),`${monster.title} ${shortcut.label}: printed stat block must include ${part.dice}`);
       }
     }
     if(shortcut.kind==='save'){
       assert.ok(shortcut.save?.ability&&Number.isInteger(shortcut.save?.dc),`${monster.title} ${shortcut.label}: incomplete save`);
       assert.match(printed,new RegExp(`DC\\s+${shortcut.save.dc}`,'i'),`${monster.title} ${shortcut.label}: printed save DC does not match shortcut DC ${shortcut.save.dc}`);
-      for(const part of shortcut.damage||[])assert.ok(printed.includes(part.dice),`${monster.title} ${shortcut.label}: printed stat block must include ${part.dice}`);
+      for(const part of shortcut.damage||[])assert.ok(normalizedPrinted.includes(normalizeRulesText(part.dice)),`${monster.title} ${shortcut.label}: printed stat block must include ${part.dice}`);
     }
   }
 }
