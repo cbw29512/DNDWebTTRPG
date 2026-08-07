@@ -73,6 +73,40 @@ test('public landing page explains the product and links both roles', async ({ p
   expect(errors).toEqual([]);
 });
 
+test('DM can launch Wishing Cake and advance the prepared scene', async ({ page }) => {
+  const errors = await collectPageErrors(page);
+  await page.setViewportSize({ width: 1880, height: 1021 });
+  await page.goto('/?launch=1', { waitUntil: 'networkidle' });
+  await expect(page.locator('.adventure-loader')).toBeVisible();
+  await page.locator('[data-load-pack]').click();
+  await expect(page.locator('.scene-runtime')).toBeVisible();
+  await expect(page.locator('[data-scene-select]')).toBeVisible();
+  await expect(page.locator('.fixed-board > .board-slot[data-slot]')).toHaveCount(7);
+
+  const slots = await page.locator('.fixed-board > .board-slot[data-slot]').evaluateAll(nodes => nodes.map(node => {
+    const rect = node.getBoundingClientRect();
+    return { width: rect.width, height: rect.height };
+  }));
+  const heightSpread = Math.max(...slots.map(slot => slot.height)) - Math.min(...slots.map(slot => slot.height));
+  expect(heightSpread).toBeLessThanOrEqual(1);
+  for (const width of slots.map(slot => slot.width)) expect(width).toBeGreaterThan(200);
+
+  const visibleCards = page.locator('.fixed-board .tarot-card:visible');
+  const cardCount = await visibleCards.count();
+  expect(cardCount).toBeGreaterThan(0);
+  const cardWidths = await visibleCards.evaluateAll(nodes => nodes.map(node => node.getBoundingClientRect().width));
+  for (const width of cardWidths) expect(Math.abs(width - 148)).toBeLessThanOrEqual(1);
+
+  const select = page.locator('[data-scene-select]');
+  const before = await select.inputValue();
+  await page.locator('[data-scene-next]').click();
+  await expect.poll(() => select.inputValue()).not.toBe(before);
+  const after = await select.inputValue();
+  expect(after).not.toBe(before);
+  await expect(page.locator('[data-scene-status]')).toContainText(/active/i);
+  expect(errors, `DM browser errors: ${errors.join(' | ')}`).toEqual([]);
+});
+
 for (const [id, name] of pregens) {
   for (const edition of ['2014', '2024']) {
     test(`${name} renders a complete ${edition} player build`, async ({ page }) => {
