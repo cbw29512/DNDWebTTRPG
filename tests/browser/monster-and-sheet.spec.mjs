@@ -33,9 +33,11 @@ test('pregen full sheet exposes standard character details and persistent tracki
  await page.goto('/player.html?character=wendy-birthday-hero&edition=2024',{waitUntil:'networkidle'});
  const panel=page.locator('.sheet-tracking-panel');
  await expect(panel).toBeVisible();
- for(const text of ['Player Name','Alignment','Size','Species','Class / Level','Background','Hit Die','Senses','Advancement','Temporary HP','Heroic Inspiration','Death Saves','Exhaustion','Conditions','Currency','Personality','Ideal','Bond','Flaw'])await expect(panel.getByText(text,{exact:false}).first()).toBeVisible();
+ for(const text of ['Player Name','Alignment','Size','Species','Class / Level','Background','Hit Die','Senses','Experience Points','Temporary HP','Heroic Inspiration','Death Saves','Exhaustion','Conditions','Currency','Personality','Ideal','Bond','Flaw'])await expect(panel.getByText(text,{exact:false}).first()).toBeVisible();
 
  await panel.locator('[data-sheet-field="playerName"]').fill('Playtest Player');
+ await panel.locator('[data-sheet-number="xp"]').fill('900');
+ await panel.locator('[data-sheet-number="xp"]').press('Tab');
  await panel.locator('[data-sheet-number="tempHp"]').fill('7');
  await panel.locator('[data-sheet-number="tempHp"]').press('Tab');
  await panel.locator('[data-sheet-number="deathSuccesses"]').fill('1');
@@ -48,6 +50,7 @@ test('pregen full sheet exposes standard character details and persistent tracki
  await page.reload({waitUntil:'networkidle'});
  const restored=page.locator('.sheet-tracking-panel');
  await expect(restored.locator('[data-sheet-field="playerName"]')).toHaveValue('Playtest Player');
+ await expect(restored.locator('[data-sheet-number="xp"]')).toHaveValue('900');
  await expect(restored.locator('[data-sheet-number="tempHp"]')).toHaveValue('7');
  await expect(restored.locator('[data-sheet-number="deathSuccesses"]')).toHaveValue('1');
  await expect(restored.locator('[data-sheet-check="inspiration"]')).toBeChecked();
