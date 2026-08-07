@@ -72,18 +72,37 @@ function enhanceCards(root = document) {
   root.querySelectorAll?.(".tarot-card").forEach(rememberCard);
 }
 
-function closeModal() {
-  document.querySelector(".large-card-backdrop")?.remove();
+function lockPageForModal() {
+  const scrollbarWidth = Math.max(0, window.innerWidth - document.documentElement.clientWidth);
+  document.documentElement.style.setProperty("--modal-scrollbar-compensation", `${scrollbarWidth}px`);
+  document.body.classList.add("modal-open");
+}
+
+function unlockPageFromModal() {
   document.body.classList.remove("modal-open");
-  activeSource?.focus?.();
+  document.documentElement.style.removeProperty("--modal-scrollbar-compensation");
+}
+
+function removeExistingModal({ restoreFocus = true } = {}) {
+  document.querySelector(".large-card-backdrop")?.remove();
+  unlockPageFromModal();
+  const source = activeSource;
   activeSource = null;
+  if (restoreFocus && source?.isConnected) source.focus({ preventScroll: true });
+}
+
+function closeModal() {
+  removeExistingModal({ restoreFocus: true });
 }
 
 function openModal(card) {
   const details = cardDetails.get(card.dataset.modalKey);
   if (!details) return;
-  activeSource = card;
-  closeModal();
+
+  // Remove a prior modal without restoring focus. The old implementation called
+  // closeModal() here, which focused the clicked card during the opening path and
+  // activated focus-driven visual transforms before the dialog appeared.
+  removeExistingModal({ restoreFocus: false });
   activeSource = card;
 
   const backdrop = document.createElement("div");
@@ -103,8 +122,8 @@ function openModal(card) {
     <footer class="large-card-actions">${details.controlHtml}<button type="button" class="large-card-return">Close Card</button></footer>
   </section>`;
   document.body.append(backdrop);
-  document.body.classList.add("modal-open");
-  backdrop.querySelector(".large-card-close")?.focus();
+  lockPageForModal();
+  backdrop.querySelector(".large-card-close")?.focus({ preventScroll: true });
 }
 
 function runModalControl(button) {
