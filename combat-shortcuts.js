@@ -62,7 +62,9 @@ function handleRuleClick(event) {
 
   if (button.dataset.ruleRoll === 'initiative') {
     const result = rollD20(rule.initiativeModifier);
+    document.querySelectorAll(`.slot-monster .tarot-card[data-card-id="${CSS.escape(cardId)}"] .instance-strip strong`).forEach(label => { label.textContent = `Init ${result.total}`; });
     setResult(button, `Initiative: d20 ${fmt(rule.initiativeModifier)} → ${result.natural} ${fmt(rule.initiativeModifier)} = ${result.total}.`);
+    window.dispatchEvent(new CustomEvent('living-table:rules-initiative', { detail:{ cardId, initiative:result.total } }));
     return;
   }
   if (button.dataset.ruleRoll === 'attack' && shortcut) {
@@ -99,6 +101,17 @@ function removeLegacyRolls(card) {
   card.querySelectorAll('.card-roll-note').forEach(node => node.remove());
 }
 
+function removeLegacyGlobalRolls() {
+  document.querySelectorAll('[data-roll-all-monsters]').forEach(button => button.remove());
+  const panel = document.querySelector('.turn-panel');
+  if (panel && !panel.querySelector('.rules-initiative-note')) {
+    const note = document.createElement('small');
+    note.className = 'rules-initiative-note';
+    note.textContent = 'Use the ⏱ INIT shortcut on a monster card; identical monsters share that roll.';
+    panel.append(note);
+  }
+}
+
 function hydrateCard(card) {
   if (card.dataset.rulesShortcuts === 'true') return;
   card.dataset.rulesShortcuts = 'true';
@@ -115,6 +128,7 @@ function hydrateCard(card) {
 
 function hydrate() {
   if (!isDungeonMaster) return;
+  removeLegacyGlobalRolls();
   document.querySelectorAll('.tarot-card[data-card-id]').forEach(hydrateCard);
 }
 
