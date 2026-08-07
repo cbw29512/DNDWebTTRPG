@@ -14,14 +14,13 @@ test('DM monster cards render the corrected canonical stat blocks',async({page})
 
  const plate=deck.locator('[data-card-id="skeleton"]');
  await expect(plate).toBeVisible();
- await plate.getByRole('button',{name:'Flip'}).click();
- await expect(plate.locator('.tarot-back')).toContainText('STR 15 (+2)');
- await expect(plate.locator('.tarot-back')).toContainText('Bite. Melee Weapon Attack: +4 to hit');
- await expect(plate.locator('.tarot-back')).toContainText('1d8 + 2');
+ const plateBack=plate.locator('.tarot-back');
+ await expect(plateBack).toContainText('STR 15 (+2)');
+ await expect(plateBack).toContainText('Bite. Melee Weapon Attack: +4 to hit');
+ await expect(plateBack).toContainText('1d8 + 2');
 
  const boss=deck.locator('[data-card-id="monster-sepulchral"]');
  await expect(boss).toBeVisible();
- await boss.getByRole('button',{name:'Flip'}).click();
  const back=boss.locator('.tarot-back');
  await expect(back).toContainText('13 (15 with Mage Armor; 20 against the triggering attack with Shield)');
  await expect(back).toContainText('Staff. Melee Weapon Attack: +1 to hit');
