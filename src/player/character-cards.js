@@ -1,4 +1,4 @@
-import { additionalPregens } from "./pregen-roster.js";
+import { additionalPregens } from "./pregen-roster-srd.js";
 
 export const ACTIVE_CHARACTER_KEY = "living-table-active-character-v1";
 export const ACTIVE_CHARACTER_EDITION_KEY = "living-table-character-edition-v1";
