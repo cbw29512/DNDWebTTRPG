@@ -1,3 +1,4 @@
+(() => {
 const FILTERS = [
   ['all','All'],
   ['characters','Characters'],
@@ -83,3 +84,4 @@ document.addEventListener('click', event => {
 });
 window.addEventListener('DOMContentLoaded', installControls);
 installControls();
+})();
