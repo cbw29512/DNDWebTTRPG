@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
 import { wishingCakePackCards } from '../src/wishing-cake-pack.js';
 import { characterCards } from '../src/player/character-cards.js';
 
@@ -17,14 +18,21 @@ for(const monster of monsters){
   assert.ok(Array.isArray(monster.dmFace.actions)&&monster.dmFace.actions.length,`${monster.title}: must list actions`);
   assert.ok(monster.combat,`${monster.title}: missing structured combat rules`);
 
+  const printed=[...(monster.dmFace.traits||[]),...(monster.dmFace.actions||[]),monster.dmFace.spellcasting||'',monster.dmFace.reactions||''].join(' ');
   for(const shortcut of monster.combat.shortcuts||[]){
     if(shortcut.kind==='attack'){
       assert.equal(typeof shortcut.attackBonus,'number',`${monster.title} ${shortcut.label}: missing attack bonus`);
       assert.ok(shortcut.damage?.length,`${monster.title} ${shortcut.label}: missing damage dice`);
-      for(const part of shortcut.damage)assert.doesNotMatch(part.dice,/d20/i,`${monster.title} ${shortcut.label}: damage may not use d20`);
+      assert.match(printed,new RegExp(`\\+${shortcut.attackBonus}\\s+to hit`,'i'),`${monster.title} ${shortcut.label}: printed attack bonus does not match shortcut +${shortcut.attackBonus}`);
+      for(const part of shortcut.damage){
+        assert.doesNotMatch(part.dice,/d20/i,`${monster.title} ${shortcut.label}: damage may not use d20`);
+        assert.ok(printed.includes(part.dice),`${monster.title} ${shortcut.label}: printed stat block must include ${part.dice}`);
+      }
     }
     if(shortcut.kind==='save'){
       assert.ok(shortcut.save?.ability&&Number.isInteger(shortcut.save?.dc),`${monster.title} ${shortcut.label}: incomplete save`);
+      assert.match(printed,new RegExp(`DC\\s+${shortcut.save.dc}`,'i'),`${monster.title} ${shortcut.label}: printed save DC does not match shortcut DC ${shortcut.save.dc}`);
+      for(const part of shortcut.damage||[])assert.ok(printed.includes(part.dice),`${monster.title} ${shortcut.label}: printed stat block must include ${part.dice}`);
     }
   }
 }
@@ -46,9 +54,9 @@ for(const character of characterCards){
   }
 }
 
-const playerHtml=(await import('node:fs')).readFileSync('player.html','utf8');
-const sheetJs=(await import('node:fs')).readFileSync('player-character-sheet.js','utf8');
-const completenessJs=(await import('node:fs')).readFileSync('player-sheet-completeness.js','utf8');
+const playerHtml=fs.readFileSync('player.html','utf8');
+const sheetJs=fs.readFileSync('player-character-sheet.js','utf8');
+const completenessJs=fs.readFileSync('player-sheet-completeness.js','utf8');
 assert.match(playerHtml,/player-sheet-completeness\.js/,'Player route must load the complete-sheet tracker layer');
 for(const label of ['Temporary Hit Points','Death Saves','Inspiration','Exhaustion','Conditions','Advancement','Currency','Personality','Ideal','Bond','Flaw']){
   assert.match(completenessJs,new RegExp(label.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),'i'),`Complete player sheet must expose ${label}`);
@@ -61,4 +69,4 @@ assert.match(sheetJs,/Features & Traits/);
 assert.match(sheetJs,/Spellcasting/);
 assert.match(sheetJs,/Equipment & Backpack/);
 
-console.log('Monster stat-block and full pregen player-sheet completeness gate passed.');
+console.log('Monster stat-block/combat-math parity and full pregen player-sheet completeness gate passed.');
