@@ -8,9 +8,9 @@ const css = fs.readFileSync("prepared-play-board.css", "utf8");
 const contract = fs.readFileSync("docs/PREPARED_PLAY_BOARD.md", "utf8");
 
 assert.match(dmHtml, /prepared-play-board\.css\?v=equal-board-slots-2/);
-assert.match(dmHtml, /prepared-play-board\.js\?v=prepared-play-board-1/);
+assert.match(dmHtml, /prepared-play-board\.js\?v=prepared-play-board-2/);
 assert.match(playerHtml, /prepared-play-board\.css\?v=equal-board-slots-2/);
-assert.match(playerHtml, /prepared-play-board\.js\?v=prepared-play-board-1/);
+assert.match(playerHtml, /prepared-play-board\.js\?v=prepared-play-board-2/);
 assert.match(dmHtml, /prepared-play-board-20260805/);
 assert.match(playerHtml, /prepared-play-board-20260805/);
 assert.match(dmHtml, /live-play-priority\.css\?v=board-first-live-3/);
@@ -34,6 +34,11 @@ assert.match(runtime, /current scene/);
 assert.match(runtime, /observer\?\.disconnect/);
 assert.match(runtime, /living-table:scene-loaded/);
 assert.match(runtime, /stopImmediatePropagation/);
+assert.match(runtime, /event\.isTrusted/, 'Prepared context must distinguish real user input from scene-engine clicks.');
+assert.match(runtime, /\[data-open-picker\], \[data-remove-instance\]/, 'Scene reconciliation hooks must remain in prepared context DOM.');
+assert.match(runtime, /aria-disabled/, 'Prepared controls should remain unavailable to users without being deleted.');
+assert.doesNotMatch(runtime, /removeAttribute\("data-open-picker"\)/, 'Do not strip the scene engine picker hook.');
+assert.doesNotMatch(runtime, /querySelectorAll\("\[data-remove-instance\]"\)\.forEach\(button => button\.remove\(\)\)/, 'Do not delete the scene engine removal hook.');
 
 assert.match(css, /slot-heading::after/);
 assert.match(css, /content:none!important/);
@@ -72,4 +77,4 @@ assert.match(contract, /Quest Tracker/);
 assert.match(contract, /must not derive hidden Scene titles/);
 assert.match(contract, /escaped/);
 
-console.log("Prepared-play spatial locking, equal seven-slot geometry, Scene context, player sanitization, and escaping passed.");
+console.log("Prepared-play spatial locking, scene-engine reconciliation, equal seven-slot geometry, Scene context, player sanitization, and escaping passed.");
