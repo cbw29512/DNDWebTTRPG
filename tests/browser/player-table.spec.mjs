@@ -8,6 +8,7 @@ const pregens = [
   ['fern-hunter', 'Fern Greenbough'],
   ['lute-lore-bard', 'Lute Bellweather']
 ];
+const spellcasters = new Set(['elara-evoker','brunna-life-cleric','fern-hunter','lute-lore-bard']);
 
 async function collectPageErrors(page) {
   const errors = [];
@@ -55,6 +56,20 @@ async function verifyPlayerBuild(page, id, name, edition) {
   await expect(page.getByRole('heading', { name: 'Features & Traits' })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Spellcasting' })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Equipment & Backpack' })).toBeVisible();
+
+  if (spellcasters.has(id)) {
+    const deck=page.locator('.spell-card-deck');
+    await expect(deck).toBeVisible();
+    await expect(deck.getByRole('heading',{name:'Spell Cards'})).toBeVisible();
+    await expect(deck.locator('.spell-deck-warning')).toHaveCount(0);
+    expect(await deck.locator('.compact-spell-card').count()).toBeGreaterThan(0);
+    const sourceTexts=await deck.locator('.compact-spell-card>footer>span').allTextContents();
+    for(const source of sourceTexts)expect(source).toMatch(/PHB (2014|2024) p\.\d+/);
+    const cardTexts=await deck.locator('.compact-spell-card').allTextContents();
+    for(const text of cardTexts)expect(text).not.toMatch(/damage[^\n]*d20/i);
+  } else {
+    await expect(page.locator('.spell-card-deck')).toHaveCount(0);
+  }
 
   const importCode = page.locator('.sheet-import strong');
   await expect(importCode).toContainText(edition === '2024' ? '-24' : '-14');
@@ -115,6 +130,42 @@ for (const [id, name] of pregens) {
     });
   }
 }
+
+test('wizard spell deck spends and restores the real level-3 slot pool', async ({ page }) => {
+  await page.goto('/player.html?character=elara-evoker&edition=2014',{waitUntil:'networkidle'});
+  const deck=page.locator('.spell-card-deck');
+  await expect(deck).toBeVisible();
+  await expect(deck.locator('[data-slot-level="1"] strong')).toHaveText('4/4');
+  await expect(deck.locator('[data-slot-level="2"] strong')).toHaveText('2/2');
+  const missile=deck.locator('[data-spell-card="Magic Missile"]');
+  await expect(missile).toContainText('1d4+1 force');
+  await missile.getByRole('button',{name:'Use Slot'}).click();
+  await expect(deck.locator('[data-slot-level="1"] strong')).toHaveText('3/4');
+  await deck.getByRole('button',{name:/Long Rest/}).click();
+  await expect(deck.locator('[data-slot-level="1"] strong')).toHaveText('4/4');
+});
+
+test('edition-specific spell cards expose the correct healing dice', async ({ page }) => {
+  await page.goto('/player.html?character=brunna-life-cleric&edition=2014',{waitUntil:'networkidle'});
+  await expect(page.locator('[data-spell-card="Cure Wounds"]')).toContainText('1d8 + spellcasting ability modifier');
+  await page.goto('/player.html?character=brunna-life-cleric&edition=2024',{waitUntil:'networkidle'});
+  await expect(page.locator('[data-spell-card="Cure Wounds"]')).toContainText('2d8 + spellcasting ability modifier');
+});
+
+test('Lore Bard spell deck stays inside each SRD publishing baseline', async ({ page }) => {
+  await page.goto('/player.html?character=lute-lore-bard&edition=2014',{waitUntil:'networkidle'});
+  await expect(page.locator('[data-spell-card="Charm Person"]')).toBeVisible();
+  await expect(page.locator('[data-spell-card="Dissonant Whispers"]')).toHaveCount(0);
+  await page.goto('/player.html?character=lute-lore-bard&edition=2024',{waitUntil:'networkidle'});
+  await expect(page.locator('[data-spell-card="Dissonant Whispers"]')).toBeVisible();
+});
+
+test('2024 Elf lineage level-3 spell displays its free Long Rest cast separately', async ({ page }) => {
+  await page.goto('/player.html?character=elara-evoker&edition=2024',{waitUntil:'networkidle'});
+  const detect=page.locator('[data-spell-card="Detect Magic"]');
+  await expect(detect).toBeVisible();
+  await expect(detect.getByRole('button',{name:/Free 1\/Long Rest/})).toBeVisible();
+});
 
 test('player table remains usable at tablet width', async ({ page }) => {
   await page.setViewportSize({ width: 820, height: 1180 });
