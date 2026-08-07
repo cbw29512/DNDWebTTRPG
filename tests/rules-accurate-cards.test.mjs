@@ -140,6 +140,8 @@ assert.match(shortcuts,/rollDamageParts/);
 assert.match(shortcuts,/data-rule-roll="damage"/);
 assert.doesNotMatch(shortcuts,/ruleRoll === ['"]damage['"][\s\S]{0,220}rollD20/);
 assert.match(shortcuts,/Attack\/check = d20 · Damage = listed dice/);
+assert.match(shortcuts,/removeLegacyRolls/);
+assert.match(shortcuts,/data-roll-all-monsters/);
 assert.match(sheet,/FULL PLAYER CHARACTER SHEET/);
 assert.match(sheet,/Saving Throws/);
 assert.match(sheet,/Skills/);
@@ -151,6 +153,6 @@ assert.match(sheet,/Equipment & Backpack/);
 assert.match(sheet,/CHARACTER IMPORT CODE/);
 assert.match(pregen,/assets\/characters\/\$\{esc\(character\.id\)\}\.svg/);
 assert.match(pregen,/CHARACTER IMPORT CODE/);
-assert.match(pregen,/Rapier/);
+assert.match(pregen,/entry\.id === "rapier"/);
 
 console.log('Rules-accuracy gate passed: real attack/save/check math, no d20 damage, and complete 2014/2024 Fighter 3 Champion pregen profiles.');
