@@ -10,6 +10,7 @@ const polishCss = fs.readFileSync('workspace-polish.css', 'utf8');
 const questCss = fs.readFileSync('quest-tracker.css', 'utf8');
 const questJs = fs.readFileSync('quest-tracker.js', 'utf8');
 const controls = fs.readFileSync('workspace-controls.js', 'utf8');
+const initiative = fs.readFileSync('initiative-groups.js','utf8');
 
 assert.match(html, /prepared-play-board-20260805/);
 assert.match(html, /workspace-polish\.css/);
@@ -19,7 +20,8 @@ assert.match(html, /workspace-controls\.js/);
 assert.match(html, /adventure-state-board\.css/);
 assert.match(html, /prepared-play-board\.css/);
 assert.doesNotMatch(html, /encounter-slot-guard/);
-assert.doesNotMatch(html, /initiative-groups\.js/);
+assert.match(html, /initiative-groups\.js\?v=rules-cards-1/);
+assert.match(initiative, /living-table:rules-initiative/);
 assert.doesNotMatch(html, /ROW BUILD 6/);
 assert.match(app, /class="fixed-board"/);
 assert.match(app, /class="board-slot slot-\$\{slot\.id\}"/);
@@ -50,4 +52,4 @@ assert.match(questJs, /state\.revealed/);
 const slotDefinitions = [...app.matchAll(/id: "(location|site|room|npc|monster|hazard|treasure)"/g)].map(match => match[1]);
 assert.deepEqual(slotDefinitions, ['location', 'site', 'room', 'npc', 'monster', 'hazard', 'treasure']);
 
-console.log('The source board renders seven prepared-play slots while Scene and quests retain separate state owners.');
+console.log('The source board renders seven prepared-play slots while Scene, quests, and rules-driven grouped initiative retain separate state owners.');
