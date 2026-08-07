@@ -1,0 +1,227 @@
+/*
+ * Wishing Cake playtest visual layer.
+ * Loaded last so it can polish the runtime without changing board geometry,
+ * role boundaries, or card/state mechanics.
+ */
+:root{
+  --wc-ink:#f7f0e5;
+  --wc-muted:#b9ad9c;
+  --wc-gold:#e3bd62;
+  --wc-gold-soft:#8d6d31;
+  --wc-panel:#111318;
+  --wc-panel-2:#181b21;
+  --wc-edge:#3e3931;
+  --wc-shadow:0 18px 44px rgba(0,0,0,.38);
+}
+
+body.live-play-board-first{
+  color:var(--wc-ink);
+  background:
+    radial-gradient(circle at 12% -10%,rgba(122,69,139,.22),transparent 28rem),
+    radial-gradient(circle at 88% 0,rgba(190,125,47,.14),transparent 31rem),
+    linear-gradient(180deg,#090a0d 0,#101216 42%,#090b0e 100%);
+}
+body.live-play-board-first::before{
+  content:"";
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  opacity:.16;
+  background-image:repeating-linear-gradient(115deg,transparent 0 11px,rgba(255,255,255,.018) 12px 13px,transparent 14px 28px);
+  z-index:-1;
+}
+body.live-play-board-first #app .app{padding:16px 18px 24px;}
+
+/* Primary live-table surfaces */
+body.live-play-board-first #app .panel,
+body.live-play-board-first #app .encounter-board,
+body.live-play-board-first #app .quest-tracker{
+  border:1px solid rgba(227,189,98,.22);
+  border-radius:16px;
+  background:linear-gradient(180deg,rgba(25,27,33,.96),rgba(13,15,19,.97));
+  box-shadow:var(--wc-shadow),inset 0 1px rgba(255,255,255,.035);
+}
+body.live-play-board-first #app .encounter-board{padding:14px;}
+body.live-play-board-first #app .board-header,
+body.live-play-board-first #app .topbar{
+  border-radius:14px;
+  background:linear-gradient(135deg,rgba(45,35,46,.86),rgba(18,20,25,.96));
+  border:1px solid rgba(227,189,98,.2);
+  box-shadow:inset 0 1px rgba(255,255,255,.035);
+}
+body.live-play-board-first #app h1,
+body.live-play-board-first #app h2,
+body.live-play-board-first #app h3{
+  font-family:Georgia,"Times New Roman",serif;
+  letter-spacing:.015em;
+}
+
+/* Seven board slots remain mathematically equal; this only gives them one visual language. */
+body.prepared-play-active #app .fixed-board{padding:4px 2px 8px;scrollbar-color:#82652f #111318;}
+body.prepared-play-active #app .fixed-board>.board-slot[data-slot]{
+  --slot-accent:#b89b59;
+  position:relative;
+  border:1px solid color-mix(in srgb,var(--slot-accent) 52%,#302b28)!important;
+  border-radius:14px!important;
+  background:
+    linear-gradient(180deg,color-mix(in srgb,var(--slot-accent) 9%,#1a1c22) 0,#111318 34%,#0d0f13 100%)!important;
+  box-shadow:0 12px 28px rgba(0,0,0,.33),inset 0 1px rgba(255,255,255,.035)!important;
+}
+body.prepared-play-active #app .board-slot[data-slot="location"]{--slot-accent:#7898c9;}
+body.prepared-play-active #app .board-slot[data-slot="site"]{--slot-accent:#d0a951;}
+body.prepared-play-active #app .board-slot[data-slot="room"]{--slot-accent:#a87ac6;}
+body.prepared-play-active #app .board-slot[data-slot="npc"]{--slot-accent:#67b7a4;}
+body.prepared-play-active #app .board-slot[data-slot="monster"]{--slot-accent:#c66b60;}
+body.prepared-play-active #app .board-slot[data-slot="hazard"]{--slot-accent:#dc9952;}
+body.prepared-play-active #app .board-slot[data-slot="treasure"]{--slot-accent:#e4c65a;}
+body.prepared-play-active #app .fixed-board>.board-slot[data-slot]::before{
+  content:"";position:absolute;left:12px;right:12px;top:0;height:2px;border-radius:99px;
+  background:linear-gradient(90deg,transparent,var(--slot-accent),transparent);opacity:.72;
+}
+body.prepared-play-active #app .fixed-board>.board-slot[data-slot]>.slot-heading{
+  box-sizing:border-box;padding:12px 10px 8px!important;border-bottom:1px solid color-mix(in srgb,var(--slot-accent) 28%,transparent);
+  background:linear-gradient(180deg,color-mix(in srgb,var(--slot-accent) 9%,transparent),transparent);
+}
+body.live-play-board-first #app .slot-heading h2{margin:0;color:#fff7e9;font-size:1rem;line-height:1.05;}
+body.live-play-board-first #app .slot-heading small{display:block;margin-top:5px;color:#a9a198;font-size:.59rem;line-height:1.25;}
+body.live-play-board-first #app .slot-icon{
+  display:grid;place-items:center;width:28px;height:28px;flex:0 0 28px;border-radius:8px;
+  color:var(--slot-accent);background:color-mix(in srgb,var(--slot-accent) 11%,#0c0e12);border:1px solid color-mix(in srgb,var(--slot-accent) 40%,#272522);
+}
+body.live-play-board-first #app .slot-add{
+  border:1px solid color-mix(in srgb,var(--slot-accent) 42%,#38322a);background:#111318;color:#e9dfcd;border-radius:8px;font-weight:800;
+}
+body.prepared-play-active #app .single-card-holder{padding:12px 8px 10px!important;}
+
+/* Premium tarot shell */
+body.live-play-board-first #app .tarot-card{--card-accent:#bda35d;filter:drop-shadow(0 10px 13px rgba(0,0,0,.28));}
+body.live-play-board-first #app .type-location{--card-accent:#7799ce;}
+body.live-play-board-first #app .type-site{--card-accent:#d0ab58;}
+body.live-play-board-first #app .type-room{--card-accent:#a982c8;}
+body.live-play-board-first #app .type-npc{--card-accent:#64b7a4;}
+body.live-play-board-first #app .type-monster{--card-accent:#d16e60;}
+body.live-play-board-first #app .type-hazard{--card-accent:#e09c4f;}
+body.live-play-board-first #app .type-treasure,
+body.live-play-board-first #app .type-item{--card-accent:#e1c45d;}
+body.live-play-board-first #app .type-scene{--card-accent:#9d74bf;}
+body.live-play-board-first #app .tarot-inner{
+  border:1px solid color-mix(in srgb,var(--card-accent) 66%,#332d27);border-radius:12px!important;
+  background:#111318;box-shadow:inset 0 0 0 2px #090b0e,inset 0 0 0 3px color-mix(in srgb,var(--card-accent) 25%,transparent);
+}
+body.live-play-board-first #app .tarot-face{
+  box-sizing:border-box;border-radius:11px!important;padding:8px!important;overflow:hidden;
+  background:
+    radial-gradient(circle at 50% 0,color-mix(in srgb,var(--card-accent) 11%,transparent),transparent 42%),
+    linear-gradient(180deg,#1a1d23,#101216 72%,#0d0f12);
+}
+body.live-play-board-first #app .tarot-front{display:flex!important;flex-direction:column;align-items:stretch;}
+body.live-play-board-first #app .category-ribbon{
+  align-self:flex-start;margin:0 0 6px;padding:3px 7px;border-radius:99px;
+  border:1px solid color-mix(in srgb,var(--card-accent) 53%,#3a342d);background:color-mix(in srgb,var(--card-accent) 14%,#111318);
+  color:#fff3d6;font-size:.54rem;font-weight:900;letter-spacing:.105em;text-transform:uppercase;
+}
+body.live-play-board-first #app .tarot-front h3,
+body.live-play-board-first #app .tarot-back h3{
+  margin:7px 1px 4px;color:#fff8eb;font-size:.9rem;line-height:1.05;text-wrap:balance;
+}
+body.live-play-board-first #app .tarot-front>p{
+  display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;
+  margin:2px 1px 0;color:#d1c7b9;font-size:.65rem;line-height:1.32;
+}
+body.live-play-board-first #app .area-current-scene{
+  margin:1px 0 3px;padding:3px 5px;border-left:2px solid var(--card-accent);background:color-mix(in srgb,var(--card-accent) 9%,transparent);
+  color:#f0d992;font-size:.58rem;font-weight:800;
+}
+
+/* Illustrated art stage: actual card-specific SVG art replaces slot glyphs. */
+body.live-play-board-first #app .card-art{
+  width:100%;height:104px;min-height:104px;margin:0;border-radius:9px;overflow:hidden;
+  border:1px solid color-mix(in srgb,var(--card-accent) 43%,#302b28);background:#0d1015;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.025),0 5px 14px rgba(0,0,0,.24);
+}
+body.live-play-board-first #app .card-art svg{display:block;width:100%;height:100%;object-fit:cover;transition:transform .25s ease,filter .25s ease;}
+body.live-play-board-first #app .tarot-card:hover .card-art svg,
+body.live-play-board-first #app .tarot-card:focus-within .card-art svg{transform:scale(1.035);filter:saturate(1.08) brightness(1.04);}
+body.live-play-board-first #app .card-art-fallback{display:grid;place-items:center;color:var(--card-accent);font-size:2.5rem;}
+
+body.live-play-board-first #app .card-controls{gap:5px;padding-top:6px;}
+body.live-play-board-first #app .card-control,
+body.live-play-board-first #app .inside-card-rolls button{
+  border:1px solid #4d473e;border-radius:7px;background:linear-gradient(#202329,#15171c);color:#eee5d7;font-weight:800;
+}
+body.live-play-board-first #app .card-control:hover,
+body.live-play-board-first #app .inside-card-rolls button:hover{border-color:var(--card-accent);color:#fff;background:#252932;}
+body.live-play-board-first #app .card-control:focus-visible,
+body.live-play-board-first #app button:focus-visible,
+body.live-play-board-first #app input:focus-visible{outline:3px solid #e6c66f!important;outline-offset:2px!important;}
+
+/* Back face prioritizes actual game information. */
+body.live-play-board-first #app .tarot-back{padding:9px!important;}
+body.live-play-board-first #app .tarot-back .card-copy{overflow:auto;padding-right:3px;scrollbar-width:thin;scrollbar-color:#85672f #121419;}
+body.live-play-board-first #app .card-detail{margin:0 0 7px;color:#d8cfc2;font-size:.62rem;line-height:1.38;}
+body.live-play-board-first #app .card-detail strong{color:#f0d58d;}
+body.live-play-board-first #app .read-aloud-copy{border-left-color:var(--card-accent)!important;background:color-mix(in srgb,var(--card-accent) 7%,#121419)!important;}
+
+/* Empty spaces look intentional instead of unfinished. */
+body.live-play-board-first #app .empty-slot{
+  position:relative;display:grid;place-items:center;align-content:center;gap:7px;padding:18px!important;
+  border:1px dashed color-mix(in srgb,var(--slot-accent) 42%,#474038)!important;border-radius:12px!important;
+  color:#bdb3a6!important;background:linear-gradient(145deg,color-mix(in srgb,var(--slot-accent) 6%,#111318),#0d0f13)!important;
+}
+body.live-play-board-first #app .empty-slot::before{content:"";position:absolute;inset:9px;border:1px solid rgba(255,255,255,.025);border-radius:9px;pointer-events:none;}
+body.live-play-board-first #app .empty-slot span{font-size:2rem;color:var(--slot-accent);filter:drop-shadow(0 3px 8px rgba(0,0,0,.45));}
+body.live-play-board-first #app .empty-slot strong{font-family:Georgia,serif;font-size:.76rem;color:#e6dccd;}
+
+/* Adventure Deck: curated card library rather than utility pane. */
+body.live-play-board-first #app .adventure-deck,
+body.live-play-board-first #app .turn-panel{padding:16px!important;}
+body.live-play-board-first #app .adventure-deck h2,
+body.live-play-board-first #app .turn-panel h2{margin:0 0 10px;color:#f4e5bd;font-size:1.18rem;}
+body.live-play-board-first #app .deck-search{
+  box-sizing:border-box;width:100%;padding:10px 12px;border:1px solid #484139;border-radius:10px;background:#0d0f13;color:#f7f0e5;
+}
+body.live-play-board-first #app .deck-search::placeholder{color:#766f66;}
+body.live-play-board-first #app .deck-filters{display:flex;flex-wrap:wrap;gap:6px;margin:9px 0 12px;}
+body.live-play-board-first #app .deck-filters button{
+  padding:6px 9px;border:1px solid #423d36;border-radius:99px;background:#15181d;color:#c9bfb1;font-size:.64rem;font-weight:800;text-transform:capitalize;
+}
+body.live-play-board-first #app .deck-filters button.selected{border-color:#b99043;background:#2c2414;color:#ffe7a2;box-shadow:inset 0 0 0 1px rgba(255,214,120,.08);}
+body.live-play-board-first #app .deck-card-list{gap:18px 14px!important;padding:4px 6px 16px 1px;scrollbar-width:thin;scrollbar-color:#85672f #101216;}
+
+/* Initiative becomes a combat surface. */
+body.live-play-board-first #app .turn-panel .reveal{
+  align-self:flex-start;margin-bottom:10px;border:1px solid #81672f;border-radius:9px;background:linear-gradient(#322815,#20190d);color:#ffe6a4;font-weight:900;
+}
+body.live-play-board-first #app .initiative{display:flex;flex-direction:column;gap:7px;margin:0;padding:4px 1px;list-style:none;}
+body.live-play-board-first #app .initiative li{
+  display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 11px;border:1px solid #383a3f;border-radius:10px;
+  background:linear-gradient(90deg,#191c21,#111318);color:#ded5c8;font-size:.78rem;
+}
+body.live-play-board-first #app .initiative li>strong{display:grid;place-items:center;min-width:34px;height:30px;border-radius:8px;background:#2a2112;border:1px solid #79612e;color:#f5d887;font-size:1rem;}
+body.live-play-board-first #app .initiative li:first-child:not(:only-child){border-color:#7f6630;box-shadow:inset 3px 0 #d4b35e;}
+body.live-play-board-first #app .card-roll-result{margin:10px 0 7px;padding:9px 10px;border-left:3px solid #9a7b38;background:#15140f;color:#ded5c8;font-size:.72rem;}
+body.live-play-board-first #app .turn-panel>small{color:#888177;}
+
+/* Stack affordance */
+body.live-play-board-first #app .card-stack .stack-count{background:#d6b65f!important;color:#15120b!important;border:2px solid #fff0bd!important;box-shadow:0 4px 12px rgba(0,0,0,.45);font-weight:950;}
+body.live-play-board-first #app .card-stack .stack-label{color:#d2c7b6!important;font-weight:800;letter-spacing:.02em;}
+
+/* Scrollbars match the table instead of the browser chrome. */
+body.live-play-board-first #app *::-webkit-scrollbar{width:9px;height:9px;}
+body.live-play-board-first #app *::-webkit-scrollbar-track{background:#0d0f13;border-radius:20px;}
+body.live-play-board-first #app *::-webkit-scrollbar-thumb{background:#65512b;border:2px solid #0d0f13;border-radius:20px;}
+body.live-play-board-first #app *::-webkit-scrollbar-thumb:hover{background:#8b6f36;}
+
+@media(max-width:1000px){
+  body.live-play-board-first #app .app{padding:12px;}
+  body.live-play-board-first #app .adventure-deck,
+  body.live-play-board-first #app .turn-panel{padding:14px!important;}
+}
+@media(max-width:760px){
+  body.live-play-board-first #app .app{padding:8px;}
+  body.prepared-play-active #app .fixed-board>.board-slot[data-slot]{border-radius:12px!important;}
+  body.live-play-board-first #app .card-art{height:112px;min-height:112px;}
+}
+@media(prefers-reduced-motion:reduce){
+  body.live-play-board-first #app .card-art svg{transition:none;}
+}
