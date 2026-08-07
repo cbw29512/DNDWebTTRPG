@@ -78,7 +78,7 @@ function landingMarkup() {
 
     <section class="landing-section landing-pack" aria-labelledby="pack-title">
       <div><small>READY TO PLAYTEST</small><h2 id="pack-title">The Wishing Cake</h2><p class="landing-lede">A whimsical dark-fantasy birthday one-shot built around Wendy's stolen wish. The DM and players move through eight shared scenes with puzzles, hazards, roleplay, combat, and a finale that can end through force or reconciliation.</p><div class="landing-pack-meta"><span>Level 3</span><span>4–6 players</span><span>3–4 hours</span><span>D&D 2014 / 2024</span></div></div>
-      <a class="landing-action primary" href="./?launch=1">Run The Wishing Cake</a>
+      <a class="landing-action primary" href="./?launch=1">Start Adventure</a>
     </section>
   </main>`;
 }
