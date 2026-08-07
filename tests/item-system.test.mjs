@@ -43,6 +43,17 @@ assert.equal(stats.attack,7,"Archery adds +2 to a ranged weapon attack roll");
 assert.equal(stats.damage,3,"Archery must not add to damage");
 assert.equal(stats.attackProfile.damageDice,"1d8");
 
+const twoHandedState={edition:"2024",equipped:{head:null,neck:null,shoulders:null,armor:"leather-armor",hands:null,mainHand:"rapier",offHand:"shield",ring1:null,ring2:null,feet:null,wondrous:null}};
+const bowEquip=equipItem(twoHandedState,inventory,"longbow","mainHand");
+assert.equal(bowEquip.ok,true);
+assert.deepEqual(bowEquip.stowed,["shield"]);
+assert.equal(twoHandedState.equipped.offHand,null,"Equipping a two-handed bow must stow the shield");
+assert.equal(deriveStats(twoHandedState,inventory).ac,14,"Shield AC must disappear while the longbow is the active two-handed weapon");
+const shieldEquip=equipItem(twoHandedState,inventory,"shield","offHand");
+assert.equal(shieldEquip.ok,true);
+assert.deepEqual(shieldEquip.stowed,["longbow"]);
+assert.equal(twoHandedState.equipped.mainHand,null,"Equipping a shield must stow an active two-handed weapon");
+
 const potion=inventory.find(item=>item.id==="potion-healing");
 assert.equal(useItem(potion).ok,true);
 assert.equal(potion.consumable.count,1);
@@ -58,4 +69,4 @@ assert.equal(attunementCount(state,inventory),3);
 inventory.push(fakeAttuned("attuned-c","head"));
 assert.equal(equipItem(state,inventory,"attuned-c","head").ok,false);
 
-console.log("Rules-driven item cards, legal slots, corrected saves, Archery math, attunement, traits, and uses passed.");
+console.log("Rules-driven item cards, legal slots, corrected saves, Archery math, two-handed equipment, attunement, traits, and uses passed.");
