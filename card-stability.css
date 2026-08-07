@@ -1,0 +1,28 @@
+/*
+ * Card interaction stability.
+ * Cards are fixed game objects: opening, focusing, or closing a card must not
+ * change its screen position or visually zoom its artwork.
+ */
+
+/* Keep the page content width unchanged when the modal removes body scrolling. */
+html { scrollbar-gutter: stable; }
+body.modal-open {
+  overflow: hidden;
+  padding-right: var(--modal-scrollbar-compensation, 0px);
+}
+
+/* The Wishing Cake visual layer previously scaled artwork on hover/focus.
+ * That made a clicked/focus-restored card look like it jumped. Keep the
+ * highlight, but never translate or scale card contents. */
+body.live-play-board-first #app .tarot-card:hover .card-art svg,
+body.live-play-board-first #app .tarot-card:focus-within .card-art svg,
+body.live-play-board-first #app .tarot-card:focus-visible .card-art svg {
+  transform: none !important;
+  filter: saturate(1.08) brightness(1.04);
+}
+
+/* Focus must not alter outer geometry. */
+body.live-play-board-first #app .tarot-card.image-only-card:focus-visible {
+  outline: 3px solid #e6c66f;
+  outline-offset: 3px;
+}
