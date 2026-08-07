@@ -7,25 +7,34 @@ async function loadWishingCake(page){
  await expect(page.locator('.adventure-deck')).toBeVisible();
 }
 
+async function openCardBack(page,card){
+ await expect(card).toBeVisible();
+ await card.click();
+ const modal=page.locator('.large-card-modal');
+ await expect(modal).toBeVisible();
+ const back=modal.locator('.large-card-back');
+ await expect(back).toBeVisible();
+ return {modal,back};
+}
+
 test('DM monster cards render the corrected canonical stat blocks',async({page})=>{
  await page.setViewportSize({width:1600,height:1000});
  await loadWishingCake(page);
  const deck=page.locator('.adventure-deck');
 
  const plate=deck.locator('[data-card-id="skeleton"]');
- await expect(plate).toBeVisible();
- const plateBack=plate.locator('.tarot-back');
- await expect(plateBack).toContainText('STR 15 (+2)');
- await expect(plateBack).toContainText('Bite. Melee Weapon Attack: +4 to hit');
- await expect(plateBack).toContainText('1d8 + 2');
+ let opened=await openCardBack(page,plate);
+ await expect(opened.back).toContainText('STR 15 (+2)');
+ await expect(opened.back).toContainText('Bite. Melee Weapon Attack: +4 to hit');
+ await expect(opened.back).toContainText('1d8 + 2');
+ await opened.modal.getByRole('button',{name:'Close full card'}).click();
 
  const boss=deck.locator('[data-card-id="monster-sepulchral"]');
- await expect(boss).toBeVisible();
- const back=boss.locator('.tarot-back');
- await expect(back).toContainText('13 (15 with Mage Armor; 20 against the triggering attack with Shield)');
- await expect(back).toContainText('Staff. Melee Weapon Attack: +1 to hit');
- await expect(back).toContainText('1d6 − 1');
- await expect(back).toContainText('spell save DC 13, +5 to hit');
+ opened=await openCardBack(page,boss);
+ await expect(opened.back).toContainText('13 (15 with Mage Armor; 20 against the triggering attack with Shield)');
+ await expect(opened.back).toContainText('Staff. Melee Weapon Attack: +1 to hit');
+ await expect(opened.back).toContainText('1d6 − 1');
+ await expect(opened.back).toContainText('spell save DC 13, +5 to hit');
 });
 
 test('pregen full sheet exposes standard character details and persistent tracking',async({page})=>{
