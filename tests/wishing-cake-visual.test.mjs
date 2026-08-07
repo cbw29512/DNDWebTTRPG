@@ -32,7 +32,9 @@ assert.doesNotMatch(sample,/>☠</);
 
 assert.match(visual,/MutationObserver/,'Art hydration must survive application rerenders.');
 assert.match(visual,/card-art:not\(\[data-wc-art\]\)/,'Already-hydrated card art must not be replaced repeatedly.');
-assert.match(css,/\.card-art-illustrated/);
+assert.match(visual,/card-art-illustrated/,'The hydration layer must install illustrated card-art markup.');
+assert.match(css,/\.card-art\{/,'The visual layer must style the illustrated art stage.');
+assert.match(css,/\.card-art svg/,'The visual layer must style the inline artwork itself.');
 assert.match(css,/\.type-monster/);
 assert.match(css,/\.board-slot\[data-slot="treasure"\]/);
 assert.match(css,/\.initiative li/);
