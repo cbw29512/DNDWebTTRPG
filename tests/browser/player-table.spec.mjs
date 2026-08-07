@@ -160,11 +160,13 @@ test('Lore Bard spell deck stays inside each SRD publishing baseline', async ({ 
   await expect(page.locator('[data-spell-card="Dissonant Whispers"]')).toBeVisible();
 });
 
-test('2024 Elf lineage level-3 spell displays its free Long Rest cast separately', async ({ page }) => {
+test('2024 Elf lineage level-3 spell displays source-specific free and slot casts separately', async ({ page }) => {
   await page.goto('/player.html?character=elara-evoker&edition=2024',{waitUntil:'networkidle'});
   const detect=page.locator('[data-spell-card="Detect Magic"]');
   await expect(detect).toBeVisible();
-  await expect(detect.getByRole('button',{name:/Free 1\/Long Rest/})).toBeVisible();
+  await expect(detect.locator('.spell-source-badges')).toContainText('High Elf Lineage · INT');
+  await expect(detect.getByRole('button',{name:/High Elf Lineage 1\/Long Rest/})).toBeVisible();
+  await expect(detect.getByRole('button',{name:'Use Slot'})).toBeVisible();
 });
 
 test('player table remains usable at tablet width', async ({ page }) => {

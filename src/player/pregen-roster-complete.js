@@ -2,6 +2,18 @@ import { additionalPregens as strictPregens } from './pregen-roster-srd.js';
 const roster=structuredClone(strictPregens);
 const byId=Object.fromEntries(roster.map(c=>[c.id,c]));
 
+const classAccess=ability=>({
+ cantrips:{ability,usesSlots:false,sourceLabel:'Class'},
+ known:{ability,usesSlots:true,sourceLabel:'Class'},
+ prepared:{ability,usesSlots:true,sourceLabel:'Class'},
+ alwaysPrepared:{ability,usesSlots:true,sourceLabel:'Class'}
+});
+const setSpellAccess=(profile,{classAbility=profile.spellcastingAbility,origin=null,lineage=null}={})=>{
+ profile.spellAccessRules={...classAccess(classAbility)};
+ if(origin)profile.spellAccessRules.origin=origin;
+ if(lineage)profile.spellAccessRules.lineage=lineage;
+};
+
 // Rogue — complete 2014/2024 non-spellcasting and edition-specific proficiencies.
 {
  const c=byId['merrin-thief'];
@@ -15,21 +27,23 @@ const byId=Object.fromEntries(roster.map(c=>[c.id,c]));
 
 // Wizard: three Wizard cantrips; 10-spell level-3 spellbook in 2014, expanded by Evoker/Sage/Elf sources in 2024.
 {
- const c=byId['elara-evoker'];
- c.profiles['dnd-2014'].spellDetails={
+ const c=byId['elara-evoker']; const p14=c.profiles['dnd-2014']; const p24=c.profiles['dnd-2024'];
+ p14.spellDetails={
   cantrips:['Fire Bolt','Ray of Frost','Mage Hand'],known:[],
   prepared:['Mage Armor','Magic Missile','Shield','Misty Step','Scorching Ray','Web'],alwaysPrepared:[],
   spellbook:['Detect Magic','Feather Fall','Mage Armor','Magic Missile','Shield','Thunderwave','Misty Step','Scorching Ray','Web','Sleep'],
   origin:[],lineage:['Prestidigitation — High Elf cantrip']
  };
- c.profiles['dnd-2024'].weaponProficiencies=['Simple weapons'];
- c.profiles['dnd-2024'].spellDetails={
+ setSpellAccess(p14,{classAbility:'intelligence',lineage:{ability:'intelligence',usesSlots:false,sourceLabel:'High Elf'}});
+ p24.weaponProficiencies=['Simple weapons'];
+ p24.spellDetails={
   cantrips:['Fire Bolt','Ray of Frost','Mage Hand'],known:[],
   prepared:['Mage Armor','Magic Missile','Shield','Misty Step','Scorching Ray','Web'],alwaysPrepared:[],
   spellbook:['Detect Magic','Feather Fall','Mage Armor','Magic Missile','Sleep','Thunderwave','Misty Step','Web','Scorching Ray','Shatter','Burning Hands','Gust of Wind'],
   origin:['Light — Magic Initiate (Wizard)','Mending — Magic Initiate (Wizard)','Shield — Magic Initiate free 1/Long Rest'],
   lineage:['Prestidigitation — High Elf lineage','Detect Magic — High Elf lineage at level 3; free 1/Long Rest']
  };
+ setSpellAccess(p24,{classAbility:'intelligence',origin:{ability:'intelligence',usesSlots:true,sourceLabel:'Magic Initiate (Wizard)',freeUsesBySpell:{'Shield':{max:1,label:'Magic Initiate',recharge:'Long Rest'}}},lineage:{ability:'intelligence',usesSlots:true,sourceLabel:'High Elf Lineage',freeUsesBySpell:{'Detect Magic':{max:1,label:'High Elf Lineage',recharge:'Long Rest'}}}});
 }
 
 // Life Cleric: legal arrays, Dwarven Toughness, six prepared spells, and Life Domain spells.
@@ -46,32 +60,39 @@ const byId=Object.fromEntries(roster.map(c=>[c.id,c]));
   alwaysPrepared:['Bless — Life Domain','Cure Wounds — Life Domain','Lesser Restoration — Life Domain','Spiritual Weapon — Life Domain'],
   spellbook:[],origin:[],lineage:[]
  };
+ setSpellAccess(p14,{classAbility:'wisdom'});
  p24.spellDetails={
   cantrips:['Guidance','Sacred Flame','Thaumaturgy'],known:[],
   prepared:['Healing Word','Guiding Bolt','Sanctuary','Shield of Faith','Detect Magic','Aid'],
   alwaysPrepared:['Aid — Life Domain','Bless — Life Domain','Cure Wounds — Life Domain','Lesser Restoration — Life Domain'],
   spellbook:[],origin:['Light — Magic Initiate (Cleric)','Resistance — Magic Initiate (Cleric)','Command — Magic Initiate free 1/Long Rest'],lineage:[]
  };
+ setSpellAccess(p24,{classAbility:'wisdom',origin:{ability:'wisdom',usesSlots:true,sourceLabel:'Magic Initiate (Cleric)',freeUsesBySpell:{'Command':{max:1,label:'Magic Initiate',recharge:'Long Rest'}}}});
 }
 
 // Ranger: 2014 knows three spells. 2024 has four prepared Ranger spells plus Hunter's Mark always prepared.
 {
- const c=byId['fern-hunter']; const p24=c.profiles['dnd-2024'];
- c.profiles['dnd-2014'].spellDetails={cantrips:[],known:['Hunter’s Mark','Cure Wounds','Goodberry'],prepared:[],alwaysPrepared:[],spellbook:[],origin:[],lineage:[]};
+ const c=byId['fern-hunter']; const p14=c.profiles['dnd-2014']; const p24=c.profiles['dnd-2024'];
+ p14.spellDetails={cantrips:[],known:['Hunter’s Mark','Cure Wounds','Goodberry'],prepared:[],alwaysPrepared:[],spellbook:[],origin:[],lineage:[]};
+ setSpellAccess(p14,{classAbility:'wisdom'});
  if(!p24.skillProficiencies.includes('insight')) p24.skillProficiencies.push('insight');
  p24.spellDetails={cantrips:[],known:[],prepared:['Cure Wounds','Goodberry','Ensnaring Strike','Fog Cloud'],alwaysPrepared:['Hunter’s Mark — Favored Enemy'],spellbook:[],origin:[],lineage:['Druidcraft — Wood Elf lineage','Longstrider — Wood Elf lineage at level 3; free 1/Long Rest']};
+ setSpellAccess(p24,{classAbility:'wisdom',lineage:{ability:'wisdom',usesSlots:true,sourceLabel:'Wood Elf Lineage',freeUsesBySpell:{'Longstrider':{max:1,label:'Wood Elf Lineage',recharge:'Long Rest'}}}});
+ p24.spellAccessRules.alwaysPrepared.resourceBySpell={'Hunter’s Mark':'favored-enemy'};
 }
 
 // Lore Bard: use a simple dagger in both editions. The 2014 list remains SRD 5.1-only; Dissonant Whispers is available in SRD 5.2.1 and is kept only on the 2024 profile.
 {
- const c=byId['lute-lore-bard'];
+ const c=byId['lute-lore-bard']; const p14=c.profiles['dnd-2014']; const p24=c.profiles['dnd-2024'];
  c.startingEquipment.mainHand='dagger';
  c.ownedItemIds=['leather-armor','dagger','birthday-spark'];
  const dagger={id:'dagger',name:'Dagger',kind:'melee',attackAbility:'dexterity',proficient:true,damageDice:'1d4',damageType:'piercing',range:'5 ft. / 20/60 ft.',properties:['finesse','light','thrown']};
- c.profiles['dnd-2014'].attacks=[{...dagger,mastery:null}];
- c.profiles['dnd-2024'].attacks=[{...dagger,mastery:null}];
- c.profiles['dnd-2014'].spellDetails={cantrips:['Vicious Mockery','Mage Hand'],known:['Healing Word','Charm Person','Faerie Fire','Thunderwave','Suggestion','Shatter'],prepared:[],alwaysPrepared:[],spellbook:[],origin:[],lineage:[]};
- c.profiles['dnd-2024'].spellDetails={cantrips:['Vicious Mockery','Mage Hand'],known:[],prepared:['Healing Word','Dissonant Whispers','Faerie Fire','Thunderwave','Suggestion','Shatter'],alwaysPrepared:[],spellbook:[],origin:['Guidance — Magic Initiate (Cleric)','Light — Magic Initiate (Cleric)','Sanctuary — Magic Initiate free 1/Long Rest'],lineage:[]};
+ p14.attacks=[{...dagger,mastery:null}];
+ p24.attacks=[{...dagger,mastery:null}];
+ p14.spellDetails={cantrips:['Vicious Mockery','Mage Hand'],known:['Healing Word','Charm Person','Faerie Fire','Thunderwave','Suggestion','Shatter'],prepared:[],alwaysPrepared:[],spellbook:[],origin:[],lineage:[]};
+ setSpellAccess(p14,{classAbility:'charisma'});
+ p24.spellDetails={cantrips:['Vicious Mockery','Mage Hand'],known:[],prepared:['Healing Word','Dissonant Whispers','Faerie Fire','Thunderwave','Suggestion','Shatter'],alwaysPrepared:[],spellbook:[],origin:['Guidance — Magic Initiate (Cleric)','Light — Magic Initiate (Cleric)','Sanctuary — Magic Initiate free 1/Long Rest'],lineage:[]};
+ setSpellAccess(p24,{classAbility:'charisma',origin:{ability:'charisma',usesSlots:true,sourceLabel:'Magic Initiate (Cleric)',freeUsesBySpell:{'Sanctuary':{max:1,label:'Magic Initiate',recharge:'Long Rest'}}}});
 }
 
 for(const c of roster){
