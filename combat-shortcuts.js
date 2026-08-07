@@ -94,13 +94,21 @@ function handleRuleClick(event) {
   if (shortcut) setResult(button, shortcut.text || shortcut.label);
 }
 
-function hydrateCard(card) {
-  const id = card.dataset.cardId;
-  const rule = wishingCakeCombatRules[id];
-  if (!rule || card.dataset.rulesShortcuts === 'true') return;
-  card.dataset.rulesShortcuts = 'true';
+function removeLegacyRolls(card) {
   card.querySelectorAll('.inside-card-rolls').forEach(node => node.remove());
   card.querySelectorAll('.card-roll-note').forEach(node => node.remove());
+}
+
+function hydrateCard(card) {
+  if (card.dataset.rulesShortcuts === 'true') return;
+  card.dataset.rulesShortcuts = 'true';
+  // The original prototype generated generic d20 buttons for monsters, NPCs,
+  // and hazards. They are never valid fallbacks: if a card lacks structured
+  // rules data, it gets no roll shortcut rather than an invented modifier.
+  removeLegacyRolls(card);
+  const id = card.dataset.cardId;
+  const rule = wishingCakeCombatRules[id];
+  if (!rule) return;
   const back = card.querySelector('.tarot-back');
   if (back) back.insertAdjacentHTML('beforeend', shortcutMarkup(id, rule));
 }
