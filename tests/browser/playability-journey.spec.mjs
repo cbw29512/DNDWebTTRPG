@@ -44,6 +44,25 @@ test('Player cannot confuse the local demo board with a live DM table before joi
   await expect(page.locator('.live-session-player input[name="gameCode"]')).toBeVisible();
 });
 
+test('stale remote table cannot keep a disconnected player marked connected',async({page})=>{
+  await page.goto('/player.html');
+  await page.waitForSelector('.live-session-player');
+  await page.evaluate(()=>{
+    const remote=document.createElement('section');
+    remote.className='remote-live-table panel';
+    remote.dataset.connection='disconnected';
+    remote.innerHTML='<span class="live-dot">● Disconnected</span>';
+    document.body.append(remote);
+    const status=document.querySelector('[data-live-status]');
+    status.textContent='Disconnected from the DM.';
+    status.dataset.kind='error';
+  });
+  await expect(page.locator('body')).toHaveClass(/live-player-awaiting/);
+  await expect(page.locator('body')).not.toHaveClass(/live-player-connected/);
+  await expect(page.locator('.live-player-guide strong')).toHaveText('JOIN → CONFIRM CHARACTER → PLAY');
+  await expect(page.locator('.remote-live-table')).toHaveAttribute('data-connection','disconnected');
+});
+
 test('Repeated cards display their actual in-play quantity on the DM stack',async({page})=>{
   await loadDM(page);
   const npc=page.locator('[data-slot="npc"] .live-stack-quantity');
