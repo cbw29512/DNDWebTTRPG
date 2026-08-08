@@ -17,7 +17,7 @@ function expectStable(before,after,label){
 
 test('opening and closing a card modal does not move the card or page', async ({page})=>{
   await page.setViewportSize({width:1280,height:700});
-  await page.goto('/?launch=1',{waitUntil:'networkidle'});
+  await page.goto('/?launch=1',{waitUntil:'domcontentloaded'});
   await page.locator('[data-load-pack]').click();
 
   const card=page.locator('.fixed-board .tarot-card.image-only-card').first();
