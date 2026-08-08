@@ -15,6 +15,7 @@ function setHp(combat,command){
   const next=clone(combatant.hp);
   if(command.max!=null)next.max=Math.max(0,Number(command.max)||0);
   if(command.current!=null)next.current=Math.max(0,Math.min(next.max,Number(command.current)||0));
+  else next.current=Math.max(0,Math.min(next.max,Number(next.current)||0));
   if(command.temp!=null)next.temp=Math.max(0,Number(command.temp)||0);
   if(same(next,combatant.hp))return false;
   combatant.hp=next;
