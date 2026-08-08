@@ -85,6 +85,10 @@ test('DM and Player complete a live host, join, reveal, and disconnect journey',
   for(const slot of ['location','site','room']){
     expect(await player.locator(`.remote-live-slot.slot-${slot} .remote-card`).count()).toBeGreaterThan(0);
   }
+  for(const slot of ['npc','monster','hazard','treasure']){
+    await expect(player.locator(`.remote-live-slot.slot-${slot} .remote-card`)).toHaveCount(0);
+    await expect(player.locator(`.remote-live-slot.slot-${slot}`)).toContainText('Nothing revealed');
+  }
 
   const reveal=dm.locator('[data-reveal]').filter({hasText:'Reveal'}).first();
   await expect(reveal).toBeVisible();
@@ -92,6 +96,8 @@ test('DM and Player complete a live host, join, reveal, and disconnect journey',
   await reveal.click();
   await expect(reveal).toHaveText('Hide');
   await expect(player.locator(`.remote-card[data-card-id="${cardId}"]`)).toBeVisible();
+  await expect(player.locator(`.remote-card[data-card-id="${cardId}"] .tarot-back`)).toHaveCount(0);
+  await expect(player.locator(`.remote-card[data-card-id="${cardId}"] button`)).toHaveCount(0);
 
   await dm.close();
   await expect(playerPanel.locator('[data-live-status]')).toContainText('Disconnected from the DM');
