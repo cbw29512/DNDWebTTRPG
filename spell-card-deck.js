@@ -39,13 +39,7 @@ if(isPlayer){
  }
  let usage=loadUsage(currentProfile());
  function saveUsage(){try{localStorage.setItem(stateKey(),JSON.stringify(usage));return true;}catch(error){console.warn('[Living Table] Could not save spell-deck state.',error);return false;}}
- function resetUsage(){
-  const activeConcentration=usage.concentration;
-  usage=defaultUsage(currentProfile());
-  usage.concentration=activeConcentration&&concentrationEntry(currentProfile(),activeConcentration)?activeConcentration:null;
-  saveUsage();
-  render();
- }
+ function resetUsage(){usage=defaultUsage(currentProfile());saveUsage();render();}
  function startConcentration(name){
   if(!concentrationEntry(currentProfile(),name))return false;
   usage.concentration=name;
@@ -100,7 +94,7 @@ if(isPlayer){
   const byLevel=new Map(); for(const entry of entries){const level=entry.card?.level??99;if(!byLevel.has(level))byLevel.set(level,[]);byLevel.get(level).push(entry);}
   const groups=[...byLevel.entries()].sort(([a],[b])=>a-b).map(([level,list])=>`<section class="spell-level-group"><h4>${level===0?'Cantrips':`Level ${level} Spells`}</h4><div class="spell-card-grid">${list.map(entry=>cardMarkup(entry,profile)).join('')}</div></section>`).join('');
   const classAbility=profile.spellcastingAbility?.slice(0,3).toUpperCase()||'—';
-  return `<section class="spell-card-deck" aria-labelledby="spell-deck-title"><header class="spell-deck-header"><div><small>PREGEN SPELL MINI-DECK · ${profile.rulesId==='dnd-2024'?'2024 / SRD 5.2.1':'2014 / SRD 5.1'}</small><h3 id="spell-deck-title">Spell Cards</h3><p>Each source carries its own casting ability, slot permission, free-use rule, and concentration state.</p></div><button type="button" data-spell-long-rest>Long Rest · Restore Spell Uses</button></header><div class="spellcasting-summary"><span>Class ability <strong>${classAbility}</strong></span><span>Source-specific attack/DC <strong>shown on each card</strong></span>${concentrationSummary()}<div class="spell-slot-tracker">${slotTracker()}</div></div>${missing.length?`<p class="spell-deck-warning">⚠ ${missing.length} spell${missing.length===1?'':'s'} blocked because compact rules data is missing.</p>`:''}${groups}<p class="spell-deck-footnote">A free cast and a spell-slot cast are tracked separately. Starting concentration on another spell replaces the previous concentration spell. The ability shown beside each source is the ability used for that source's attack roll or save DC.</p></section>`;
+  return `<section class="spell-card-deck" aria-labelledby="spell-deck-title"><header class="spell-deck-header"><div><small>PREGEN SPELL MINI-DECK · ${profile.rulesId==='dnd-2024'?'2024 / SRD 5.2.1':'2014 / SRD 5.1'}</small><h3 id="spell-deck-title">Spell Cards</h3><p>Each source carries its own casting ability, slot permission, free-use rule, and concentration state.</p></div><button type="button" data-spell-long-rest>Long Rest · Restore Spell Uses</button></header><div class="spellcasting-summary"><span>Class ability <strong>${classAbility}</strong></span><span>Source-specific attack/DC <strong>shown on each card</strong></span>${concentrationSummary()}<div class="spell-slot-tracker">${slotTracker()}</div></div>${missing.length?`<p class="spell-deck-warning">⚠ ${missing.length} spell${missing.length===1?'':'s'} blocked because compact rules data is missing.</p>`:''}${groups}<p class="spell-deck-footnote">A free cast and a spell-slot cast are tracked separately. Starting concentration on another spell replaces the previous concentration spell. A Long Rest restores spell uses and ends concentration. The ability shown beside each source is the ability used for that source's attack roll or save DC.</p></section>`;
  }
  function render(){
   const sheet=document.querySelector('#app .full-character-sheet'); if(!sheet)return;
@@ -112,7 +106,7 @@ if(isPlayer){
  function bind(){
   const deck=document.querySelector('#app .spell-card-deck');
   if(!deck)return;
-  deck.querySelector('[data-spell-long-rest]')?.addEventListener('click',resetUsage);
+  deck.querySelector('[data-spell-long-rest]')?.addEventListener('click',()=>{try{resetUsage();}catch(error){console.warn('[Living Table] Long Rest spell reset failed.',error);}});
   deck.querySelectorAll('[data-cast-spell]').forEach(button=>button.addEventListener('click',()=>{
    try{
     const name=button.dataset.castSpell;
