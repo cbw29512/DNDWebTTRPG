@@ -169,6 +169,29 @@ test('2024 Elf lineage level-3 spell displays source-specific free and slot cast
   await expect(detect.getByRole('button',{name:'Use Slot'})).toBeVisible();
 });
 
+test('spell deck tracks one concentration spell at a time and restores it after reload', async ({ page }) => {
+  await page.goto('/player.html?character=brunna-life-cleric&edition=2014',{waitUntil:'domcontentloaded'});
+  const deck=page.locator('.spell-card-deck');
+  const concentration=deck.locator('[data-active-concentration]');
+  await expect(concentration.locator('strong')).toHaveText('None');
+
+  const guidance=deck.locator('[data-spell-card="Guidance"]');
+  await guidance.getByRole('button',{name:'Start Concentration'}).click();
+  await expect(concentration.locator('strong')).toHaveText('Guidance');
+  await expect(guidance).toHaveClass(/is-concentrating/);
+
+  const shieldOfFaith=deck.locator('[data-spell-card="Shield of Faith"]');
+  await shieldOfFaith.getByRole('button',{name:'Use Slot'}).click();
+  await expect(concentration.locator('strong')).toHaveText('Shield of Faith');
+  await expect(shieldOfFaith).toHaveClass(/is-concentrating/);
+  await expect(guidance).not.toHaveClass(/is-concentrating/);
+
+  await page.reload({waitUntil:'domcontentloaded'});
+  await expect(page.locator('.spell-card-deck [data-active-concentration] strong')).toHaveText('Shield of Faith');
+  await page.locator('.spell-card-deck [data-active-concentration]').getByRole('button',{name:'End'}).click();
+  await expect(page.locator('.spell-card-deck [data-active-concentration] strong')).toHaveText('None');
+});
+
 test('player table remains usable at tablet width', async ({ page }) => {
   await page.setViewportSize({ width: 820, height: 1180 });
   await verifyPlayerBuild(page, 'elara-evoker', 'Elara Starling', '2024');
