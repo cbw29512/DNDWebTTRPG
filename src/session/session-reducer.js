@@ -16,7 +16,8 @@ function boardCounts(board={}){
 function combatEventData(command,state){
   const combat=state.combatState;
   switch(command.type){
-    case SESSION_COMMANDS.START_COMBAT:return {encounterId:combat?.encounterId??null,edition:combat?.edition??null,round:combat?.round??null,activeTurnId:combat?.activeTurnId??null,combatantCount:Object.keys(combat?.combatants||{}).length};
+    case SESSION_COMMANDS.START_COMBAT:return {encounterId:combat?.encounterId??null,edition:combat?.edition??null,status:combat?.status??null,combatantCount:Object.keys(combat?.combatants||{}).length};
+    case SESSION_COMMANDS.BEGIN_COMBAT_ROUNDS:return {round:combat?.round??null,activeTurnId:combat?.activeTurnId??null,turnOrder:clone(combat?.turnOrder||[])};
     case SESSION_COMMANDS.END_COMBAT:return {ended:true};
     case SESSION_COMMANDS.SET_COMBAT_INITIATIVE:return {combatantId:command.combatantId,initiative:command.initiative,turnOrder:clone(combat?.turnOrder||[])};
     case SESSION_COMMANDS.ADVANCE_COMBAT_TURN:return {round:combat?.round??null,activeTurnId:combat?.activeTurnId??null};
