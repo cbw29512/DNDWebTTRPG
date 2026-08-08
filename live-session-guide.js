@@ -1,6 +1,10 @@
 const role=document.querySelector('meta[name="living-table-role"]')?.content||'player';
 const isDM=role==='dm';
 
+const setText=(node,text)=>{
+  if(node&&node.textContent!==text)node.textContent=text;
+};
+
 function playerGuide(){
   if(isDM||document.querySelector('.live-player-guide'))return;
   const panel=document.querySelector('.live-session-player');
@@ -18,11 +22,12 @@ function updatePlayerConnectionState(){
   document.body.classList.toggle('live-player-connected',connected);
   document.body.classList.toggle('live-player-awaiting',!connected);
   const guide=document.querySelector('.live-player-guide');
-  if(guide){
-    guide.dataset.connected=String(connected);
-    guide.querySelector('strong').textContent=connected?'CONNECTED — YOU ARE AT THE DM’S TABLE':'JOIN → CONFIRM CHARACTER → PLAY';
-    guide.querySelector('span').textContent=connected?'The adventure cards above are the DM’s live revealed table. Use your character sheet, equipment, spells, and resources below while you play.':'Enter the code from your DM. Your local character tools remain available, but the adventure table below stays hidden until the DM connection is live.';
-  }
+  if(!guide)return;
+
+  const connectedValue=String(connected);
+  if(guide.dataset.connected!==connectedValue)guide.dataset.connected=connectedValue;
+  setText(guide.querySelector('strong'),connected?'CONNECTED — YOU ARE AT THE DM’S TABLE':'JOIN → CONFIRM CHARACTER → PLAY');
+  setText(guide.querySelector('span'),connected?'The adventure cards above are the DM’s live revealed table. Use your character sheet, equipment, spells, and resources below while you play.':'Enter the code from your DM. Your local character tools remain available, but the adventure table below stays hidden until the DM connection is live.');
 }
 
 function dmGuide(){
@@ -41,7 +46,8 @@ function dmGuide(){
 
   const update=()=>{
     const raw=panel.querySelector('[data-live-code]')?.textContent?.replace(/\s/g,'')||'';
-    button.disabled=!/^[A-Z2-9]{8}$/.test(raw);
+    const disabled=!/^[A-Z2-9]{8}$/.test(raw);
+    if(button.disabled!==disabled)button.disabled=disabled;
   };
   new MutationObserver(update).observe(panel,{childList:true,subtree:true,characterData:true});
   update();
@@ -49,7 +55,14 @@ function dmGuide(){
     const code=panel.querySelector('[data-live-code]')?.textContent?.replace(/\s/g,'')||'';
     if(!/^[A-Z2-9]{8}$/.test(code))return;
     const url=new URL('player.html',location.href);url.search=`?game=${encodeURIComponent(code)}`;
-    try{await navigator.clipboard.writeText(url.href);const status=panel.querySelector('[data-live-status]');if(status)status.textContent='Player join link copied.';}catch{prompt('Copy this player link:',url.href);}
+    try{
+      await navigator.clipboard.writeText(url.href);
+      const status=panel.querySelector('[data-live-status]');
+      setText(status,'Player join link copied.');
+    }catch(error){
+      console.warn('[Living Table] Clipboard copy failed; falling back to manual copy.',error);
+      prompt('Copy this player link:',url.href);
+    }
   });
 }
 
