@@ -26,3 +26,37 @@ body.live-play-board-first #app .tarot-card.image-only-card:focus-visible {
   outline: 3px solid #e6c66f;
   outline-offset: 3px;
 }
+
+/* A collapsed stack is a closed game object. Do not expose the top card face
+ * until the DM/player deliberately opens the stack drawer. The hidden tarot
+ * remains in layout so the stack keeps its fixed card geometry. */
+body.live-play-board-first #app .card-stack:not(.expanded) .stack-toggle > .tarot-card {
+  visibility: hidden !important;
+}
+body.live-play-board-first #app .card-stack:not(.expanded) .stack-toggle::before {
+  content: "CLOSED STACK";
+  position: absolute;
+  z-index: 6;
+  inset: 0 0 34px;
+  display: grid;
+  place-items: center;
+  box-sizing: border-box;
+  border: 2px solid #7b6536;
+  border-radius: 13px;
+  background:
+    radial-gradient(circle at 50% 34%, #d7b65b 0 5px, transparent 6px),
+    linear-gradient(135deg, transparent 46%, #6d5728 47% 49%, transparent 50% 100%),
+    linear-gradient(225deg, transparent 46%, #6d5728 47% 49%, transparent 50% 100%),
+    #11141a;
+  color: #e8cf86;
+  font-size: .68rem;
+  font-weight: 900;
+  letter-spacing: .12em;
+  text-align: center;
+  padding-top: 78px;
+  box-shadow: inset 0 0 0 4px #191d24, inset 0 0 0 5px #4f432b;
+}
+body.live-play-board-first #app .card-stack:not(.expanded) .stack-toggle:hover::before,
+body.live-play-board-first #app .card-stack:not(.expanded) .stack-toggle:focus-visible::before {
+  border-color: #e6c66f;
+}
