@@ -30,7 +30,12 @@ assert.match(live,/type:'player-state'/,'Player state must travel back to the DM
 assert.match(live,/type:'table-snapshot'/,'The DM must broadcast table snapshots to connected players.');
 assert.match(live,/Host This Table/);
 assert.match(live,/Join the DM's Table/);
+assert.match(live,/data-stop-live disabled>Stop Live Game/,'The DM must have an explicit live-room shutdown control.');
+assert.match(live,/function stopHosting\(/,'Live-room shutdown must be a first-class lifecycle action.');
+assert.match(live,/for\(const \{conn\} of peers\.values\(\)\)conn\?\.close\?\.\(\)/,'Stopping a room must explicitly close connected player transports before destroying the host peer.');
+assert.match(live,/setHostRunning\(false\)/,'Stopping a room must return the DM controls to a non-hosting state.');
+assert.match(live,/Live room closed\. Players are disconnected\./,'The DM must receive an explicit room-closed status.');
 assert.match(css,/\.remote-live-table/);
 assert.match(css,/grid-template-columns:repeat\(7/,'The remote table must preserve the seven-slot board contract.');
 
-console.log('Live multiplayer host/join, lazy transport, reveal boundary, player status, and seven-slot remote table contracts passed.');
+console.log('Live multiplayer host/join/reveal/shutdown, lazy transport, player status, and seven-slot remote table contracts passed.');
