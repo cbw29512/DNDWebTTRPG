@@ -3,6 +3,7 @@ import { wishingCakeSpatialCards } from './wishing-cake-spatial-cards.js';
 import { wishingCakeAuditedRules } from './wishing-cake-audited-rules.js';
 import { wishingCakeCombatRules } from './wishing-cake-combat.js';
 import { wishingCakeMonsterStats } from './wishing-cake-monster-stats.js';
+import { wishingCakeAdventureRuleOverrides } from './wishing-cake-adventure-rules.js';
 
 const oldContextCardIds = new Set(['location', 'room']);
 const baseCards = [
@@ -14,8 +15,20 @@ const baseIds = new Set(baseCards.map(card => card.id));
 
 function applyRules(card) {
   const monster = wishingCakeMonsterStats[card.id];
+  const adventureOverride = wishingCakeAdventureRuleOverrides[card.id];
   const combat = monster?.combat || wishingCakeCombatRules[card.id];
-  const ruled = monster ? { ...card, dmFace:{ ...(card.dmFace||{}), ...monster.dmFace } } : card;
+  let ruled = card;
+
+  /* Monster DM faces are replaced, not merged. Stale legacy fields must never
+   * survive alongside the canonical stat block. Player-facing summary/art may
+   * still come from the adventure card record. */
+  if (monster) ruled = { ...ruled, dmFace:monster.dmFace, rulesClassification:'Adventure Homebrew — 5e math checked' };
+  if (adventureOverride) ruled = {
+    ...ruled,
+    ...adventureOverride,
+    playerFace:{ ...(ruled.playerFace||{}), ...(adventureOverride.playerFace||{}) },
+    dmFace:{ ...(ruled.dmFace||{}), ...(adventureOverride.dmFace||{}) }
+  };
   return combat ? { ...ruled, combat } : ruled;
 }
 
