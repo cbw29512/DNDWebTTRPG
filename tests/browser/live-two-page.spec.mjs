@@ -68,6 +68,7 @@ test('DM and Player complete a live host, join, reveal, and disconnect journey',
   await expect(dmPanel).toBeVisible();
   await dmPanel.getByRole('button',{name:'Start Live Game'}).click();
   await expect(dmPanel.locator('[data-live-status]')).toContainText('Live room is open');
+  await expect(dmPanel.getByRole('button',{name:'Stop Live Game'})).toBeEnabled();
   const code=(await dmPanel.locator('[data-live-code]').textContent()).replace(/\s/g,'');
   expect(code).toMatch(/^[A-Z2-9]{8}$/);
 
@@ -113,7 +114,9 @@ test('DM and Player complete a live host, join, reveal, and disconnect journey',
   await expect(player.locator(`.remote-card[data-card-id="${cardId}"] .tarot-back`)).toHaveCount(0);
   await expect(player.locator(`.remote-card[data-card-id="${cardId}"] button`)).toHaveCount(0);
 
-  await dm.close();
+  await dmPanel.getByRole('button',{name:'Stop Live Game'}).click();
+  await expect(dmPanel.locator('[data-live-status]')).toContainText('Live room closed');
+  await expect(dmPanel.getByRole('button',{name:'Stop Live Game'})).toBeDisabled();
   await expect(playerPanel.locator('[data-live-status]')).toContainText('Disconnected from the DM');
   await expect(player.locator('.remote-live-table')).toHaveAttribute('data-connection','disconnected');
   await expect(player.locator('body')).toHaveClass(/live-player-awaiting/);
