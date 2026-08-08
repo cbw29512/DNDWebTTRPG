@@ -78,6 +78,18 @@ Every Wishing Cake pregen has separate 2014 and 2024 profiles. Automated gates r
 
 The six playtest pregens are Fighter/Champion, Rogue/Thief, Wizard/Evoker, Cleric/Life, Ranger/Hunter, and Bard/Lore at level 3.
 
+## Spell mini-deck certification
+For every spellcasting pregen and declared rules edition:
+- compact spell cards resolve from structured edition-specific spell data;
+- source-specific casting abilities, attack bonuses, save DCs, spell-slot permissions, and free-use resources are displayed from structured rules data;
+- spell-slot and free-cast pools persist per character and edition;
+- only one concentration spell can be active at a time;
+- starting a different concentration spell replaces the previous active concentration spell;
+- active concentration persists across an ordinary browser reload;
+- ending concentration clears the persisted state;
+- a Long Rest restores spell uses and ends concentration;
+- automated tests reject missing compact spell data and d20 damage/healing expressions.
+
 ## Rules baselines
 - 2014-compatible official material: SRD 5.1 / 2014 fifth-edition rules.
 - 2024-compatible official material: SRD 5.2.1 / 2024 fifth-edition rules.
