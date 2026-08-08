@@ -24,9 +24,16 @@ function sortedTurnOrder(combat){
   }).map(entry=>entry.id);
 }
 
+function resetTurn(combatant){
+  const movementMax=combatant.actionEconomy?.movementMax??0;
+  combatant.actionEconomy={...DEFAULT_ACTION_ECONOMY,...combatant.actionEconomy,movementMax,movementRemaining:movementMax,action:true,bonusAction:true,reaction:true,objectInteraction:true,readiedAction:null};
+}
+
 function startCombat(state,command){
-  const next=normalizeCombatState(command.combatState||command);
-  if(!next.encounterId)throw new TypeError('START_COMBAT requires encounterId.');
+  const source=clone(command.combatState||command);
+  source.status=source.status||'setup';
+  if(source.status==='setup')source.activeTurnId=null;
+  const next=normalizeCombatState(source);
   const changed=!same(state.combatState,next);
   state.combatState=next;
   return changed;
@@ -39,19 +46,28 @@ function setInitiative(combat,command){
   if(combatant.initiative===initiative)return false;
   combatant.initiative=initiative;
   combat.turnOrder=sortedTurnOrder(combat);
-  if(!combat.activeTurnId&&combat.turnOrder.length)combat.activeTurnId=combat.turnOrder[0];
+  if(combat.status==='setup')combat.activeTurnId=null;
   return true;
 }
 
+function beginRounds(combat){
+  combat.turnOrder=sortedTurnOrder(combat);
+  if(!combat.turnOrder.length)throw new Error('Cannot begin combat rounds without initiative results.');
+  const nextActive=combat.turnOrder[0];
+  const changed=combat.status!=='active'||combat.round!==1||combat.activeTurnId!==nextActive;
+  combat.status='active';combat.round=1;combat.activeTurnId=nextActive;
+  resetTurn(requireCombatant(combat,nextActive));
+  return changed;
+}
+
 function advanceTurn(combat){
+  if(combat.status!=='active')throw new Error('Combat rounds have not begun.');
   if(!combat.turnOrder.length)return false;
   const current=Math.max(0,combat.turnOrder.indexOf(combat.activeTurnId));
   const next=(current+1)%combat.turnOrder.length;
   if(next===0)combat.round+=1;
   combat.activeTurnId=combat.turnOrder[next];
-  const combatant=requireCombatant(combat,combat.activeTurnId);
-  const movementMax=combatant.actionEconomy?.movementMax??0;
-  combatant.actionEconomy={...DEFAULT_ACTION_ECONOMY,...combatant.actionEconomy,movementMax,movementRemaining:movementMax};
+  resetTurn(requireCombatant(combat,combat.activeTurnId));
   return true;
 }
 
@@ -107,17 +123,14 @@ export function applyCombatTransition(state,command){
   const combat=requireCombat(state);
   switch(command.type){
     case SESSION_COMMANDS.SET_COMBAT_INITIATIVE:return setInitiative(combat,command);
+    case SESSION_COMMANDS.BEGIN_COMBAT_ROUNDS:return beginRounds(combat);
     case SESSION_COMMANDS.ADVANCE_COMBAT_TURN:return advanceTurn(combat);
     case SESSION_COMMANDS.SET_COMBATANT_HP:return setHp(combat,command);
     case SESSION_COMMANDS.APPLY_COMBAT_CONDITION:return applyCondition(combat,command);
     case SESSION_COMMANDS.REMOVE_COMBAT_CONDITION:return removeCondition(combat,command);
     case SESSION_COMMANDS.SET_COMBAT_CONCENTRATION:return setConcentration(combat,command);
     case SESSION_COMMANDS.UPDATE_COMBAT_RESOURCE:return updateResource(combat,command);
-    case SESSION_COMMANDS.RESET_COMBATANT_TURN:{
-      const combatant=requireCombatant(combat,command.combatantId);const max=combatant.actionEconomy?.movementMax??0;
-      const next={...DEFAULT_ACTION_ECONOMY,...combatant.actionEconomy,movementMax:max,movementRemaining:max};
-      const changed=!same(combatant.actionEconomy,next);combatant.actionEconomy=next;return changed;
-    }
+    case SESSION_COMMANDS.RESET_COMBATANT_TURN:{const combatant=requireCombatant(combat,command.combatantId);const before=clone(combatant.actionEconomy);resetTurn(combatant);return !same(before,combatant.actionEconomy);}
     default:return null;
   }
 }
