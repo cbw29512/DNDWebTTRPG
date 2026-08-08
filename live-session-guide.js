@@ -1,6 +1,5 @@
 const role=document.querySelector('meta[name="living-table-role"]')?.content||'player';
 const isDM=role==='dm';
-const esc=value=>String(value??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[ch]));
 
 function playerGuide(){
   if(isDM||document.querySelector('.live-player-guide'))return;
@@ -14,9 +13,8 @@ function playerGuide(){
 
 function updatePlayerConnectionState(){
   if(isDM)return;
-  const remote=document.querySelector('.remote-live-table');
   const status=document.querySelector('[data-live-status]')?.textContent?.trim()||'';
-  const connected=Boolean(remote)||/^Connected to game\b/i.test(status);
+  const connected=/^Connected to game\b/i.test(status);
   document.body.classList.toggle('live-player-connected',connected);
   document.body.classList.toggle('live-player-awaiting',!connected);
   const guide=document.querySelector('.live-player-guide');
