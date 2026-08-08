@@ -90,14 +90,25 @@ test('DM and Player complete a live host, join, reveal, and disconnect journey',
     await expect(player.locator(`.remote-live-slot.slot-${slot}`)).toContainText('Nothing revealed');
   }
 
-  const npcStack=dm.locator('[data-slot="npc"] .stack-toggle');
+  const npcStack=dm.locator('[data-slot="npc"] .card-stack').first();
   await expect(npcStack).toBeVisible();
-  await npcStack.click();
-  const reveal=dm.locator('[data-slot="npc"] [data-reveal]').filter({hasText:'Reveal'}).first();
+  await npcStack.locator('.stack-toggle').click();
+  await expect(npcStack).toHaveClass(/expanded/);
+
+  const npcCard=npcStack.locator('.stack-drawer .tarot-card').first();
+  await expect(npcCard).toBeVisible();
+  const cardId=await npcCard.getAttribute('data-card-id');
+  expect(cardId).toBeTruthy();
+  await npcCard.click();
+
+  const modal=dm.locator('.large-card-modal');
+  await expect(modal).toBeVisible();
+  const reveal=modal.locator('[data-reveal]').filter({hasText:'Reveal'}).first();
   await expect(reveal).toBeVisible();
-  const cardId=await reveal.getAttribute('data-reveal');
+  await expect(reveal).toHaveAttribute('data-reveal',cardId);
   await reveal.click();
-  await expect(reveal).toHaveText('Hide');
+  await expect(modal).toHaveCount(0);
+
   await expect(player.locator(`.remote-card[data-card-id="${cardId}"]`)).toBeVisible();
   await expect(player.locator(`.remote-card[data-card-id="${cardId}"] .tarot-back`)).toHaveCount(0);
   await expect(player.locator(`.remote-card[data-card-id="${cardId}"] button`)).toHaveCount(0);
