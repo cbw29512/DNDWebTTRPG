@@ -26,7 +26,12 @@ assert.match(shell,/The DM Plays the World/,'The DM must be described as an acti
 assert.match(shell,/Players Act on the Same Table/,'Player copy must describe participation in the same live table.');
 assert.match(shell,/Cards replace page hunting, not roleplaying/,'Landing copy must preserve the core tabletop promise.');
 assert.match(shell,/shared language of play/,'Landing copy must explain cards as the common gameplay layer.');
-assert.match(shell,/Remote-device synchronization is not part of this prototype yet/,'Landing copy must state the current synchronization boundary.');
+assert.match(shell,/Remote playtest is live/,'Landing copy must state that remote live play is available.');
+assert.match(shell,/8-character game code/,'Landing copy must explain how players join the DM.');
+assert.match(shell,/separate computers or phones/,'Landing copy must explain that players can join from separate devices.');
+assert.match(shell,/DM-hosted peer-to-peer room lasts while the DM keeps the table open/,'Landing copy must state the current live-session lifetime boundary.');
+assert.match(shell,/persistent accounts and reconnectable cloud rooms are still future production work/,'Landing copy must not overclaim persistent hosted multiplayer.');
+assert.doesNotMatch(shell,/Remote-device synchronization is not part of this prototype yet/,'Obsolete no-remote-play messaging must not return.');
 assert.match(shell,/site-home-active/);
 assert.match(shell,/living-table-local-session-v1/);
 
@@ -43,4 +48,4 @@ assert.match(sceneRuntime,/data-load-scene/);
 assert.match(prepared,/event\.isTrusted/,'Scene-engine synthetic clicks must bypass the trusted-user mutation lock.');
 assert.doesNotMatch(prepared,/removeAttribute\("data-open-picker"\)/);
 
-console.log('Shared-table product messaging, Home/DM/Player navigation, visible scene controls, and scene-engine lock separation passed.');
+console.log('Shared-table product messaging, remote-play boundary, Home/DM/Player navigation, visible scene controls, and scene-engine lock separation passed.');
