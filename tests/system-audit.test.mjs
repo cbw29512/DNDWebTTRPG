@@ -36,8 +36,9 @@ for (const [route, html] of [['DM', dm], ['Player', player]]) {
   }
 }
 
-assert.match(dm, /<body class="role-dm live-play-board-first">/);
-assert.match(player, /<body class="role-player live-play-board-first">/);
+assert.match(dm, /<body class="role-dm live-play-board-first(?:\s[^"]*)?">/);
+assert.match(player, /<body class="role-player live-play-board-first(?:\s[^"]*)?">/);
+assert.match(player, /\blive-player-awaiting\b/, 'Player route must start in an explicit awaiting-live state until a DM connection is established.');
 assert.match(redirect, /params\.set\('dm', '1'\)/, 'Legacy dm.html must route into the DM table instead of the public home state.');
 assert.match(redirect, /location\.replace\('\.\/\?' \+ params\.toString\(\) \+ location\.hash\)/);
 assert.match(redirect, /<noscript><a href="\.\/\?dm=1">/);
