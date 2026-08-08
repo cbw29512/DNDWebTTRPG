@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 
 test('desktop backpack shows complete item cards without clipping a partial row', async ({ page }) => {
   await page.setViewportSize({ width: 1524, height: 934 });
-  await page.goto('/player.html?character=wendy-birthday-hero&edition=2014', { waitUntil: 'networkidle' });
+  await page.goto('/player.html?character=wendy-birthday-hero&edition=2014', { waitUntil: 'domcontentloaded' });
 
   const panel = page.locator('.magic-inventory');
   const grid = panel.locator('.backpack-cards');
