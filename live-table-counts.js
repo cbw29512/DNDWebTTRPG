@@ -9,9 +9,11 @@ function applyCounts(){
    let badge=front.querySelector('.live-stack-quantity');
    if(count>1){
      if(!badge){badge=document.createElement('span');badge.className='live-stack-quantity';front.prepend(badge);}
-     badge.textContent=`×${count} in play`;
-     badge.setAttribute('aria-label',`${count} copies in play`);
-   }else badge?.remove();
+     const text=`×${count} in play`;
+     const label=`${count} copies in play`;
+     if(badge.textContent!==text)badge.textContent=text;
+     if(badge.getAttribute('aria-label')!==label)badge.setAttribute('aria-label',label);
+   }else if(badge)badge.remove();
  });
 }
 function schedule(){if(scheduled)return;scheduled=true;requestAnimationFrame(applyCounts);}
