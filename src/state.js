@@ -136,7 +136,7 @@ export const applyCommand = (currentState, command, dependencies = {}) => {
         break;
       }
       case COMMANDS.TOGGLE_CARD: {
-        if (!(command.key in state.revealed)) throw new RangeError(`Unknown card: ${command.key}`);
+        if (!(command.key in state.revealed)) state.revealed[command.key] = false;
         state.revealed[command.key] = !state.revealed[command.key];
         const action = state.revealed[command.key] ? "reveals" : "hides";
         const label = state.cardLabels?.[command.key] || CARD_LABELS[command.key] || command.key;
