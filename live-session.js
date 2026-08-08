@@ -134,7 +134,7 @@ function handleHostConnection(conn){
 
 function hostGame(code){
   const Peer=peerCtor();
-  if(!Peer){setStatus('Live connection library could not load. Check your internet connection.','error');return;}
+  if(!Peer){setStatus('Live connection library could not load. Refresh the page or check your connection.','error');return;}
   hostPeer?.destroy?.(); peers.clear(); updateHostRoster();
   hostPeer=new Peer(peerIdFor(code),{debug:1});
   setStatus('Starting live room…');
@@ -145,7 +145,7 @@ function hostGame(code){
 
 function joinGame(code,name){
   const Peer=peerCtor();
-  if(!Peer){setStatus('Live connection library could not load. Check your internet connection.','error');return;}
+  if(!Peer){setStatus('Live connection library could not load. Refresh the page or check your connection.','error');return;}
   if(code.length!==8){setStatus('Enter the 8-character game code from your DM.','error');return;}
   hostPeer?.destroy?.();
   hostPeer=new Peer(undefined,{debug:1});
@@ -175,6 +175,7 @@ function markup(){
 }
 
 function mount(){
+  if(isDM && document.body.classList.contains('site-home-active')) return;
   if(document.querySelector('.live-session-panel'))return;
   const wrapper=document.createElement('div');wrapper.innerHTML=markup();
   const panel=wrapper.firstElementChild;
