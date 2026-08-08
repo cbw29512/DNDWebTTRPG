@@ -26,6 +26,9 @@ function combatEventData(command,state){
     case SESSION_COMMANDS.REMOVE_COMBAT_CONDITION:return {combatantId:command.combatantId,conditionId:command.conditionId};
     case SESSION_COMMANDS.SET_COMBAT_CONCENTRATION:return {combatantId:command.combatantId,concentration:clone(combat?.combatants?.[command.combatantId]?.concentration||null)};
     case SESSION_COMMANDS.UPDATE_COMBAT_RESOURCE:return {combatantId:command.combatantId,resourceId:command.resourceId,current:combat?.combatants?.[command.combatantId]?.resources?.[command.resourceId]?.current??null};
+    case SESSION_COMMANDS.UPDATE_COMBAT_ACTION_ECONOMY:return {combatantId:command.combatantId,actionEconomy:clone(combat?.combatants?.[command.combatantId]?.actionEconomy||null)};
+    case SESSION_COMMANDS.SET_COMBAT_DEATH_SAVES:return {combatantId:command.combatantId,deathSaves:clone(combat?.combatants?.[command.combatantId]?.deathSaves||null)};
+    case SESSION_COMMANDS.SET_COMBAT_ENVIRONMENT:return {hazardCount:combat?.hazards?.length??0,recurringTriggerCount:combat?.recurringTriggers?.length??0};
     case SESSION_COMMANDS.RESET_COMBATANT_TURN:return {combatantId:command.combatantId};
     default:return null;
   }
