@@ -1,0 +1,9 @@
+/* Explicit live-play journey: the player must never mistake the local demo board for the DM's live table. */
+.live-player-guide,.live-dm-guide{margin:10px 16px;padding:10px 12px;border:1px solid #6f5a2d;border-radius:10px;background:#17150f;color:#d9cfbe;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.live-player-guide strong,.live-dm-guide strong{color:#f2d77f;font-size:.78rem;letter-spacing:.06em}.live-player-guide span,.live-dm-guide span{font-size:.78rem;line-height:1.35}
+body.role-player.live-player-awaiting #app .encounter-board,body.role-player.live-player-awaiting #app .turn-panel{display:none!important}
+body.role-player.live-player-awaiting #app .player-layout{grid-template-columns:1fr!important}
+body.role-player.live-player-awaiting .live-player-guide::before{content:'○';color:#c99c4f;font-size:1.1rem}
+body.role-player.live-player-connected .live-player-guide{border-color:#3d7651;background:#111b15}body.role-player.live-player-connected .live-player-guide::before{content:'●';color:#65c384}
+.live-session-panel [data-copy-player-link]:disabled{opacity:.45;cursor:not-allowed}
+@media(max-width:700px){.live-player-guide,.live-dm-guide{margin:8px}.live-player-guide span,.live-dm-guide span{flex-basis:100%}}
