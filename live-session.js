@@ -53,10 +53,17 @@ function sanitizedFront(card){
   return front.innerHTML;
 }
 
+function revealedInCurrentDOM(cardId){
+  if(!cardId) return false;
+  const selector=`[data-reveal="${CSS.escape(cardId)}"]`;
+  return [...document.querySelectorAll(selector)].some(button=>button.textContent?.trim()==='Hide');
+}
+
 function visibleOnDM(card){
   const type = card.dataset.cardType;
   if(['location','site','room'].includes(type)) return true;
-  return revealSet.has(card.dataset.cardId);
+  const id=card.dataset.cardId;
+  return revealSet.has(id) || revealedInCurrentDOM(id);
 }
 
 function captureDMTable(){
@@ -80,11 +87,21 @@ function broadcast(message){ peers.forEach(({conn})=>send(conn,message)); }
 function broadcastSnapshot(){ if(!isDM || !peers.size) return; broadcast({type:'table-snapshot',session:safeSessionProjection(),table:captureDMTable()}); }
 function scheduleBroadcast(){ clearTimeout(renderTimer); renderTimer=setTimeout(broadcastSnapshot,100); }
 
+function markRemoteConnectionState(state,label){
+  if(isDM) return;
+  const remote=document.querySelector('.remote-live-table');
+  if(!remote) return;
+  remote.dataset.connection=state;
+  const dot=remote.querySelector('.live-dot');
+  if(dot) dot.textContent=`● ${label}`;
+}
+
 function renderRemoteTable(table){
   if(isDM || !table) return;
   const current = document.querySelector('.remote-live-table');
   const section = current || document.createElement('section');
   section.className='remote-live-table panel';
+  section.dataset.connection='live';
   section.setAttribute('aria-label','Live table revealed by the Dungeon Master');
   const labels={location:'Location',site:'Site',room:'Area',npc:'NPCs',monster:'Monsters',hazard:'Traps / Hazards',treasure:'Treasure / Rewards'};
   const slotOrder=['location','site','room','npc','monster','hazard','treasure'];
@@ -147,7 +164,10 @@ function joinGame(code,name){
   const Peer=peerCtor();
   if(!Peer){setStatus('Live connection library could not load. Refresh the page or check your connection.','error');return;}
   if(code.length!==8){setStatus('Enter the 8-character game code from your DM.','error');return;}
+  hostConnection?.close?.();
+  hostConnection=null;
   hostPeer?.destroy?.();
+  markRemoteConnectionState('connecting','Connecting…');
   hostPeer=new Peer(undefined,{debug:1});
   localStorage.setItem(PLAYER_KEY,JSON.stringify({code,name:name||'Player'}));
   setStatus('Connecting to the DM…');
@@ -159,10 +179,10 @@ function joinGame(code,name){
         mergeRemoteSession(data.session); renderRemoteTable(data.table); sendPlayerStatus();
       }
     });
-    conn.on('close',()=>setStatus('Disconnected from the DM.','error'));
-    conn.on('error',()=>setStatus('Could not connect to that game code.','error'));
+    conn.on('close',()=>{markRemoteConnectionState('disconnected','Disconnected');setStatus('Disconnected from the DM.','error');});
+    conn.on('error',()=>{markRemoteConnectionState('disconnected','Disconnected');setStatus('Could not connect to that game code.','error');});
   });
-  hostPeer.on('error',()=>setStatus('Could not reach the live-game service.','error'));
+  hostPeer.on('error',()=>{markRemoteConnectionState('disconnected','Disconnected');setStatus('Could not reach the live-game service.','error');});
 }
 
 function setStatus(text,kind=''){ const node=document.querySelector('[data-live-status]'); if(node){node.textContent=text;node.dataset.kind=kind;} }
