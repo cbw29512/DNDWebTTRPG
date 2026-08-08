@@ -14,7 +14,7 @@ const quest = fs.readFileSync('quest-tracker.js', 'utf8');
 assert.match(html, /player-ready\.css/);
 assert.match(html, /player-ready\.js/);
 assert.match(html, /<body class="role-dm live-play-board-first">/);
-assert.match(playerHtml, /<body class="role-player live-play-board-first">/);
+assert.match(playerHtml, /<body class="[^"]*role-player[^"]*live-play-board-first[^"]*live-player-awaiting[^"]*">/);
 assert.match(app, /resolveRuntimeRole/);
 assert.match(app, /viewRole === ROLES\.DM/);
 assert.match(app, /isDM \? "Dungeon Master Card Board" : "Revealed Adventure Cards"/);

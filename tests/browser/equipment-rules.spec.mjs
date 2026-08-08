@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 
 test('equipment doll uses rules-neutral hand slots and reserves both for Two-Handed weapons', async ({ page }) => {
   await page.setViewportSize({ width: 1524, height: 934 });
-  await page.goto('/player.html?character=wendy-birthday-hero&edition=2014', { waitUntil: 'networkidle' });
+  await page.goto('/player.html?character=wendy-birthday-hero&edition=2014', { waitUntil: 'domcontentloaded' });
 
   const doll = page.locator('.rpg-paper-doll');
   await expect(doll).toBeVisible();

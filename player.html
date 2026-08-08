@@ -38,15 +38,15 @@
   <link rel="stylesheet" href="spell-card-deck.css?v=spell-deck-1">
   <link rel="stylesheet" href="site-shell.css?v=site-shell-1">
   <link rel="stylesheet" href="live-session.css?v=live-multiplayer-1">
+  <link rel="stylesheet" href="live-session-guide.css?v=playability-audit-1">
   <link rel="stylesheet" href="card-stability.css?v=card-stability-1">
   <style>
     .read-aloud-copy{padding:12px;border-left:3px solid #d9b45f;background:#17150f;font-size:1.05rem;line-height:1.55}
   </style>
 </head>
-<body class="role-player live-play-board-first">
+<body class="role-player live-play-board-first live-player-awaiting">
   <a class="skip" href="#board">Skip to revealed adventure cards</a>
   <div id="app"></div>
-  <script src="https://unpkg.com/peerjs@1.5.5/dist/peerjs.min.js" crossorigin="anonymous"></script>
   <script type="module" src="adventure-loader.js?v=board-first-live-1"></script>
   <script type="module" src="quest-tracker.js?v=board-first-live-1"></script>
   <script defer src="card-modal.js?v=card-stability-1"></script>
@@ -66,7 +66,8 @@
   <script defer src="stolen-wish-art.js?v=stolen-wish-art-2"></script>
   <script type="module" src="combat-shortcuts.js?v=rules-cards-1"></script>
   <script type="module" src="site-shell.js?v=site-shell-1"></script>
-  <script type="module" src="live-session.js?v=live-multiplayer-1"></script>
-  <script type="module" src="live-session-resilience.js?v=live-multiplayer-1"></script>
+  <script type="module" src="live-session.js?v=live-multiplayer-2"></script>
+  <script type="module" src="live-session-resilience.js?v=live-multiplayer-2"></script>
+  <script type="module" src="live-session-guide.js?v=playability-audit-1"></script>
 </body>
 </html>

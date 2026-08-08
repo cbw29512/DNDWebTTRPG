@@ -3,6 +3,8 @@ import { loadSession, saveSession } from './src/session/session-state.js';
 const role = document.querySelector('meta[name="living-table-role"]')?.content || 'player';
 const isDM = role === 'dm';
 const PEER_PREFIX = 'living-table-';
+const PEER_SCRIPT_URL = 'https://unpkg.com/peerjs@1.5.5/dist/peerjs.min.js';
+const PEER_LOAD_TIMEOUT_MS = 8000;
 const CODE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 const HOST_KEY = 'living-table-live-host-code-v1';
 const PLAYER_KEY = 'living-table-live-player-v1';
@@ -12,13 +14,46 @@ let hostConnection = null;
 let applyingRemote = false;
 let revealSet = new Set();
 let renderTimer = 0;
+let peerLibraryPromise = null;
 
 const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[ch]));
 const normalizeCode = value => String(value ?? '').toUpperCase().replace(/[^A-Z2-9]/g,'').slice(0,8);
 const newCode = () => Array.from({length:8}, () => CODE_ALPHABET[Math.floor(Math.random()*CODE_ALPHABET.length)]).join('');
 const peerIdFor = code => `${PEER_PREFIX}${normalizeCode(code).toLowerCase()}`;
 
-function peerCtor(){ return window.Peer; }
+function ensurePeerCtor(){
+  if(window.Peer) return Promise.resolve(window.Peer);
+  if(peerLibraryPromise) return peerLibraryPromise;
+  peerLibraryPromise = new Promise((resolve,reject)=>{
+    let settled=false;
+    const finish=(error)=>{
+      if(settled)return;
+      settled=true;
+      clearTimeout(timer);
+      if(!error && window.Peer) resolve(window.Peer);
+      else reject(error || new Error('PeerJS loaded without exposing window.Peer.'));
+    };
+    let script=document.querySelector('script[data-living-table-peerjs]');
+    const onLoad=()=>finish();
+    const onError=()=>finish(new Error('PeerJS failed to load.'));
+    if(!script){
+      script=document.createElement('script');
+      script.src=PEER_SCRIPT_URL;
+      script.crossOrigin='anonymous';
+      script.dataset.livingTablePeerjs='';
+      script.async=true;
+      script.addEventListener('load',onLoad,{once:true});
+      script.addEventListener('error',onError,{once:true});
+      document.head.append(script);
+    }else{
+      script.addEventListener('load',onLoad,{once:true});
+      script.addEventListener('error',onError,{once:true});
+    }
+    const timer=setTimeout(()=>finish(new Error('PeerJS load timed out.')),PEER_LOAD_TIMEOUT_MS);
+  }).catch(error=>{peerLibraryPromise=null;throw error;});
+  return peerLibraryPromise;
+}
+
 function connectionOpen(conn){ return Boolean(conn?.open); }
 function send(conn, message){ if(connectionOpen(conn)) conn.send(message); }
 
@@ -53,10 +88,17 @@ function sanitizedFront(card){
   return front.innerHTML;
 }
 
+function revealedInCurrentDOM(cardId){
+  if(!cardId) return false;
+  const selector=`[data-reveal="${CSS.escape(cardId)}"]`;
+  return [...document.querySelectorAll(selector)].some(button=>button.textContent?.trim()==='Hide');
+}
+
 function visibleOnDM(card){
   const type = card.dataset.cardType;
   if(['location','site','room'].includes(type)) return true;
-  return revealSet.has(card.dataset.cardId);
+  const id=card.dataset.cardId;
+  return revealSet.has(id) || revealedInCurrentDOM(id);
 }
 
 function captureDMTable(){
@@ -80,11 +122,21 @@ function broadcast(message){ peers.forEach(({conn})=>send(conn,message)); }
 function broadcastSnapshot(){ if(!isDM || !peers.size) return; broadcast({type:'table-snapshot',session:safeSessionProjection(),table:captureDMTable()}); }
 function scheduleBroadcast(){ clearTimeout(renderTimer); renderTimer=setTimeout(broadcastSnapshot,100); }
 
+function markRemoteConnectionState(state,label){
+  if(isDM) return;
+  const remote=document.querySelector('.remote-live-table');
+  if(!remote) return;
+  remote.dataset.connection=state;
+  const dot=remote.querySelector('.live-dot');
+  if(dot) dot.textContent=`● ${label}`;
+}
+
 function renderRemoteTable(table){
   if(isDM || !table) return;
   const current = document.querySelector('.remote-live-table');
   const section = current || document.createElement('section');
   section.className='remote-live-table panel';
+  section.dataset.connection='live';
   section.setAttribute('aria-label','Live table revealed by the Dungeon Master');
   const labels={location:'Location',site:'Site',room:'Area',npc:'NPCs',monster:'Monsters',hazard:'Traps / Hazards',treasure:'Treasure / Rewards'};
   const slotOrder=['location','site','room','npc','monster','hazard','treasure'];
@@ -123,6 +175,28 @@ function updateHostRoster(){
   list.innerHTML=rows.length?rows.map(p=>`<li><strong>${escapeHtml(p.name)}</strong><span>${escapeHtml(p.characterId||'Character')}${p.hp!==null&&p.hp!==undefined?` · HP ${p.hp}`:''}${p.ready?' · Ready':''}</span></li>`).join(''):'<li><span>No players connected yet.</span></li>';
 }
 
+function setHostRunning(running){
+  if(!isDM)return;
+  const stop=document.querySelector('[data-stop-live]');
+  if(stop)stop.disabled=!running;
+}
+
+function stopHosting({silent=false}={}){
+  if(!isDM)return;
+  try{
+    for(const {conn} of peers.values())conn?.close?.();
+    peers.clear();
+    hostPeer?.destroy?.();
+    hostPeer=null;
+    updateHostRoster();
+    setHostRunning(false);
+    if(!silent)setStatus('Live room closed. Players are disconnected.');
+  }catch(error){
+    console.warn('[Living Table] Could not stop live room cleanly.',error);
+    if(!silent)setStatus('Live room shutdown encountered an error.','error');
+  }
+}
+
 function handleHostConnection(conn){
   const record={conn,player:{name:'Connecting…',characterId:'',hp:null,ready:false}};
   peers.set(conn.peer,record); updateHostRoster();
@@ -132,22 +206,27 @@ function handleHostConnection(conn){
   conn.on('error',()=>{peers.delete(conn.peer);updateHostRoster();});
 }
 
-function hostGame(code){
-  const Peer=peerCtor();
-  if(!Peer){setStatus('Live connection library could not load. Check your internet connection.','error');return;}
-  hostPeer?.destroy?.(); peers.clear(); updateHostRoster();
+async function hostGame(code){
+  let Peer;
+  setStatus('Loading live connection…');
+  try{Peer=await ensurePeerCtor();}catch{setStatus('Live connection library could not load. Refresh the page or check your connection.','error');return;}
+  if(hostPeer)stopHosting({silent:true});
   hostPeer=new Peer(peerIdFor(code),{debug:1});
   setStatus('Starting live room…');
-  hostPeer.on('open',()=>{localStorage.setItem(HOST_KEY,code);renderHostCode(code);setStatus('Live room is open. Players can join now.','ok');});
+  hostPeer.on('open',()=>{localStorage.setItem(HOST_KEY,code);renderHostCode(code);setHostRunning(true);setStatus('Live room is open. Players can join now.','ok');});
   hostPeer.on('connection',handleHostConnection);
-  hostPeer.on('error',error=>setStatus(error?.type==='unavailable-id'?'That game code is already in use. Create another code.':`Live room error: ${error?.type||'connection failed'}`,'error'));
+  hostPeer.on('error',error=>{setHostRunning(false);setStatus(error?.type==='unavailable-id'?'That game code is already in use. Create another code.':`Live room error: ${error?.type||'connection failed'}`,'error');});
 }
 
-function joinGame(code,name){
-  const Peer=peerCtor();
-  if(!Peer){setStatus('Live connection library could not load. Check your internet connection.','error');return;}
+async function joinGame(code,name){
   if(code.length!==8){setStatus('Enter the 8-character game code from your DM.','error');return;}
+  let Peer;
+  setStatus('Loading live connection…');
+  try{Peer=await ensurePeerCtor();}catch{setStatus('Live connection library could not load. Refresh the page or check your connection.','error');return;}
+  hostConnection?.close?.();
+  hostConnection=null;
   hostPeer?.destroy?.();
+  markRemoteConnectionState('connecting','Connecting…');
   hostPeer=new Peer(undefined,{debug:1});
   localStorage.setItem(PLAYER_KEY,JSON.stringify({code,name:name||'Player'}));
   setStatus('Connecting to the DM…');
@@ -159,22 +238,23 @@ function joinGame(code,name){
         mergeRemoteSession(data.session); renderRemoteTable(data.table); sendPlayerStatus();
       }
     });
-    conn.on('close',()=>setStatus('Disconnected from the DM.','error'));
-    conn.on('error',()=>setStatus('Could not connect to that game code.','error'));
+    conn.on('close',()=>{markRemoteConnectionState('disconnected','Disconnected');setStatus('Disconnected from the DM.','error');});
+    conn.on('error',()=>{markRemoteConnectionState('disconnected','Disconnected');setStatus('Could not connect to that game code.','error');});
   });
-  hostPeer.on('error',()=>setStatus('Could not reach the live-game service.','error'));
+  hostPeer.on('error',()=>{markRemoteConnectionState('disconnected','Disconnected');setStatus('Could not reach the live-game service.','error');});
 }
 
 function setStatus(text,kind=''){ const node=document.querySelector('[data-live-status]'); if(node){node.textContent=text;node.dataset.kind=kind;} }
 function renderHostCode(code){ const node=document.querySelector('[data-live-code]'); if(node)node.textContent=code; const copy=document.querySelector('[data-copy-live-code]'); if(copy)copy.disabled=false; }
 
 function markup(){
-  if(isDM) return `<section class="live-session-panel live-session-dm" aria-label="Live multiplayer"><div><small>LIVE MULTIPLAYER</small><h2>Host This Table</h2><p>Start a room, give players the code, and keep this DM page open while you run the game.</p></div><div class="live-code-box"><span>Game code</span><strong data-live-code>— — — — — — — —</strong><button type="button" data-copy-live-code disabled>Copy Code</button></div><div class="live-actions"><button type="button" data-start-live>Start Live Game</button><button type="button" data-new-live-code>New Code</button></div><p data-live-status aria-live="polite">Not hosting yet.</p><div class="live-roster"><h3>Connected Players</h3><ul data-live-roster><li><span>No players connected yet.</span></li></ul></div></section>`;
+  if(isDM) return `<section class="live-session-panel live-session-dm" aria-label="Live multiplayer"><div><small>LIVE MULTIPLAYER</small><h2>Host This Table</h2><p>Start a room, give players the code, and keep this DM page open while you run the game.</p></div><div class="live-code-box"><span>Game code</span><strong data-live-code>— — — — — — — —</strong><button type="button" data-copy-live-code disabled>Copy Code</button></div><div class="live-actions"><button type="button" data-start-live>Start Live Game</button><button type="button" data-new-live-code>New Code</button><button type="button" data-stop-live disabled>Stop Live Game</button></div><p data-live-status aria-live="polite">Not hosting yet.</p><div class="live-roster"><h3>Connected Players</h3><ul data-live-roster><li><span>No players connected yet.</span></li></ul></div></section>`;
   let saved={}; try{saved=JSON.parse(localStorage.getItem(PLAYER_KEY)||'{}');}catch{}
   return `<section class="live-session-panel live-session-player" aria-label="Join live multiplayer"><div><small>LIVE MULTIPLAYER</small><h2>Join the DM's Table</h2><p>Enter the game code from your Dungeon Master. Revealed cards will update here live.</p></div><form data-live-join><label>Your name<input name="playerName" value="${escapeHtml(saved.name||'')}" required maxlength="32"></label><label>Game code<input name="gameCode" value="${escapeHtml(normalizeCode(new URLSearchParams(location.search).get('game')||saved.code||''))}" required maxlength="8" autocomplete="off"></label><button>Join Game</button></form><p data-live-status aria-live="polite">Not connected.</p></section>`;
 }
 
 function mount(){
+  if(isDM && document.body.classList.contains('site-home-active')) return;
   if(document.querySelector('.live-session-panel'))return;
   const wrapper=document.createElement('div');wrapper.innerHTML=markup();
   const panel=wrapper.firstElementChild;
@@ -183,6 +263,7 @@ function mount(){
   if(isDM){
     panel.querySelector('[data-start-live]')?.addEventListener('click',()=>hostGame(localStorage.getItem(HOST_KEY)||newCode()));
     panel.querySelector('[data-new-live-code]')?.addEventListener('click',()=>hostGame(newCode()));
+    panel.querySelector('[data-stop-live]')?.addEventListener('click',()=>stopHosting());
     panel.querySelector('[data-copy-live-code]')?.addEventListener('click',async()=>{const code=panel.querySelector('[data-live-code]')?.textContent?.trim();if(code&&navigator.clipboard){await navigator.clipboard.writeText(code);setStatus('Game code copied.','ok');}});
     const saved=normalizeCode(localStorage.getItem(HOST_KEY)); if(saved)renderHostCode(saved);
   }else{
@@ -204,6 +285,6 @@ if(isDM){
   document.addEventListener('click',event=>{if(event.target.closest('.player-station,.full-character-sheet'))setTimeout(sendPlayerStatus,80);},true);
 }
 
-window.addEventListener('beforeunload',()=>{hostConnection?.close?.();hostPeer?.destroy?.();});
+window.addEventListener('beforeunload',()=>{if(isDM)stopHosting({silent:true});else{hostConnection?.close?.();hostPeer?.destroy?.();}});
 window.addEventListener('DOMContentLoaded',mount);
 setTimeout(mount,100);

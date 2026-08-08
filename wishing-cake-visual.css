@@ -155,9 +155,9 @@ body.live-play-board-first #app .card-control:focus-visible,
 body.live-play-board-first #app button:focus-visible,
 body.live-play-board-first #app input:focus-visible{outline:3px solid #e6c66f!important;outline-offset:2px!important;}
 
-/* Back face prioritizes actual game information. */
+/* Back face prioritizes actual game information without creating a scrollable card. */
 body.live-play-board-first #app .tarot-back{padding:9px!important;}
-body.live-play-board-first #app .tarot-back .card-copy{overflow:auto;padding-right:3px;scrollbar-width:thin;scrollbar-color:#85672f #121419;}
+body.live-play-board-first #app .tarot-back .card-copy{overflow:visible;padding-right:0;scrollbar-width:none;}
 body.live-play-board-first #app .card-detail{margin:0 0 7px;color:#d8cfc2;font-size:.62rem;line-height:1.38;}
 body.live-play-board-first #app .card-detail strong{color:#f0d58d;}
 body.live-play-board-first #app .read-aloud-copy{border-left-color:var(--card-accent)!important;background:color-mix(in srgb,var(--card-accent) 7%,#121419)!important;}

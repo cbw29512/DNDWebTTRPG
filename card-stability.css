@@ -3,60 +3,36 @@
  * Cards are fixed game objects: opening, focusing, or closing a card must not
  * change its screen position or visually zoom its artwork.
  */
-
-/* Keep the page content width unchanged when the modal removes body scrolling. */
 html { scrollbar-gutter: stable; }
-body.modal-open {
-  overflow: hidden;
-  padding-right: var(--modal-scrollbar-compensation, 0px);
-}
+body.modal-open {overflow:hidden;padding-right:var(--modal-scrollbar-compensation,0px);}
 
-/* The Wishing Cake visual layer previously scaled artwork on hover/focus.
- * That made a clicked/focus-restored card look like it jumped. Keep the
- * highlight, but never translate or scale card contents. */
+/* The small tarot object itself never owns a scroll container. Long-form rules
+ * belong to the large Full Card panel, which is opened by activating the card. */
+body.live-play-board-first #app .tarot-card .card-copy{overflow:visible!important;scrollbar-width:none!important;}
+
 body.live-play-board-first #app .tarot-card:hover .card-art svg,
 body.live-play-board-first #app .tarot-card:focus-within .card-art svg,
-body.live-play-board-first #app .tarot-card:focus-visible .card-art svg {
-  transform: none !important;
-  filter: saturate(1.08) brightness(1.04);
-}
-
-/* Focus must not alter outer geometry. */
-body.live-play-board-first #app .tarot-card.image-only-card:focus-visible {
-  outline: 3px solid #e6c66f;
-  outline-offset: 3px;
-}
+body.live-play-board-first #app .tarot-card:focus-visible .card-art svg {transform:none!important;filter:saturate(1.08) brightness(1.04);}
+body.live-play-board-first #app .tarot-card.image-only-card:focus-visible {outline:3px solid #e6c66f;outline-offset:3px;}
 
 /* A collapsed stack is a closed game object. Do not expose the top card face
  * until the DM/player deliberately opens the stack drawer. The hidden tarot
  * remains in layout so the stack keeps its fixed card geometry. */
-body.live-play-board-first #app .card-stack:not(.expanded) .stack-toggle > .tarot-card {
-  visibility: hidden !important;
-}
+body.live-play-board-first #app .card-stack .stack-toggle{position:relative;}
+body.live-play-board-first #app .card-stack:not(.expanded) .stack-toggle > .tarot-card {visibility:hidden!important;}
 body.live-play-board-first #app .card-stack:not(.expanded) .stack-toggle::before {
-  content: "CLOSED STACK";
-  position: absolute;
-  z-index: 6;
-  inset: 0 0 34px;
-  display: grid;
-  place-items: center;
-  box-sizing: border-box;
-  border: 2px solid #7b6536;
-  border-radius: 13px;
-  background:
-    radial-gradient(circle at 50% 34%, #d7b65b 0 5px, transparent 6px),
-    linear-gradient(135deg, transparent 46%, #6d5728 47% 49%, transparent 50% 100%),
-    linear-gradient(225deg, transparent 46%, #6d5728 47% 49%, transparent 50% 100%),
-    #11141a;
-  color: #e8cf86;
-  font-size: .68rem;
-  font-weight: 900;
-  letter-spacing: .12em;
-  text-align: center;
-  padding-top: 78px;
-  box-shadow: inset 0 0 0 4px #191d24, inset 0 0 0 5px #4f432b;
+  content:"CLOSED STACK";position:absolute;z-index:6;inset:0 0 34px;display:grid;place-items:center;box-sizing:border-box;border:2px solid #7b6536;border-radius:13px;
+  background:radial-gradient(circle at 50% 34%,#d7b65b 0 5px,transparent 6px),linear-gradient(135deg,transparent 46%,#6d5728 47% 49%,transparent 50% 100%),linear-gradient(225deg,transparent 46%,#6d5728 47% 49%,transparent 50% 100%),#11141a;
+  color:#e8cf86;font-size:.68rem;font-weight:900;letter-spacing:.12em;text-align:center;padding-top:78px;box-shadow:inset 0 0 0 4px #191d24,inset 0 0 0 5px #4f432b;
 }
 body.live-play-board-first #app .card-stack:not(.expanded) .stack-toggle:hover::before,
-body.live-play-board-first #app .card-stack:not(.expanded) .stack-toggle:focus-visible::before {
-  border-color: #e6c66f;
+body.live-play-board-first #app .card-stack:not(.expanded) .stack-toggle:focus-visible::before {border-color:#e6c66f;}
+
+/* Quantity is stack state, not card-face content. Keep it outside the hidden
+ * tarot so the DM can see exact in-play count while the stack remains closed. */
+body.live-play-board-first #app .stack-toggle > .live-stack-quantity{
+  position:absolute;z-index:9;top:10px;left:10px;pointer-events:none;
+  padding:4px 7px;border:1px solid #b78d39;border-radius:999px;
+  background:#1f180d;color:#ffe29a;box-shadow:0 3px 10px #0008;
+  font-size:.6rem;font-weight:900;letter-spacing:.04em;
 }

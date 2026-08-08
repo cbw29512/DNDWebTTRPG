@@ -37,7 +37,7 @@ for (const [route, html] of [['DM', dm], ['Player', player]]) {
 }
 
 assert.match(dm, /<body class="role-dm live-play-board-first">/);
-assert.match(player, /<body class="role-player live-play-board-first">/);
+assert.match(player, /<body class="role-player live-play-board-first live-player-awaiting">/);
 assert.match(redirect, /params\.set\('dm', '1'\)/, 'Legacy dm.html must route into the DM table instead of the public home state.');
 assert.match(redirect, /location\.replace\('\.\/\?' \+ params\.toString\(\) \+ location\.hash\)/);
 assert.match(redirect, /<noscript><a href="\.\/\?dm=1">/);

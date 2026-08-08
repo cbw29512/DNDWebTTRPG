@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { wishingCakePackCards } from '../src/wishing-cake-pack.js';
 import { wishingCakeMonsterStats, wishingCakeMonsterIds } from '../src/wishing-cake-monster-stats.js';
+import { wishingCakeCombatRules } from '../src/wishing-cake-combat.js';
 import { CARD_TYPES } from '../src/schema.js';
 import { validateDamageParts } from '../src/dnd/rules-engine.js';
 
@@ -11,12 +12,13 @@ const required=['sizeType','proficiencyBonus','ac','hp','speed','abilities','sav
 for(const card of monsterCards){
  const canonical=wishingCakeMonsterStats[card.id];
  assert.ok(canonical,`${card.title}: canonical monster data missing`);
- for(const field of required)assert.notEqual(card.dmFace[field],undefined,`${card.title}: missing ${field}`);
+ assert.equal(card.dmFace,canonical.dmFace,`${card.title}: runtime DM face must be the canonical stat object, not a merged legacy copy`);
  assert.equal(card.combat,canonical.combat,`${card.title}: live combat shortcuts must come from the same canonical record as the stat block`);
+ assert.equal(wishingCakeCombatRules[card.id],canonical.combat,`${card.title}: combat module must delegate to canonical monster data`);
+ assert.match(card.rulesClassification,/Adventure Homebrew/i,`${card.title}: homebrew monster must be classified as adventure content`);
+ for(const field of required)assert.notEqual(card.dmFace[field],undefined,`${card.title}: missing ${field}`);
  for(const shortcut of card.combat?.shortcuts||[]){
-  for(const part of shortcut.damage||[]){
-   assert.doesNotMatch(part.dice,/d20/i,`${card.title} ${shortcut.label}: d20 cannot be damage`);
-  }
+  for(const part of shortcut.damage||[]){assert.doesNotMatch(part.dice,/d20/i,`${card.title} ${shortcut.label}: d20 cannot be damage`);}
   if(shortcut.damage?.length)assert.doesNotThrow(()=>validateDamageParts(shortcut.damage));
  }
 }
@@ -51,4 +53,4 @@ assert.equal(boss.combat.spellAttackBonus,5);
 assert.match(boss.combat.shortcuts.find(x=>x.id==='shield').text,/AC becomes 20/);
 assert.doesNotMatch(boss.dmFace.traits.join(' '),/1\/Turn/,'Halfling Lucky must not be given a fake once-per-turn limit');
 
-console.log('All Wishing Cake monster cards use complete, canonical, internally consistent stat blocks.');
+console.log('All Wishing Cake monster cards use one complete canonical stat/combat source with no runtime legacy merge.');

@@ -3,7 +3,6 @@ if(isPlayer){
   const app=document.querySelector('#app');
   const park=table=>{
     if(!table)return;
-    document.body.classList.add('live-remote-connected');
     const panel=document.querySelector('.live-session-panel');
     if(panel&&table.parentElement!==document.body)panel.insertAdjacentElement('afterend',table);
     else if(!table.isConnected)document.body.append(table);

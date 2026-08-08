@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 
 test('2024 Wizard separates class and Magic Initiate access on Shield', async ({ page }) => {
-  await page.goto('/player.html?character=elara-evoker&edition=2024',{waitUntil:'networkidle'});
+  await page.goto('/player.html?character=elara-evoker&edition=2024',{waitUntil:'domcontentloaded'});
   const card=page.locator('[data-spell-card="Shield"]');
   await expect(card).toBeVisible();
   await expect(card.locator('.spell-source-badges')).toContainText('Class · INT');
@@ -11,7 +11,7 @@ test('2024 Wizard separates class and Magic Initiate access on Shield', async ({
 });
 
 test('2024 Ranger Hunter’s Mark keeps free Favored Enemy uses separate from spell slots', async ({ page }) => {
-  await page.goto('/player.html?character=fern-hunter&edition=2024',{waitUntil:'networkidle'});
+  await page.goto('/player.html?character=fern-hunter&edition=2024',{waitUntil:'domcontentloaded'});
   const card=page.locator('[data-spell-card="Hunter’s Mark"]');
   await expect(card).toBeVisible();
   await expect(card.locator('.spell-source-badges')).toContainText('Class · WIS');
@@ -22,7 +22,7 @@ test('2024 Ranger Hunter’s Mark keeps free Favored Enemy uses separate from sp
 });
 
 test('2024 Bard Magic Initiate spell advertises its own CHA casting source', async ({ page }) => {
-  await page.goto('/player.html?character=lute-lore-bard&edition=2024',{waitUntil:'networkidle'});
+  await page.goto('/player.html?character=lute-lore-bard&edition=2024',{waitUntil:'domcontentloaded'});
   const card=page.locator('[data-spell-card="Sanctuary"]');
   await expect(card).toBeVisible();
   await expect(card.locator('.spell-source-badges')).toContainText('Magic Initiate (Cleric) · CHA');

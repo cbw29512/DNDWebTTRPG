@@ -39,16 +39,17 @@ const dmView=projectSessionFor(session,dm);
 const playerView=projectSessionFor(session,player);
 assert.equal(session.id,'wishing-cake-birthday-example');
 assert.ok(dmView.cards.length>=30);
-assert.ok(playerView.cards.length>=10);
+assert.ok(playerView.cards.length>0,'Player projection must contain the currently revealed spatial/Scene context.');
+assert.ok(playerView.cards.length<dmView.cards.length,'Player projection must exclude unrevealed adventure cards.');
 assert.match(String(dmView.cards.find(card=>card.id==='monster-sepulchral').dmFace.hp),/^58/);
-assert.equal(playerView.cards.find(card=>card.id==='priest').dmFace,undefined);
-assert.equal(playerView.cards.some(card=>card.id==='room-cake-chamber'),false);
+for(const hiddenId of ['caretaker','npc-boris','npc-pip','npc-lute','priest','lantern','room-cake-chamber']){
+  assert.equal(playerView.cards.some(card=>card.id===hiddenId),false,`${hiddenId} must stay absent until the DM explicitly reveals it.`);
+}
+for(const card of playerView.cards)assert.equal('dmFace' in card,false,`${card.id} player projection must never contain dmFace.`);
 assert.equal(playerView.cards.find(card=>card.id==='location').title,'Bramblewick');
 assert.equal(playerView.cards.find(card=>card.id==='site-wishing-cake-inn').title,'The Wishing Cake Inn');
 assert.equal(playerView.cards.find(card=>card.id==='room').title,'Grand Celebration Hall');
 assert.equal(playerView.cards.find(card=>card.id==='scene-stolen-wish').title,'The Stolen Wish');
-assert.equal(playerView.cards.find(card=>card.id==='caretaker').face.openingDialogue.startsWith('No one celebrates alone'),true);
-assert.match(playerView.cards.find(card=>card.id==='lantern').face.summary,/three tokens/i);
 assert.equal(playerView.actors.some(actor=>actor.id==='sepulchral'),false);
 assert.equal(playerView.actors.find(actor=>actor.id==='wendy').hp.current,28);
 assert.throws(()=>projectSessionFor(session,{id:'intruder',name:'Intruder',role:'player'}),/not seated/);
@@ -105,4 +106,4 @@ assert.match(vision,/server-side/i); assert.match(mvp,/complete (?:a single )?D&
 const slotDefinitions = [...app.matchAll(/id: "(location|site|room|npc|monster|hazard|treasure)"/g)].map(match => match[1]);
 assert.deepEqual(slotDefinitions, ['location','site','room','npc','monster','hazard','treasure']);
 
-console.log('The Living Table seven-slot hierarchy, audited Wishing Cake rules, item uses, grouped initiative, projections, and source registry passed.');
+console.log('The Living Table seven-slot hierarchy, audited Wishing Cake rules, explicit player-safe projections, source registry, and runtime contracts passed.');
