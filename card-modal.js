@@ -130,13 +130,18 @@ function openModal(card) {
 }
 
 function runModalControl(button) {
-  const backdrop = button.closest(".large-card-backdrop");
-  const details = cardDetails.get(backdrop?.dataset.modalCardKey);
-  const key = button.dataset.modalControlKey;
-  const original = key ? details?.controlMap.get(key) : null;
-  if (!original) return false;
-  original.click();
-  return true;
+  try {
+    const backdrop = button.closest(".large-card-backdrop");
+    const details = cardDetails.get(backdrop?.dataset.modalCardKey);
+    const key = button.dataset.modalControlKey;
+    const original = key ? details?.controlMap.get(key) : null;
+    if (!original) return false;
+    original.click();
+    return true;
+  } catch (error) {
+    console.warn('[Living Table] Full-card action failed.', error);
+    return false;
+  }
 }
 
 document.addEventListener("click", event => {
@@ -147,7 +152,17 @@ document.addEventListener("click", event => {
 
   const modalButton = event.target.closest(".large-card-modal button");
   if (modalButton) {
-    if (runModalControl(modalButton)) closeModal();
+    const revealAction = modalButton.hasAttribute("data-reveal");
+    const priorLabel = modalButton.textContent?.trim() || "";
+    if (runModalControl(modalButton)) {
+      if (revealAction) {
+        /* live-session observes the same click on document and resolves reveal
+         * state on a zero-delay task. Keep this copied control mounted long
+         * enough to expose the post-action state instead of a detached button. */
+        modalButton.textContent = priorLabel === "Reveal" ? "Hide" : "Reveal";
+        setTimeout(closeModal, 25);
+      } else closeModal();
+    }
     return;
   }
 
