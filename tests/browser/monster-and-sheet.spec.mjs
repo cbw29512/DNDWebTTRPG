@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 
 async function loadWishingCake(page){
- await page.goto('/?launch=1',{waitUntil:'networkidle'});
+ await page.goto('/?launch=1',{waitUntil:'domcontentloaded'});
  await expect(page.locator('.adventure-loader')).toBeVisible();
  await page.locator('[data-load-pack]').click();
  await expect(page.locator('.adventure-deck')).toBeVisible();
@@ -38,7 +38,7 @@ test('DM monster cards render the corrected canonical stat blocks',async({page})
 });
 
 test('pregen full sheet exposes standard character details and persistent tracking',async({page})=>{
- await page.goto('/player.html?character=wendy-birthday-hero&edition=2024',{waitUntil:'networkidle'});
+ await page.goto('/player.html?character=wendy-birthday-hero&edition=2024',{waitUntil:'domcontentloaded'});
  const panel=page.locator('.sheet-tracking-panel');
  await expect(panel).toBeVisible();
  for(const text of ['Player Name','Alignment','Size','Species','Class / Level','Background','Hit Die','Senses','Experience Points','Temporary HP','Heroic Inspiration','Death Saves','Exhaustion','Conditions','Currency','Personality','Ideal','Bond','Flaw'])await expect(panel.getByText(text,{exact:false}).first()).toBeVisible();
@@ -55,7 +55,7 @@ test('pregen full sheet exposes standard character details and persistent tracki
  await panel.locator('[data-sheet-currency="gp"]').fill('42');
  await panel.locator('[data-sheet-currency="gp"]').press('Tab');
 
- await page.reload({waitUntil:'networkidle'});
+ await page.reload({waitUntil:'domcontentloaded'});
  const restored=page.locator('.sheet-tracking-panel');
  await expect(restored.locator('[data-sheet-field="playerName"]')).toHaveValue('Playtest Player');
  await expect(restored.locator('[data-sheet-number="xp"]')).toHaveValue('900');
@@ -67,7 +67,7 @@ test('pregen full sheet exposes standard character details and persistent tracki
 });
 
 test('2014 pregen sheet labels Inspiration rather than Heroic Inspiration',async({page})=>{
- await page.goto('/player.html?character=wendy-birthday-hero&edition=2014',{waitUntil:'networkidle'});
+ await page.goto('/player.html?character=wendy-birthday-hero&edition=2014',{waitUntil:'domcontentloaded'});
  const panel=page.locator('.sheet-tracking-panel');
  await expect(panel).toBeVisible();
  await expect(panel.getByText('Inspiration',{exact:true})).toBeVisible();
