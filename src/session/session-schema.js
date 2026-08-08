@@ -1,3 +1,5 @@
+import { normalizeCombatState } from './combat-schema.js';
+
 export const SESSION_SCHEMA_VERSION = 3;
 export const LIVE_BOARD_SLOT_IDS = Object.freeze([
   'location',
@@ -43,7 +45,7 @@ export function normalizeSessionState(input = {}) {
     session.sceneState = session.sceneState && typeof session.sceneState === 'object' ? session.sceneState : {};
     session.eventHistory = Array.isArray(session.eventHistory) ? session.eventHistory : [];
     session.players = Array.isArray(session.players) ? session.players : [];
-    if (!('combatState' in session)) session.combatState = null;
+    session.combatState = normalizeCombatState(session.combatState ?? null);
     return session;
   } catch (error) {
     console.error('[Living Table] Failed to normalize session state.', error);
