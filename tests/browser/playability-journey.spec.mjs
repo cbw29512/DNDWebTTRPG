@@ -5,6 +5,17 @@ async function loadDM(page){
   await page.waitForSelector('.encounter-board');
 }
 
+test('public Home explains remote live play without exposing DM hosting controls',async({page})=>{
+  await page.goto('/');
+  await expect(page.locator('.site-landing')).toBeVisible();
+  await expect(page.locator('.landing-note')).toContainText('Remote playtest is live.');
+  await expect(page.locator('.landing-note')).toContainText('8-character game code');
+  await expect(page.locator('.landing-note')).toContainText('separate computers or phones');
+  await expect(page.locator('.live-session-dm')).toHaveCount(0);
+  await expect(page.getByRole('link',{name:'DM Table'})).toBeVisible();
+  await expect(page.getByRole('link',{name:'Join as a Player'})).toBeVisible();
+});
+
 test('DM table explains hosting and exposes a player-link action',async({page})=>{
   await loadDM(page);
   const panel=page.locator('.live-session-dm');
