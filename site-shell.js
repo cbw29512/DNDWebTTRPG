@@ -42,7 +42,7 @@ function landingMarkup() {
           <a class="landing-action" href="./?dm=1">${resumeLabel}</a>
           <a class="landing-action" href="./player.html">Join as a Player</a>
         </div>
-        <p class="landing-note">Current local playtest: DM and Player views share a saved session when opened from the same browser profile. Remote-device synchronization is not part of this prototype yet.</p>
+        <p class="landing-note"><strong>Remote playtest is live.</strong> The DM opens a room from the DM Table and shares the 8-character game code. Players can join from separate computers or phones and receive only the cards and table information the DM has revealed. The DM-hosted peer-to-peer room lasts while the DM keeps the table open; persistent accounts and reconnectable cloud rooms are still future production work.</p>
       </div>
       <div class="landing-preview" aria-hidden="true">
         <article class="landing-preview-card">
@@ -57,7 +57,7 @@ function landingMarkup() {
       <h2 id="how-title">From adventure pack to live table—together.</h2>
       <p class="landing-lede">The DM and players play simultaneously. Each role gets the information and controls it needs, while both sides stay anchored to the same scene, encounter, characters, and story.</p>
       <div class="how-grid">
-        <article class="how-card"><b>1</b><h3>Sit Down Together</h3><p>Choose an adventure and rules edition. The DM takes the DM Table; each player takes the Player Table and their character. Everyone is now playing the same session.</p></article>
+        <article class="how-card"><b>1</b><h3>Sit Down Together</h3><p>Choose an adventure and rules edition. The DM takes the DM Table and starts a live room; each player opens the Player Table, enters the shared code, and confirms their character. Everyone is then playing the same session at the same time.</p></article>
         <article class="how-card"><b>2</b><h3>The DM Plays the World</h3><p>The DM describes the scene, roleplays NPCs, runs monsters, adjudicates rules, and advances the adventure. DM-only notes and unrevealed information stay behind the screen.</p></article>
         <article class="how-card"><b>3</b><h3>Cards Enter Play</h3><p>Locations, creatures, clues, hazards, treasure, characters, equipment, and spells appear as usable game pieces. Reveal only what the party has discovered; keep secrets hidden until they matter.</p></article>
         <article class="how-card"><b>4</b><h3>Players Act on the Same Table</h3><p>Players use their character, equipment, spell, and revealed adventure cards to make decisions while the DM responds in real time. The table evolves with the story instead of sending everyone back to books and notes.</p></article>
