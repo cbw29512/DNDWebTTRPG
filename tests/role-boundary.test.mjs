@@ -28,7 +28,7 @@ assert.match(app, /face: card\.face \?/);
 assert.match(app, /prefixedFace\(scenePlayerFace\)/);
 assert.match(app, /prefixedFace\(sceneDmFace\)/);
 
-assert.match(sceneRuntime, /if \(!isDungeonMaster \|\| loading\) return false/);
+assert.match(sceneRuntime, /if\s*\(\s*!isDungeonMaster\s*\|\|\s*loading\s*\)\s*return false/,'Scene loading must remain DM-only and reject re-entrant loads regardless of formatting.');
 assert.match(sceneRuntime, /hidden information remains absent from player projections/);
 assert.match(boundary, /encounter-board \[data-card-roll\]/);
 assert.match(boundary, /view-switch/);
