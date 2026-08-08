@@ -71,13 +71,14 @@ export function normalizeCombatState(input){
   const combatants=Object.fromEntries((Array.isArray(input.combatants)?input.combatants:Object.values(input.combatants||{})).map(entry=>{
     const normalized=normalizeCombatant(entry);return [normalized.id,normalized];
   }));
+  const status=String(input.status||'active');
   const turnOrder=[...new Set((input.turnOrder||[]).filter(id=>id in combatants))];
-  const activeTurnId=input.activeTurnId&&turnOrder.includes(input.activeTurnId)?input.activeTurnId:(turnOrder[0]||null);
+  const activeTurnId=status==='setup'?null:(input.activeTurnId&&turnOrder.includes(input.activeTurnId)?input.activeTurnId:(turnOrder[0]||null));
   return {
     schemaVersion:COMBAT_SCHEMA_VERSION,
     encounterId:String(input.encounterId||'encounter'),
     edition:String(input.edition||'dnd-2014'),
-    status:String(input.status||'active'),
+    status,
     round:Math.max(1,numberOr(input.round,1)),
     activeTurnId,
     turnOrder,
