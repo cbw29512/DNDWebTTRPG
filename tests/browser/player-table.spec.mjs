@@ -21,7 +21,7 @@ async function collectPageErrors(page) {
 
 async function verifyPlayerBuild(page, id, name, edition) {
   const errors = await collectPageErrors(page);
-  await page.goto(`/player.html?character=${id}&edition=${edition}`, { waitUntil: 'networkidle' });
+  await page.goto(`/player.html?character=${id}&edition=${edition}`, { waitUntil: 'domcontentloaded' });
 
   await expect(page.locator('.site-shell-nav')).toBeVisible();
   await expect(page.getByRole('link', { name: 'Home' })).toBeVisible();
@@ -79,7 +79,7 @@ async function verifyPlayerBuild(page, id, name, edition) {
 
 test('public landing page explains the product and links both roles', async ({ page }) => {
   const errors = await collectPageErrors(page);
-  await page.goto('/', { waitUntil: 'networkidle' });
+  await page.goto('/', { waitUntil: 'domcontentloaded' });
   await expect(page.getByRole('heading', { name: /Run the adventure/i })).toBeVisible();
   await expect(page.getByRole('link', { name: 'Run The Wishing Cake' })).toBeVisible();
   await expect(page.getByRole('link', { name: /DM Table/ }).first()).toBeVisible();
@@ -91,7 +91,7 @@ test('public landing page explains the product and links both roles', async ({ p
 test('DM can launch Wishing Cake and advance the prepared scene', async ({ page }) => {
   const errors = await collectPageErrors(page);
   await page.setViewportSize({ width: 1880, height: 1021 });
-  await page.goto('/?launch=1', { waitUntil: 'networkidle' });
+  await page.goto('/?launch=1', { waitUntil: 'domcontentloaded' });
   await expect(page.locator('.adventure-loader')).toBeVisible();
   await page.locator('[data-load-pack]').click();
   await expect(page.locator('.scene-runtime')).toBeVisible();
@@ -132,7 +132,7 @@ for (const [id, name] of pregens) {
 }
 
 test('wizard spell deck spends and restores the real level-3 slot pool', async ({ page }) => {
-  await page.goto('/player.html?character=elara-evoker&edition=2014',{waitUntil:'networkidle'});
+  await page.goto('/player.html?character=elara-evoker&edition=2014',{waitUntil:'domcontentloaded'});
   const deck=page.locator('.spell-card-deck');
   await expect(deck).toBeVisible();
   await expect(deck.locator('[data-slot-level="1"] strong')).toHaveText('4/4');
@@ -146,22 +146,22 @@ test('wizard spell deck spends and restores the real level-3 slot pool', async (
 });
 
 test('edition-specific spell cards expose the correct healing dice', async ({ page }) => {
-  await page.goto('/player.html?character=brunna-life-cleric&edition=2014',{waitUntil:'networkidle'});
+  await page.goto('/player.html?character=brunna-life-cleric&edition=2014',{waitUntil:'domcontentloaded'});
   await expect(page.locator('[data-spell-card="Cure Wounds"]')).toContainText('1d8 + spellcasting ability modifier');
-  await page.goto('/player.html?character=brunna-life-cleric&edition=2024',{waitUntil:'networkidle'});
+  await page.goto('/player.html?character=brunna-life-cleric&edition=2024',{waitUntil:'domcontentloaded'});
   await expect(page.locator('[data-spell-card="Cure Wounds"]')).toContainText('2d8 + spellcasting ability modifier');
 });
 
 test('Lore Bard spell deck stays inside each SRD publishing baseline', async ({ page }) => {
-  await page.goto('/player.html?character=lute-lore-bard&edition=2014',{waitUntil:'networkidle'});
+  await page.goto('/player.html?character=lute-lore-bard&edition=2014',{waitUntil:'domcontentloaded'});
   await expect(page.locator('[data-spell-card="Charm Person"]')).toBeVisible();
   await expect(page.locator('[data-spell-card="Dissonant Whispers"]')).toHaveCount(0);
-  await page.goto('/player.html?character=lute-lore-bard&edition=2024',{waitUntil:'networkidle'});
+  await page.goto('/player.html?character=lute-lore-bard&edition=2024',{waitUntil:'domcontentloaded'});
   await expect(page.locator('[data-spell-card="Dissonant Whispers"]')).toBeVisible();
 });
 
 test('2024 Elf lineage level-3 spell displays source-specific free and slot casts separately', async ({ page }) => {
-  await page.goto('/player.html?character=elara-evoker&edition=2024',{waitUntil:'networkidle'});
+  await page.goto('/player.html?character=elara-evoker&edition=2024',{waitUntil:'domcontentloaded'});
   const detect=page.locator('[data-spell-card="Detect Magic"]');
   await expect(detect).toBeVisible();
   await expect(detect.locator('.spell-source-badges')).toContainText('High Elf Lineage · INT');
