@@ -175,6 +175,28 @@ function updateHostRoster(){
   list.innerHTML=rows.length?rows.map(p=>`<li><strong>${escapeHtml(p.name)}</strong><span>${escapeHtml(p.characterId||'Character')}${p.hp!==null&&p.hp!==undefined?` · HP ${p.hp}`:''}${p.ready?' · Ready':''}</span></li>`).join(''):'<li><span>No players connected yet.</span></li>';
 }
 
+function setHostRunning(running){
+  if(!isDM)return;
+  const stop=document.querySelector('[data-stop-live]');
+  if(stop)stop.disabled=!running;
+}
+
+function stopHosting({silent=false}={}){
+  if(!isDM)return;
+  try{
+    for(const {conn} of peers.values())conn?.close?.();
+    peers.clear();
+    hostPeer?.destroy?.();
+    hostPeer=null;
+    updateHostRoster();
+    setHostRunning(false);
+    if(!silent)setStatus('Live room closed. Players are disconnected.');
+  }catch(error){
+    console.warn('[Living Table] Could not stop live room cleanly.',error);
+    if(!silent)setStatus('Live room shutdown encountered an error.','error');
+  }
+}
+
 function handleHostConnection(conn){
   const record={conn,player:{name:'Connecting…',characterId:'',hp:null,ready:false}};
   peers.set(conn.peer,record); updateHostRoster();
@@ -188,12 +210,12 @@ async function hostGame(code){
   let Peer;
   setStatus('Loading live connection…');
   try{Peer=await ensurePeerCtor();}catch{setStatus('Live connection library could not load. Refresh the page or check your connection.','error');return;}
-  hostPeer?.destroy?.(); peers.clear(); updateHostRoster();
+  if(hostPeer)stopHosting({silent:true});
   hostPeer=new Peer(peerIdFor(code),{debug:1});
   setStatus('Starting live room…');
-  hostPeer.on('open',()=>{localStorage.setItem(HOST_KEY,code);renderHostCode(code);setStatus('Live room is open. Players can join now.','ok');});
+  hostPeer.on('open',()=>{localStorage.setItem(HOST_KEY,code);renderHostCode(code);setHostRunning(true);setStatus('Live room is open. Players can join now.','ok');});
   hostPeer.on('connection',handleHostConnection);
-  hostPeer.on('error',error=>setStatus(error?.type==='unavailable-id'?'That game code is already in use. Create another code.':`Live room error: ${error?.type||'connection failed'}`,'error'));
+  hostPeer.on('error',error=>{setHostRunning(false);setStatus(error?.type==='unavailable-id'?'That game code is already in use. Create another code.':`Live room error: ${error?.type||'connection failed'}`,'error');});
 }
 
 async function joinGame(code,name){
@@ -226,7 +248,7 @@ function setStatus(text,kind=''){ const node=document.querySelector('[data-live-
 function renderHostCode(code){ const node=document.querySelector('[data-live-code]'); if(node)node.textContent=code; const copy=document.querySelector('[data-copy-live-code]'); if(copy)copy.disabled=false; }
 
 function markup(){
-  if(isDM) return `<section class="live-session-panel live-session-dm" aria-label="Live multiplayer"><div><small>LIVE MULTIPLAYER</small><h2>Host This Table</h2><p>Start a room, give players the code, and keep this DM page open while you run the game.</p></div><div class="live-code-box"><span>Game code</span><strong data-live-code>— — — — — — — —</strong><button type="button" data-copy-live-code disabled>Copy Code</button></div><div class="live-actions"><button type="button" data-start-live>Start Live Game</button><button type="button" data-new-live-code>New Code</button></div><p data-live-status aria-live="polite">Not hosting yet.</p><div class="live-roster"><h3>Connected Players</h3><ul data-live-roster><li><span>No players connected yet.</span></li></ul></div></section>`;
+  if(isDM) return `<section class="live-session-panel live-session-dm" aria-label="Live multiplayer"><div><small>LIVE MULTIPLAYER</small><h2>Host This Table</h2><p>Start a room, give players the code, and keep this DM page open while you run the game.</p></div><div class="live-code-box"><span>Game code</span><strong data-live-code>— — — — — — — —</strong><button type="button" data-copy-live-code disabled>Copy Code</button></div><div class="live-actions"><button type="button" data-start-live>Start Live Game</button><button type="button" data-new-live-code>New Code</button><button type="button" data-stop-live disabled>Stop Live Game</button></div><p data-live-status aria-live="polite">Not hosting yet.</p><div class="live-roster"><h3>Connected Players</h3><ul data-live-roster><li><span>No players connected yet.</span></li></ul></div></section>`;
   let saved={}; try{saved=JSON.parse(localStorage.getItem(PLAYER_KEY)||'{}');}catch{}
   return `<section class="live-session-panel live-session-player" aria-label="Join live multiplayer"><div><small>LIVE MULTIPLAYER</small><h2>Join the DM's Table</h2><p>Enter the game code from your Dungeon Master. Revealed cards will update here live.</p></div><form data-live-join><label>Your name<input name="playerName" value="${escapeHtml(saved.name||'')}" required maxlength="32"></label><label>Game code<input name="gameCode" value="${escapeHtml(normalizeCode(new URLSearchParams(location.search).get('game')||saved.code||''))}" required maxlength="8" autocomplete="off"></label><button>Join Game</button></form><p data-live-status aria-live="polite">Not connected.</p></section>`;
 }
@@ -241,6 +263,7 @@ function mount(){
   if(isDM){
     panel.querySelector('[data-start-live]')?.addEventListener('click',()=>hostGame(localStorage.getItem(HOST_KEY)||newCode()));
     panel.querySelector('[data-new-live-code]')?.addEventListener('click',()=>hostGame(newCode()));
+    panel.querySelector('[data-stop-live]')?.addEventListener('click',()=>stopHosting());
     panel.querySelector('[data-copy-live-code]')?.addEventListener('click',async()=>{const code=panel.querySelector('[data-live-code]')?.textContent?.trim();if(code&&navigator.clipboard){await navigator.clipboard.writeText(code);setStatus('Game code copied.','ok');}});
     const saved=normalizeCode(localStorage.getItem(HOST_KEY)); if(saved)renderHostCode(saved);
   }else{
@@ -262,6 +285,6 @@ if(isDM){
   document.addEventListener('click',event=>{if(event.target.closest('.player-station,.full-character-sheet'))setTimeout(sendPlayerStatus,80);},true);
 }
 
-window.addEventListener('beforeunload',()=>{hostConnection?.close?.();hostPeer?.destroy?.();});
+window.addEventListener('beforeunload',()=>{if(isDM)stopHosting({silent:true});else{hostConnection?.close?.();hostPeer?.destroy?.();}});
 window.addEventListener('DOMContentLoaded',mount);
 setTimeout(mount,100);
