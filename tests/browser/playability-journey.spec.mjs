@@ -14,6 +14,15 @@ test('DM table explains hosting and exposes a player-link action',async({page})=
   await expect(panel.getByRole('button',{name:'Copy Player Link'})).toBeDisabled();
 });
 
+test('Always-used dice tools appear above the live DM board',async({page})=>{
+  await loadDM(page);
+  const topbar=await page.locator('#app .topbar').boundingBox();
+  const board=await page.locator('#app .encounter-board').boundingBox();
+  expect(topbar).not.toBeNull();expect(board).not.toBeNull();
+  expect(topbar.y+topbar.height).toBeLessThanOrEqual(board.y+2);
+  await expect(page.locator('#app .topbar [data-die="20"]')).toBeVisible();
+});
+
 test('Player cannot confuse the local demo board with a live DM table before joining',async({page})=>{
   await page.goto('/player.html');
   await page.waitForSelector('.live-session-player');
