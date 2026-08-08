@@ -1,8 +1,10 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
+import { boardForScene, questStateForScene } from '../src/session/scene-model.js';
 
 const manifest = JSON.parse(await readFile(new URL('../packs/wishing-cake/1.0.0/manifest.json', import.meta.url), 'utf8'));
 const runtime = await readFile(new URL('../scene-runtime.js', import.meta.url), 'utf8');
+const commands = await readFile(new URL('../src/session/session-commands.js', import.meta.url), 'utf8');
 const html = await readFile(new URL('../index.html', import.meta.url), 'utf8');
 
 assert.equal(manifest.entrySceneId, 'opening-inn');
@@ -18,20 +20,29 @@ assert.notEqual(manifest.scenes[0].sceneCardId, manifest.scenes[1].sceneCardId, 
 assert.ok(manifest.scenes.some(scene => scene.exits?.length > 1), 'Scene graph should support branching exits');
 assert.ok(manifest.scenes.some(scene => scene.questIds.includes('objective-free-souls')), 'Scene loading should be able to activate a side quest');
 
-assert.match(runtime, /site: \[scene\.siteId\]/);
-assert.match(runtime, /room: \[scene\.roomId\]/);
-assert.doesNotMatch(runtime, /\n\s*scene:\s*\[scene\.sceneCardId\]/);
-assert.doesNotMatch(runtime, /\n\s*objective:/);
-assert.match(runtime, /questStateForScene/);
+const entry=manifest.scenes[0];
+const board=boardForScene(entry,manifest);
+assert.deepEqual(board.site,[entry.siteId]);
+assert.deepEqual(board.room,[entry.roomId]);
+assert.equal('scene' in board,false,'Scene identity must remain outside the seven-slot live board.');
+assert.equal('objective' in board,false,'Quest state must remain outside the seven-slot live board.');
+const questState=questStateForScene({quests:manifest.startingQuests,questState:{active:[],revealed:manifest.startingQuests}},entry,manifest);
+for(const questId of entry.questIds||[])assert.ok(questState.questState.revealed.includes(questId));
+
+assert.match(runtime, /from '\.\/src\/session\/scene-model\.js'/,'Scene composition must live in the pure Scene model, not the UI runtime.');
+assert.match(runtime, /api\.reconcileSessionBoard\(/,'Scene Runtime must use the guarded reconciliation transaction.');
+assert.match(runtime, /type:SESSION_COMMANDS\.LOAD_SCENE/,'Scene Runtime must commit one atomic LOAD_SCENE command.');
 assert.match(runtime, /activatedQuestIds/);
-assert.match(runtime, /currentLocationId/);
-assert.match(runtime, /currentSiteId/);
-assert.match(runtime, /currentRoomId/);
-assert.match(runtime, /currentSceneCardId/);
-assert.match(runtime, /roomHistory/);
-assert.match(runtime, /eventHistory/);
+assert.match(runtime, /sceneId:scene\.id/);
+assert.match(runtime, /locationId:scene\.locationId/);
+assert.match(runtime, /siteId:scene\.siteId/);
+assert.match(runtime, /roomId:scene\.roomId/);
+assert.match(runtime, /sceneCardId:scene\.sceneCardId/);
+assert.match(runtime, /roomHistory:history/);
+assert.doesNotMatch(runtime, /eventHistory\s*:/,'Scene Runtime must not hand-build event history outside the reducer.');
 assert.match(runtime, /active Scene is carried by the Area card/);
+assert.match(commands, /LOAD_SCENE/);
 assert.match(html, /scene-runtime\.js\?v=board-first-live-1/);
 assert.match(html, /board-first-live-play-20260805/);
 
-console.log('scene progress, quest activation, and seven-slot board reconciliation checks passed');
+console.log('scene progress, pure Scene composition, atomic quest activation, and seven-slot board reconciliation checks passed');
