@@ -1,5 +1,6 @@
 import { SESSION_COMMANDS } from './session-commands.js';
 import { LIVE_BOARD_SLOT_IDS, normalizeBoard } from './session-schema.js';
+import { applyCombatTransition } from './combat-transitions.js';
 
 const clone = value => structuredClone(value);
 const same = (left, right) => JSON.stringify(left) === JSON.stringify(right);
@@ -64,6 +65,8 @@ function updatePlayer(state, command) {
 }
 
 export function applySessionTransition(state, command) {
+  const combatChanged=applyCombatTransition(state,command);
+  if(combatChanged!==null)return combatChanged;
   switch(command.type){
     case SESSION_COMMANDS.REPLACE_BOARD:{
       const next=normalizeBoard(command.board); const changed=!same(state.board,next); state.board=next; return changed;
@@ -77,7 +80,7 @@ export function applySessionTransition(state, command) {
     }
     case SESSION_COMMANDS.LOAD_SCENE:return loadScene(state,command);
     case SESSION_COMMANDS.SET_SCENE_CONTEXT:return updateSceneContext(state,command);
-    case SESSION_COMMANDS.SET_STATUS:{const next=String(command.status||'prepared');const changed=state.status!==next;state.status=next;return changed;}
+    case SESSION_COMMANDS.SET_STATUS:{const next=String(command.status||'prepared');const changed=!same(state.status,next);state.status=next;return changed;}
     case SESSION_COMMANDS.SET_COMBAT_STATE:{const next=command.combatState==null?null:clone(command.combatState);const changed=!same(state.combatState,next);state.combatState=next;return changed;}
     case SESSION_COMMANDS.UPDATE_PLAYER:return updatePlayer(state,command);
     default:throw new RangeError(`Unsupported session command: ${command.type}`);
