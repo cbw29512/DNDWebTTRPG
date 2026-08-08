@@ -3,6 +3,8 @@ import { loadSession, saveSession } from './src/session/session-state.js';
 const role = document.querySelector('meta[name="living-table-role"]')?.content || 'player';
 const isDM = role === 'dm';
 const PEER_PREFIX = 'living-table-';
+const PEER_SCRIPT_URL = 'https://unpkg.com/peerjs@1.5.5/dist/peerjs.min.js';
+const PEER_LOAD_TIMEOUT_MS = 8000;
 const CODE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 const HOST_KEY = 'living-table-live-host-code-v1';
 const PLAYER_KEY = 'living-table-live-player-v1';
@@ -12,13 +14,46 @@ let hostConnection = null;
 let applyingRemote = false;
 let revealSet = new Set();
 let renderTimer = 0;
+let peerLibraryPromise = null;
 
 const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[ch]));
 const normalizeCode = value => String(value ?? '').toUpperCase().replace(/[^A-Z2-9]/g,'').slice(0,8);
 const newCode = () => Array.from({length:8}, () => CODE_ALPHABET[Math.floor(Math.random()*CODE_ALPHABET.length)]).join('');
 const peerIdFor = code => `${PEER_PREFIX}${normalizeCode(code).toLowerCase()}`;
 
-function peerCtor(){ return window.Peer; }
+function ensurePeerCtor(){
+  if(window.Peer) return Promise.resolve(window.Peer);
+  if(peerLibraryPromise) return peerLibraryPromise;
+  peerLibraryPromise = new Promise((resolve,reject)=>{
+    let settled=false;
+    const finish=(error)=>{
+      if(settled)return;
+      settled=true;
+      clearTimeout(timer);
+      if(!error && window.Peer) resolve(window.Peer);
+      else reject(error || new Error('PeerJS loaded without exposing window.Peer.'));
+    };
+    let script=document.querySelector('script[data-living-table-peerjs]');
+    const onLoad=()=>finish();
+    const onError=()=>finish(new Error('PeerJS failed to load.'));
+    if(!script){
+      script=document.createElement('script');
+      script.src=PEER_SCRIPT_URL;
+      script.crossOrigin='anonymous';
+      script.dataset.livingTablePeerjs='';
+      script.async=true;
+      script.addEventListener('load',onLoad,{once:true});
+      script.addEventListener('error',onError,{once:true});
+      document.head.append(script);
+    }else{
+      script.addEventListener('load',onLoad,{once:true});
+      script.addEventListener('error',onError,{once:true});
+    }
+    const timer=setTimeout(()=>finish(new Error('PeerJS load timed out.')),PEER_LOAD_TIMEOUT_MS);
+  }).catch(error=>{peerLibraryPromise=null;throw error;});
+  return peerLibraryPromise;
+}
+
 function connectionOpen(conn){ return Boolean(conn?.open); }
 function send(conn, message){ if(connectionOpen(conn)) conn.send(message); }
 
@@ -149,9 +184,10 @@ function handleHostConnection(conn){
   conn.on('error',()=>{peers.delete(conn.peer);updateHostRoster();});
 }
 
-function hostGame(code){
-  const Peer=peerCtor();
-  if(!Peer){setStatus('Live connection library could not load. Refresh the page or check your connection.','error');return;}
+async function hostGame(code){
+  let Peer;
+  setStatus('Loading live connection…');
+  try{Peer=await ensurePeerCtor();}catch{setStatus('Live connection library could not load. Refresh the page or check your connection.','error');return;}
   hostPeer?.destroy?.(); peers.clear(); updateHostRoster();
   hostPeer=new Peer(peerIdFor(code),{debug:1});
   setStatus('Starting live room…');
@@ -160,10 +196,11 @@ function hostGame(code){
   hostPeer.on('error',error=>setStatus(error?.type==='unavailable-id'?'That game code is already in use. Create another code.':`Live room error: ${error?.type||'connection failed'}`,'error'));
 }
 
-function joinGame(code,name){
-  const Peer=peerCtor();
-  if(!Peer){setStatus('Live connection library could not load. Refresh the page or check your connection.','error');return;}
+async function joinGame(code,name){
   if(code.length!==8){setStatus('Enter the 8-character game code from your DM.','error');return;}
+  let Peer;
+  setStatus('Loading live connection…');
+  try{Peer=await ensurePeerCtor();}catch{setStatus('Live connection library could not load. Refresh the page or check your connection.','error');return;}
   hostConnection?.close?.();
   hostConnection=null;
   hostPeer?.destroy?.();
