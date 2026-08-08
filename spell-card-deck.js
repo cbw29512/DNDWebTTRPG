@@ -1,10 +1,10 @@
 import { resolveRequestedCharacter, resolveRequestedEdition, getCharacterProfile, normalizeEdition } from './src/player/character-cards.js';
-import { activeSpellEntries, createSpellSlotState, restoreSpellSlots, eligibleSlotLevels, consumeSpellSlot } from './src/player/spell-cards.js';
+import { activeSpellEntries, createSpellSlotState, eligibleSlotLevels, consumeSpellSlot } from './src/player/spell-cards.js';
 import { spellAccesses, spellCombatSummaryForAccess, accessAbilityLabel } from './src/player/spell-access.js';
 
 const isPlayer=document.querySelector('meta[name="living-table-role"]')?.content==='player';
 if(isPlayer){
- const esc=value=>String(value??'').replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot',"'":'&#039;'}[char]));
+ const esc=value=>String(value??'').replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[char]));
  let activeCharacter=resolveRequestedCharacter();
  let activeEdition=resolveRequestedEdition();
  const storagePrefix='living-table-spell-deck-v2';
@@ -49,10 +49,9 @@ if(isPlayer){
  function startConcentration(name){
   if(!concentrationEntry(currentProfile(),name))return false;
   usage.concentration=name;
-  saveUsage();
   return true;
  }
- function endConcentration(){if(!usage.concentration)return false;usage.concentration=null;saveUsage();return true;}
+ function endConcentration(){if(!usage.concentration)return false;usage.concentration=null;return true;}
  function slotTracker(){
   const levels=Object.entries(usage.slots).sort(([a],[b])=>Number(a)-Number(b));
   if(!levels.length)return '<span class="spell-no-slots">No spell slots</span>';
@@ -60,7 +59,7 @@ if(isPlayer){
  }
  function concentrationSummary(){
   const active=usage.concentration;
-  return `<span class="spell-concentration-summary" data-active-concentration="${esc(active||'')}">Concentration <strong>${esc(active||'None')}</strong>${active?'<button type="button" data-end-concentration>End</button>':''}</span>`;
+  return `<span class="spell-concentration-summary" data-active-concentration="${esc(active||'')}" aria-live="polite">Concentration <strong>${esc(active||'None')}</strong>${active?'<button type="button" data-end-concentration>End</button>':''}</span>`;
  }
  function concentrationControl(card){
   if(!card.concentration)return '';
@@ -132,8 +131,14 @@ if(isPlayer){
     if(use?.current>0){use.current-=1;startConcentration(button.dataset.freeCastSpell);saveUsage();render();}
    }catch(error){console.warn('[Living Table] Free spell cast failed.',error);}
   }));
-  deck.querySelectorAll('[data-start-concentration]').forEach(button=>button.addEventListener('click',()=>{try{if(startConcentration(button.dataset.startConcentration))render();}catch(error){console.warn('[Living Table] Could not start concentration.',error);}}));
-  deck.querySelectorAll('[data-end-concentration]').forEach(button=>button.addEventListener('click',()=>{try{if(endConcentration())render();}catch(error){console.warn('[Living Table] Could not end concentration.',error);}}));
+  deck.querySelectorAll('[data-start-concentration]').forEach(button=>button.addEventListener('click',()=>{
+   try{if(startConcentration(button.dataset.startConcentration)){saveUsage();render();}}
+   catch(error){console.warn('[Living Table] Could not start concentration.',error);}
+  }));
+  deck.querySelectorAll('[data-end-concentration]').forEach(button=>button.addEventListener('click',()=>{
+   try{if(endConcentration()){saveUsage();render();}}
+   catch(error){console.warn('[Living Table] Could not end concentration.',error);}
+  }));
  }
  function changeContext(character,edition){if(character)activeCharacter=character;if(edition)activeEdition=normalizeEdition(edition);usage=loadUsage(currentProfile());setTimeout(render,60);}
  window.addEventListener('living-table:character-loaded',event=>changeContext(event.detail.character,event.detail.edition));
