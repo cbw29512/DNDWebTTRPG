@@ -6,4 +6,5 @@ body.role-player.live-player-awaiting #app .player-layout{grid-template-columns:
 body.role-player.live-player-awaiting .live-player-guide::before{content:'○';color:#c99c4f;font-size:1.1rem}
 body.role-player.live-player-connected .live-player-guide{border-color:#3d7651;background:#111b15}body.role-player.live-player-connected .live-player-guide::before{content:'●';color:#65c384}
 .live-session-panel [data-copy-player-link]:disabled{opacity:.45;cursor:not-allowed}
+.live-stack-quantity{align-self:flex-end;margin:-1px 0 4px;padding:2px 6px;border:1px solid #d8b655;border-radius:999px;background:#251e10;color:#ffe19a;font-size:.56rem;font-weight:900;line-height:1.2}
 @media(max-width:700px){.live-player-guide,.live-dm-guide{margin:8px}.live-player-guide span,.live-dm-guide span{flex-basis:100%}}
