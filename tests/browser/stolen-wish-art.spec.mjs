@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 
 test('The Stolen Wish real illustration loads and replaces the SVG fallback', async ({ page }) => {
-  await page.goto('/', { waitUntil: 'networkidle' });
+  await page.goto('/', { waitUntil: 'domcontentloaded' });
 
   const art = page.locator('.art-scene-stolen-wish').first();
   await expect(art).toBeVisible();
