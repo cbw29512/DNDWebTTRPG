@@ -1,0 +1,15 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+const controller=fs.readFileSync('combat-rounds.js','utf8');
+const view=fs.readFileSync('combat-rounds-view.js','utf8');
+const index=fs.readFileSync('index.html','utf8');
+const player=fs.readFileSync('player.html','utf8');
+assert.match(controller,/BEGIN_COMBAT_ROUNDS/);
+assert.match(controller,/ADVANCE_COMBAT_TURN/);
+assert.match(controller,/SET_COMBAT_GROUP_INITIATIVE/);
+assert.match(view,/Begin Round 1/);
+assert.match(view,/Next Turn/);
+assert.match(index,/combat-rounds\.js/);
+assert.match(player,/combat-rounds\.js/);
+assert.doesNotMatch(index,/initiative-groups\.js/);
+console.log('Canonical combat-round UI wiring is present on DM and player pages without the legacy initiative tracker.');
