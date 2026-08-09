@@ -1,0 +1,24 @@
+import assert from 'node:assert/strict';
+import { buildCombatSetup, initiativeComplete, monsterMaxHp, publicCombatProjection, turnLabel } from '../src/session/combat-party-model.js';
+
+const characters={a:{id:'a',name:'A',base:{maxHp:20,speed:30}},b:{id:'b',name:'B',base:{maxHp:16,speed:25}}};
+const profiles={a:{maxHp:20,speed:30,resources:[{id:'surge',name:'Surge',max:1,recharge:'rest'}]},b:{maxHp:16,speed:25,resources:[]}};
+const monsterStats={mimic:{dmFace:{hp:'27 (5d8 + 5)',speed:'15 ft.'}},boss:{dmFace:{hp:'55 for four characters; 70 for five or six',speed:'40 ft.'}}};
+const session={selectedSystem:'dnd-2014',currentSceneId:'fight',players:[{seatId:'s1',characterId:'a'},{seatId:'s2',characterId:'b'}]};
+const combat=buildCombatSetup({session,monsterInstances:[{instanceId:'m1',cardId:'mimic',name:'Mimic'},{instanceId:'m2',cardId:'mimic',name:'Mimic'},{instanceId:'b1',cardId:'boss',name:'Boss'}],monsterStats,resolveCharacter:id=>characters[id],resolveProfile:character=>profiles[character.id]});
+assert.equal(Object.keys(combat.combatants).length,5);
+assert.deepEqual(combat.initiativeGroups['group:mimic'].memberIds,['monster:m1','monster:m2']);
+assert.equal(combat.combatants['monster:m1'].hp.max,27);
+assert.equal(combat.combatants['player:s1'].resources.surge.current,1);
+assert.equal(monsterMaxHp(monsterStats.boss,4),55);
+assert.equal(monsterMaxHp(monsterStats.boss,6),70);
+assert.equal(turnLabel(combat,'group:mimic'),'Mimic ×2');
+assert.equal(initiativeComplete(combat),false);
+combat.combatants['player:s1'].initiative=15;combat.combatants['player:s2'].initiative=12;
+combat.initiativeGroups['group:mimic'].initiative=14;combat.initiativeGroups['group:boss'].initiative=10;
+assert.equal(initiativeComplete(combat),true);
+const publicState=publicCombatProjection(combat);
+assert.equal(publicState.combatants['monster:m1'].hp,undefined);
+assert.equal(publicState.combatants['monster:m1'].resources,undefined);
+assert.equal(publicState.combatants['player:s1'].name,'A');
+console.log('Party combat setup, grouped monsters, HP scaling, initiative readiness, and public projection passed.');
