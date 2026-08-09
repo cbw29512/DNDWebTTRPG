@@ -81,11 +81,11 @@ export function turnLabel(combat,id){
   }catch(error){console.error('[Living Table] Could not resolve turn label.',error);return id||'—';}
 }
 
-export function publicCombatProjection(combat,{visibleMonsterCardIds=null}={}){
+export function publicCombatProjection(combat,{visibleMonsterCardIds=[]}={}){
   try{
     if(!combat)return null;
-    const visible=visibleMonsterCardIds===null?null:new Set(visibleMonsterCardIds);
-    const canPublish=entry=>entry.kind==='player'||visible===null||visible.has(entry.cardId);
+    const visible=new Set(visibleMonsterCardIds);
+    const canPublish=entry=>entry.kind==='player'||visible.has(entry.cardId);
     const publishedEntries=Object.values(combat.combatants||{}).filter(canPublish);
     const combatants=Object.fromEntries(publishedEntries.map(entry=>[entry.id,{
       id:entry.id,kind:entry.kind,name:entry.name,cardId:entry.cardId,seatId:entry.seatId??null,
