@@ -12,7 +12,6 @@ export {
   saveLocalSession, dispatchLocalSession, clearLocalSession, readBoardFromDom, reconcileBoard
 };
 
-const delay=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 let applying=false;
 let saveTimer;
 
@@ -82,9 +81,16 @@ function scheduleBoardSave(){
   },250);
 }
 
-window.addEventListener('dnd:adventure-loaded',async event=>{
-  try{const manifest=event.detail;const session=createLocalSession(manifest,manifest.selectedSystem);saveLocalSession(session);renderToolbar();await delay(100);await applySessionBoard(session,session.openingBoard,'ready');}
-  catch(error){console.error('[Living Table] Adventure session initialization failed.',error);}
+window.addEventListener('dnd:adventure-loaded',event=>{
+  try{
+    const manifest=event.detail;
+    const session=createLocalSession(manifest,manifest.selectedSystem);
+    saveLocalSession(session);
+    syncBoardCommand(readBoardFromDom());
+    dispatchLocalSession({type:SESSION_COMMANDS.SET_STATUS,status:'ready'});
+    renderToolbar();
+    message('Adventure session prepared from the current seven-slot board.');
+  }catch(error){console.error('[Living Table] Adventure session initialization failed.',error);message('Adventure session could not be initialized.');}
 });
 
 const app=document.querySelector('#app');if(app)new MutationObserver(scheduleBoardSave).observe(app,{childList:true,subtree:true});
