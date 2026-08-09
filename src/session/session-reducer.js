@@ -20,6 +20,7 @@ function combatEventData(command,state){
     case SESSION_COMMANDS.BEGIN_COMBAT_ROUNDS:return {round:combat?.round??null,activeTurnId:combat?.activeTurnId??null,turnOrder:clone(combat?.turnOrder||[])};
     case SESSION_COMMANDS.END_COMBAT:return {ended:true};
     case SESSION_COMMANDS.SET_COMBAT_INITIATIVE:return {combatantId:command.combatantId,initiative:command.initiative,turnOrder:clone(combat?.turnOrder||[])};
+    case SESSION_COMMANDS.SET_COMBAT_GROUP_INITIATIVE:return {groupId:command.groupId,initiative:command.initiative,turnOrder:clone(combat?.turnOrder||[])};
     case SESSION_COMMANDS.ADVANCE_COMBAT_TURN:return {round:combat?.round??null,activeTurnId:combat?.activeTurnId??null};
     case SESSION_COMMANDS.SET_COMBATANT_HP:return {combatantId:command.combatantId,hp:clone(combat?.combatants?.[command.combatantId]?.hp||null)};
     case SESSION_COMMANDS.APPLY_COMBAT_CONDITION:return {combatantId:command.combatantId,conditionId:command.condition?.id??null,conditionName:command.condition?.name??null};
@@ -44,7 +45,10 @@ function eventData(command,state){
     case SESSION_COMMANDS.LOAD_SCENE:return {sceneId:command.sceneId,locationId:command.locationId??null,siteId:command.siteId??null,roomId:command.roomId??null,sceneCardId:command.sceneCardId??null,status:state.status,activatedQuestIds:clone(command.activatedQuestIds||[]),slotCounts:boardCounts(state.board)};
     case SESSION_COMMANDS.SET_SCENE_CONTEXT:return {currentLocationId:state.currentLocationId??null,currentSiteId:state.currentSiteId??null,currentRoomId:state.currentRoomId??null,currentSceneId:state.currentSceneId??null,currentSceneCardId:state.currentSceneCardId??null};
     case SESSION_COMMANDS.SET_STATUS:return {status:state.status};
-    case SESSION_COMMANDS.SET_COMBAT_STATE:return {active:Boolean(state.combatState),encounterId:state.combatState?.encounterId??null,round:state.combatState?.round??null,activeTurnId:state.combatState?.activeTurnId??null};
+    case SESSION_COMMANDS.SET_COMBAT_STATE:{
+      const activeTurnId=state.combatState?.activeTurnId??state.combatState?.activeTurn??null;
+      return {active:Boolean(state.combatState),encounterId:state.combatState?.encounterId??null,round:state.combatState?.round??null,activeTurnId,activeTurn:activeTurnId};
+    }
     case SESSION_COMMANDS.UPDATE_PLAYER:return {seatId:command.seatId,patch:clone(command.patch||{})};
     default:return {};
   }
