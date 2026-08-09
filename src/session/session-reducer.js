@@ -45,7 +45,10 @@ function eventData(command,state){
     case SESSION_COMMANDS.LOAD_SCENE:return {sceneId:command.sceneId,locationId:command.locationId??null,siteId:command.siteId??null,roomId:command.roomId??null,sceneCardId:command.sceneCardId??null,status:state.status,activatedQuestIds:clone(command.activatedQuestIds||[]),slotCounts:boardCounts(state.board)};
     case SESSION_COMMANDS.SET_SCENE_CONTEXT:return {currentLocationId:state.currentLocationId??null,currentSiteId:state.currentSiteId??null,currentRoomId:state.currentRoomId??null,currentSceneId:state.currentSceneId??null,currentSceneCardId:state.currentSceneCardId??null};
     case SESSION_COMMANDS.SET_STATUS:return {status:state.status};
-    case SESSION_COMMANDS.SET_COMBAT_STATE:return {active:Boolean(state.combatState),encounterId:state.combatState?.encounterId??null,round:state.combatState?.round??null,activeTurnId:state.combatState?.activeTurnId??null};
+    case SESSION_COMMANDS.SET_COMBAT_STATE:{
+      const activeTurnId=state.combatState?.activeTurnId??state.combatState?.activeTurn??null;
+      return {active:Boolean(state.combatState),encounterId:state.combatState?.encounterId??null,round:state.combatState?.round??null,activeTurnId,activeTurn:activeTurnId};
+    }
     case SESSION_COMMANDS.UPDATE_PLAYER:return {seatId:command.seatId,patch:clone(command.patch||{})};
     default:return {};
   }
