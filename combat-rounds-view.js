@@ -34,7 +34,7 @@ export function renderCombatPanel({combat,isDM,ownCharacterId='',message=''}){
     const active=combat.status==='active';
     return `<header class="combat-round-header"><div><small>${setup?'INITIATIVE SETUP':`ROUND ${combat.round}`}</small><h2>Combat Rounds</h2></div>${active?`<strong>Active: ${esc(turnLabel(combat,combat.activeTurnId))}</strong>`:''}</header>
       ${setup?`<section class="combat-player-initiative"><h3>Player Initiative</h3>${playerSetup(combat,isDM,ownCharacterId)}</section>`:''}
-      <ol class="initiative combat-order">${orderMarkup(combat)}</ol>
+      <ol class="combat-order">${orderMarkup(combat)}</ol>
       ${economyMarkup(combat,ownCharacterId)}
       <div class="combat-round-actions">${isDM&&setup?`<button class="reveal" data-combat-begin ${initiativeComplete(combat)?'':'disabled'}>Begin Round 1</button>`:''}${isDM&&active?'<button class="reveal" data-combat-next>Next Turn</button>':''}${isDM?'<button data-combat-end>End Combat</button>':''}</div>
       <p class="combat-round-message" aria-live="polite">${esc(message)}</p>
