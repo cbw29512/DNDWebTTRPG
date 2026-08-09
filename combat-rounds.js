@@ -61,7 +61,7 @@ function handleClick(event){
     if(button.dataset.playerInitSet){const input=document.querySelector(`[data-player-init-input="${CSS.escape(id)}"]`);setPlayerInitiative(id,input?.value);return;}
     const session=currentSession();const player=session?.combatState?.combatants?.[id];
     const profile=getCharacterProfile(getCharacterCard(player?.cardId),session?.selectedSystem);
-    const result=rollD20(Number(profile?.initiative?.modifier)||0);
+    const result=rollD20(Number(profile?.initiative?.modifier)||0,{advantage:Boolean(profile?.initiative?.advantage)});
     if(isDM)setPlayerInitiative(id,result.total);
     else{message=`Initiative ${result.total} rolled. Tell the DM until live initiative submission is enabled.`;schedule();}
   }catch(error){console.error('[Living Table] Combat-round control failed.',error);message=error?.message||'Combat control failed.';schedule();}
