@@ -3,8 +3,12 @@ import { loadSession, saveSession } from './src/session/session-state.js';
 const role = document.querySelector('meta[name="living-table-role"]')?.content || 'player';
 const isDM = role === 'dm';
 const PEER_PREFIX = 'living-table-';
-const PEER_SCRIPT_URL = 'https://unpkg.com/peerjs@1.5.5/dist/peerjs.min.js';
-const PEER_LOAD_TIMEOUT_MS = 8000;
+const PEER_SCRIPT_URLS = Object.freeze([
+  'https://cdn.jsdelivr.net/npm/peerjs@1.5.5/dist/peerjs.min.js',
+  'https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.5/peerjs.min.js',
+  'https://unpkg.com/peerjs@1.5.5/dist/peerjs.min.js'
+]);
+const PEER_SOURCE_TIMEOUT_MS = 4000;
 const CODE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 const HOST_KEY = 'living-table-live-host-code-v1';
 const PLAYER_KEY = 'living-table-live-player-v1';
@@ -16,41 +20,53 @@ let revealSet = new Set();
 let renderTimer = 0;
 let peerLibraryPromise = null;
 
-const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[ch]));
+const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot',"'":'&#039;'}[ch]));
 const normalizeCode = value => String(value ?? '').toUpperCase().replace(/[^A-Z2-9]/g,'').slice(0,8);
 const newCode = () => Array.from({length:8}, () => CODE_ALPHABET[Math.floor(Math.random()*CODE_ALPHABET.length)]).join('');
 const peerIdFor = code => `${PEER_PREFIX}${normalizeCode(code).toLowerCase()}`;
 
-function ensurePeerCtor(){
-  if(window.Peer) return Promise.resolve(window.Peer);
-  if(peerLibraryPromise) return peerLibraryPromise;
-  peerLibraryPromise = new Promise((resolve,reject)=>{
+function loadPeerSource(url,index){
+  return new Promise((resolve,reject)=>{
+    const script=document.createElement('script');
     let settled=false;
     const finish=(error)=>{
       if(settled)return;
       settled=true;
       clearTimeout(timer);
-      if(!error && window.Peer) resolve(window.Peer);
-      else reject(error || new Error('PeerJS loaded without exposing window.Peer.'));
+      script.removeEventListener('load',onLoad);
+      script.removeEventListener('error',onError);
+      if(!error&&window.Peer){script.dataset.livingTablePeerjsReady='';resolve(window.Peer);return;}
+      script.remove();
+      reject(error||new Error(`PeerJS source ${index+1} loaded without exposing window.Peer.`));
     };
-    let script=document.querySelector('script[data-living-table-peerjs]');
     const onLoad=()=>finish();
-    const onError=()=>finish(new Error('PeerJS failed to load.'));
-    if(!script){
-      script=document.createElement('script');
-      script.src=PEER_SCRIPT_URL;
-      script.crossOrigin='anonymous';
-      script.dataset.livingTablePeerjs='';
-      script.async=true;
-      script.addEventListener('load',onLoad,{once:true});
-      script.addEventListener('error',onError,{once:true});
-      document.head.append(script);
-    }else{
-      script.addEventListener('load',onLoad,{once:true});
-      script.addEventListener('error',onError,{once:true});
-    }
-    const timer=setTimeout(()=>finish(new Error('PeerJS load timed out.')),PEER_LOAD_TIMEOUT_MS);
-  }).catch(error=>{peerLibraryPromise=null;throw error;});
+    const onError=()=>finish(new Error(`PeerJS source ${index+1} failed to load.`));
+    script.src=url;
+    script.crossOrigin='anonymous';
+    script.referrerPolicy='no-referrer';
+    script.dataset.livingTablePeerjs='';
+    script.dataset.livingTablePeerjsSource=String(index+1);
+    script.async=true;
+    script.addEventListener('load',onLoad,{once:true});
+    script.addEventListener('error',onError,{once:true});
+    const timer=setTimeout(()=>finish(new Error(`PeerJS source ${index+1} timed out.`)),PEER_SOURCE_TIMEOUT_MS);
+    document.head.append(script);
+  });
+}
+
+async function loadPeerWithFallbacks(){
+  let lastError=null;
+  for(let index=0;index<PEER_SCRIPT_URLS.length;index+=1){
+    try{return await loadPeerSource(PEER_SCRIPT_URLS[index],index);}catch(error){lastError=error;}
+  }
+  throw new AggregateError(lastError?[lastError]:[],'All pinned PeerJS sources failed to load.');
+}
+
+function ensurePeerCtor(){
+  if(window.Peer) return Promise.resolve(window.Peer);
+  if(peerLibraryPromise) return peerLibraryPromise;
+  document.querySelectorAll('script[data-living-table-peerjs]:not([data-living-table-peerjs-ready])').forEach(script=>script.remove());
+  peerLibraryPromise=loadPeerWithFallbacks().catch(error=>{peerLibraryPromise=null;throw error;});
   return peerLibraryPromise;
 }
 
@@ -209,7 +225,7 @@ function handleHostConnection(conn){
 async function hostGame(code){
   let Peer;
   setStatus('Loading live connection…');
-  try{Peer=await ensurePeerCtor();}catch{setStatus('Live connection library could not load. Refresh the page or check your connection.','error');return;}
+  try{Peer=await ensurePeerCtor();}catch{setStatus('Live connection library could not load from any provider. Your DM table still works locally; retry or check your connection.','error');return;}
   if(hostPeer)stopHosting({silent:true});
   hostPeer=new Peer(peerIdFor(code),{debug:1});
   setStatus('Starting live room…');
@@ -222,7 +238,7 @@ async function joinGame(code,name){
   if(code.length!==8){setStatus('Enter the 8-character game code from your DM.','error');return;}
   let Peer;
   setStatus('Loading live connection…');
-  try{Peer=await ensurePeerCtor();}catch{setStatus('Live connection library could not load. Refresh the page or check your connection.','error');return;}
+  try{Peer=await ensurePeerCtor();}catch{markRemoteConnectionState('disconnected','Disconnected');setStatus('Live connection library could not load from any provider. Your character sheet still works; retry or check your connection.','error');return;}
   hostConnection?.close?.();
   hostConnection=null;
   hostPeer?.destroy?.();
