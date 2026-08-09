@@ -1,4 +1,6 @@
 import { loadSession, saveSession } from './src/session/session-state.js';
+import { publicCombatProjection } from './src/session/combat-party-model.js';
+import { initiativeIntentMatchesPlayer, normalizeInitiativeIntent } from './src/session/live-combat-protocol.js';
 
 const role = document.querySelector('meta[name="living-table-role"]')?.content || 'player';
 const isDM = role === 'dm';
@@ -92,6 +94,7 @@ function safeSessionProjection(){
     currentSceneCardId: session.currentSceneCardId,
     quests: session.quests || [],
     questState: session.questState || {active:[],revealed:[]},
+    combatState: publicCombatProjection(session.combatState),
     updatedAt: session.updatedAt
   };
 }
@@ -182,6 +185,17 @@ function playerStatus(){
   return {name:saved.name||'Player',characterId:state.characterId||'wendy-birthday-hero',hp:Number.isFinite(state.hp)?state.hp:null,ready:Boolean(state.ready),edition:state.edition||'',updatedAt:new Date().toISOString()};
 }
 function sendPlayerStatus(){ if(!isDM && hostConnection?.open && !applyingRemote) send(hostConnection,{type:'player-state',player:playerStatus()}); }
+function reportCombatIntent(message,ok=false){window.dispatchEvent(new CustomEvent('living-table:combat-initiative-status',{detail:{message,ok}}));}
+function sendCombatInitiativeIntent(rawIntent){
+  try{
+    if(isDM)return;
+    const intent=normalizeInitiativeIntent(rawIntent);
+    if(!intent)throw new Error('Initiative result is invalid.');
+    if(!hostConnection?.open){reportCombatIntent('Initiative rolled, but you are not connected to the DM. Join the live game and roll again.');return;}
+    send(hostConnection,{type:'combat-intent',intent});
+    reportCombatIntent(`Initiative ${intent.initiative} sent to the DM.`,true);
+  }catch(error){console.error('[Living Table] Could not send combat initiative.',error);reportCombatIntent('Initiative could not be sent to the DM.');}
+}
 
 function updateHostRoster(){
   if(!isDM) return;
@@ -217,7 +231,14 @@ function handleHostConnection(conn){
   const record={conn,player:{name:'Connecting…',characterId:'',hp:null,ready:false}};
   peers.set(conn.peer,record); updateHostRoster();
   conn.on('open',()=>{ send(conn,{type:'table-snapshot',session:safeSessionProjection(),table:captureDMTable()}); updateHostRoster(); });
-  conn.on('data',data=>{ if(data?.type==='player-state'&&data.player){record.player=data.player;updateHostRoster();} });
+  conn.on('data',data=>{
+    if(data?.type==='player-state'&&data.player){record.player=data.player;updateHostRoster();return;}
+    if(data?.type==='combat-intent'){
+      const intent=normalizeInitiativeIntent(data.intent);
+      if(!intent||!initiativeIntentMatchesPlayer(intent,record.player)){console.warn('[Living Table] Rejected combat intent that does not match the connected player.');return;}
+      window.dispatchEvent(new CustomEvent('living-table:remote-combat-initiative',{detail:{intent,peer:conn.peer}}));
+    }
+  });
   conn.on('close',()=>{peers.delete(conn.peer);updateHostRoster();});
   conn.on('error',()=>{peers.delete(conn.peer);updateHostRoster();});
 }
@@ -298,6 +319,7 @@ if(isDM){
   window.addEventListener('living-table:session-updated',scheduleBroadcast);
 }else{
   window.addEventListener('living-table:session-updated',sendPlayerStatus);
+  window.addEventListener('living-table:combat-initiative-intent',event=>sendCombatInitiativeIntent(event.detail?.intent));
   document.addEventListener('click',event=>{if(event.target.closest('.player-station,.full-character-sheet'))setTimeout(sendPlayerStatus,80);},true);
 }
 
