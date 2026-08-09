@@ -6,9 +6,12 @@ const css = fs.readFileSync('live-session.css','utf8');
 const dm = fs.readFileSync('index.html','utf8');
 const player = fs.readFileSync('player.html','utf8');
 
-assert.doesNotMatch(dm,/unpkg\.com\/peerjs/i,'DM page must not eagerly load PeerJS during normal page load.');
-assert.doesNotMatch(player,/unpkg\.com\/peerjs/i,'Player page must not eagerly load PeerJS during normal page load.');
-assert.match(live,/PEER_SCRIPT_URL = 'https:\/\/unpkg\.com\/peerjs@1\.5\.5\/dist\/peerjs\.min\.js'/,'The live module must pin the PeerJS client it loads on demand.');
+assert.doesNotMatch(dm,/(?:unpkg\.com|jsdelivr\.net|cdnjs\.cloudflare\.com).*peerjs/i,'DM page must not eagerly load PeerJS during normal page load.');
+assert.doesNotMatch(player,/(?:unpkg\.com|jsdelivr\.net|cdnjs\.cloudflare\.com).*peerjs/i,'Player page must not eagerly load PeerJS during normal page load.');
+assert.match(live,/PEER_SCRIPT_URLS = Object\.freeze\(\[/,'The live module must own a pinned PeerJS fallback list.');
+assert.match(live,/cdn\.jsdelivr\.net\/npm\/peerjs@1\.5\.5\/dist\/peerjs\.min\.js/,'The primary live transport source must pin PeerJS 1.5.5.');
+assert.match(live,/cdnjs\.cloudflare\.com\/ajax\/libs\/peerjs\/1\.5\.5\/peerjs\.min\.js/,'The secondary live transport source must pin PeerJS 1.5.5.');
+assert.match(live,/unpkg\.com\/peerjs@1\.5\.5\/dist\/peerjs\.min\.js/,'The tertiary live transport source must pin PeerJS 1.5.5.');
 assert.match(live,/function ensurePeerCtor\(\)/,'The live module must lazy-load PeerJS only when hosting or joining.');
 assert.match(dm,/live-session\.js\?v=live-multiplayer-2/);
 assert.match(player,/live-session\.js\?v=live-multiplayer-2/);
@@ -38,4 +41,4 @@ assert.match(live,/Live room closed\. Players are disconnected\./,'The DM must r
 assert.match(css,/\.remote-live-table/);
 assert.match(css,/grid-template-columns:repeat\(7/,'The remote table must preserve the seven-slot board contract.');
 
-console.log('Live multiplayer host/join/reveal/shutdown, lazy transport, player status, and seven-slot remote table contracts passed.');
+console.log('Live multiplayer host/join/reveal/shutdown, pinned fallback transport, player status, and seven-slot remote table contracts passed.');
