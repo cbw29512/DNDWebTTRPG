@@ -29,15 +29,18 @@ function combatantPanel(combatant,ownTurn,{isDM=false}={}){
 export function renderCombatActionControls({combat,isDM,ownCharacterId=''}){
   try{
     if(!combat||combat.status!=='active')return '';
+    let body='';
     if(!isDM){
       const own=Object.values(combat.combatants||{}).find(entry=>entry.kind==='player'&&entry.cardId===ownCharacterId);
       if(!own)return '';
-      return `<section class="combat-action-console"><h3>Your Turn Resources</h3>${combatantPanel(own,combat.activeTurnId===own.id)}</section>`;
+      body=`<h3>Your Turn Resources</h3>${combatantPanel(own,combat.activeTurnId===own.id)}`;
+    }else{
+      const group=combat.initiativeGroups?.[combat.activeTurnId];
+      const ids=group?.memberIds?.length?group.memberIds:[combat.activeTurnId];
+      const targets=ids.map(id=>combat.combatants?.[id]).filter(Boolean);
+      if(!targets.length)return '';
+      body=`<h3>Active Creature Resources</h3>${targets.map(target=>combatantPanel(target,true,{isDM:true})).join('')}`;
     }
-    const group=combat.initiativeGroups?.[combat.activeTurnId];
-    const ids=group?.memberIds?.length?group.memberIds:[combat.activeTurnId];
-    const targets=ids.map(id=>combat.combatants?.[id]).filter(Boolean);
-    if(!targets.length)return '';
-    return `<section class="combat-action-console"><h3>Active Creature Resources</h3>${targets.map(target=>combatantPanel(target,true,{isDM:true})).join('')}</section>`;
+    return `<section class="combat-action-console">${body}<p class="combat-action-status" data-combat-action-status aria-live="polite"></p></section>`;
   }catch(error){console.error('[Living Table] Could not render action economy controls.',error);return '<p>Action controls could not be rendered.</p>';}
 }
