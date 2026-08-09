@@ -2,6 +2,8 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 
 const live = fs.readFileSync('live-session.js','utf8');
+const sync = fs.readFileSync('live-combat-sync.js','utf8');
+const combatView = fs.readFileSync('combat-rounds-view.js','utf8');
 const css = fs.readFileSync('live-session.css','utf8');
 const dm = fs.readFileSync('index.html','utf8');
 const player = fs.readFileSync('player.html','utf8');
@@ -13,24 +15,33 @@ assert.match(live,/cdn\.jsdelivr\.net\/npm\/peerjs@1\.5\.5\/dist\/peerjs\.min\.j
 assert.match(live,/cdnjs\.cloudflare\.com\/ajax\/libs\/peerjs\/1\.5\.5\/peerjs\.min\.js/,'The secondary live transport source must pin PeerJS 1.5.5.');
 assert.match(live,/unpkg\.com\/peerjs@1\.5\.5\/dist\/peerjs\.min\.js/,'The tertiary live transport source must pin PeerJS 1.5.5.');
 assert.match(live,/function ensurePeerCtor\(\)/,'The live module must lazy-load PeerJS only when hosting or joining.');
-assert.match(dm,/live-session\.js\?v=live-multiplayer-2/);
-assert.match(player,/live-session\.js\?v=live-multiplayer-2/);
+assert.match(dm,/live-session\.js\?v=live-combat-1/);
+assert.match(player,/live-session\.js\?v=live-combat-1/);
+assert.match(dm,/live-combat-sync\.js\?v=live-combat-1/);
 assert.match(dm,/live-session\.css\?v=live-multiplayer-1/);
 assert.match(player,/live-session\.css\?v=live-multiplayer-1/);
 
 assert.match(live,/CODE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'/);
 assert.match(live,/Array\.from\(\{length:8\}/,'Game codes must use eight random characters.');
 assert.match(live,/function safeSessionProjection\(\)/);
+const projection = live.slice(live.indexOf('function safeSessionProjection'), live.indexOf('function sanitizedFront'));
 for (const privateField of ['worldState','locationState','siteState','roomState','sceneState','eventHistory','openingBoard']) {
-  const projection = live.slice(live.indexOf('function safeSessionProjection'), live.indexOf('function sanitizedFront'));
   assert.doesNotMatch(projection,new RegExp(`\\b${privateField}\\b`),`Player network projection must not include DM-private ${privateField}.`);
 }
+assert.match(projection,/combatState: publicCombatProjection\(session\.combatState\)/,'Live snapshots must use the sanitized combat projection.');
 assert.match(live,/\['location','site','room'\]\.includes\(type\)/,'Spatial context should be visible during live play.');
 assert.match(live,/revealSet\.has\(id\) \|\| revealedInCurrentDOM\(id\)/,'Non-context cards must require an explicit or restored DM reveal before streaming.');
 assert.match(live,/sanitizedFront/);
 assert.match(live,/\.inside-card-rolls/,'DM controls must be stripped from the streamed card face.');
 assert.match(live,/type:'player-state'/,'Player state must travel back to the DM host.');
 assert.match(live,/type:'table-snapshot'/,'The DM must broadcast table snapshots to connected players.');
+assert.match(live,/type:'combat-intent'/,'Player initiative must use a narrow combat-intent message.');
+assert.match(live,/initiativeIntentMatchesPlayer\(intent,record\.player\)/,'Host must reject combat intents that do not match the connected player identity.');
+assert.match(live,/living-table:remote-combat-initiative/,'Validated initiative must be handed to the host reducer bridge.');
+assert.match(live,/living-table:combat-initiative-intent/,'Player combat rolls must be sent through the live transport.');
+assert.match(sync,/SET_COMBAT_INITIATIVE/,'Remote initiative must become the canonical combat command on the host.');
+assert.match(sync,/combatantIdForCharacter/,'Remote initiative must resolve an existing player combatant before dispatch.');
+assert.doesNotMatch(combatView,/<ol class="initiative combat-order">/,'The retired text initiative snapshot must not duplicate or leak canonical combat labels.');
 assert.match(live,/Host This Table/);
 assert.match(live,/Join the DM's Table/);
 assert.match(live,/data-stop-live disabled>Stop Live Game/,'The DM must have an explicit live-room shutdown control.');
@@ -41,4 +52,4 @@ assert.match(live,/Live room closed\. Players are disconnected\./,'The DM must r
 assert.match(css,/\.remote-live-table/);
 assert.match(css,/grid-template-columns:repeat\(7/,'The remote table must preserve the seven-slot board contract.');
 
-console.log('Live multiplayer host/join/reveal/shutdown, pinned fallback transport, player status, and seven-slot remote table contracts passed.');
+console.log('Live multiplayer host/join/reveal/shutdown, safe combat sync, pinned fallback transport, player status, and seven-slot remote table contracts passed.');
