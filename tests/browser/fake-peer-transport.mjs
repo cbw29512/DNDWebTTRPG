@@ -1,4 +1,22 @@
 export function installFakePeerTransport(){
+  try{
+    const rawGet=Storage.prototype.getItem;
+    const rawSet=Storage.prototype.setItem;
+    const rawRemove=Storage.prototype.removeItem;
+    const rawClear=Storage.prototype.clear;
+    const rawKey=Storage.prototype.key;
+    const storagePrefix=()=>location.pathname.endsWith('/player.html')?'player::':'dm::';
+    Storage.prototype.getItem=function(key){return this===window.localStorage?rawGet.call(this,`${storagePrefix()}${key}`):rawGet.call(this,key);};
+    Storage.prototype.setItem=function(key,value){return this===window.localStorage?rawSet.call(this,`${storagePrefix()}${key}`,value):rawSet.call(this,key,value);};
+    Storage.prototype.removeItem=function(key){return this===window.localStorage?rawRemove.call(this,`${storagePrefix()}${key}`):rawRemove.call(this,key);};
+    Storage.prototype.clear=function(){
+      if(this!==window.localStorage)return rawClear.call(this);
+      const prefix=storagePrefix();const keys=[];
+      for(let index=0;index<this.length;index+=1){const key=rawKey.call(this,index);if(key?.startsWith(prefix))keys.push(key);}
+      for(const key of keys)rawRemove.call(this,key);
+    };
+  }catch(error){console.error('[Living Table test] Could not isolate fake device storage.',error);}
+
   class Emitter{
     constructor(){this.handlers=new Map();}
     on(name,fn){const list=this.handlers.get(name)||[];list.push(fn);this.handlers.set(name,list);return this;}
