@@ -95,7 +95,7 @@ function showLoader(manifest) {
     localStorage.setItem("dndweb:lastAdventurePack", manifest.packId);
     localStorage.setItem(`dndweb:adventure:${manifest.packId}`, JSON.stringify(record));
     window.__DND_ADVENTURE_PACK__ = Object.freeze({ ...manifest, selectedSystem: system });
-    document.dispatchEvent(new CustomEvent("dnd:adventure-loaded", { detail: window.__DND_ADVENTURE_PACK__ }));
+    window.dispatchEvent(new CustomEvent("dnd:adventure-loaded", { detail: window.__DND_ADVENTURE_PACK__ }));
     wrapper.remove();
   });
 }
