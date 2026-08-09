@@ -8,7 +8,7 @@ import { rollD20 } from './src/dnd/rules-engine.js';
 import { renderCombatPanel } from './combat-rounds-view.js';
 
 const isDM=document.querySelector('meta[name="living-table-role"]')?.content==='dm';
-let message='';let scheduled=false;
+let message='';let scheduled=false;let lastPanel=null;let lastRenderKey='';
 
 function monsterInstances(){
   try{
@@ -43,9 +43,11 @@ function render(){
   scheduled=false;
   try{
     const panel=document.querySelector('#app .turn-panel');if(!panel)return;
-    const session=currentSession();const own=resolveRequestedCharacter().id;
-    const html=renderCombatPanel({combat:session?.combatState||null,isDM,ownCharacterId:own,message});
-    if(panel.innerHTML!==html)panel.innerHTML=html;
+    const session=currentSession();const own=resolveRequestedCharacter().id;const combat=session?.combatState||null;
+    const renderKey=JSON.stringify({combat,isDM,own,message});
+    if(panel===lastPanel&&renderKey===lastRenderKey)return;
+    panel.innerHTML=renderCombatPanel({combat,isDM,ownCharacterId:own,message});
+    lastPanel=panel;lastRenderKey=renderKey;
   }catch(error){console.error('[Living Table] Could not hydrate combat-round controls.',error);}
 }
 function schedule(){if(scheduled)return;scheduled=true;queueMicrotask(render);}
