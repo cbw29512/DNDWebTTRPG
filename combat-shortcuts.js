@@ -103,13 +103,7 @@ function removeLegacyRolls(card) {
 
 function removeLegacyGlobalRolls() {
   document.querySelectorAll('[data-roll-all-monsters]').forEach(button => button.remove());
-  const panel = document.querySelector('.turn-panel');
-  if (panel && !panel.querySelector('.rules-initiative-note')) {
-    const note = document.createElement('small');
-    note.className = 'rules-initiative-note';
-    note.textContent = 'Use the ⏱ INIT shortcut on a monster card; identical monsters share that roll.';
-    panel.append(note);
-  }
+  document.querySelectorAll('.rules-initiative-note').forEach(note => note.remove());
 }
 
 function hydrateCard(card) {
