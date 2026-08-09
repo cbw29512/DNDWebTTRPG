@@ -1,0 +1,32 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+
+const view=fs.readFileSync('combat-action-view.js','utf8');
+const controls=fs.readFileSync('combat-action-controls.js','utf8');
+const sync=fs.readFileSync('live-combat-sync.js','utf8');
+const live=fs.readFileSync('live-session.js','utf8');
+const transport=fs.readFileSync('live-combat-action-transport.js','utf8');
+const dm=fs.readFileSync('index.html','utf8');
+const player=fs.readFileSync('player.html','utf8');
+
+for(const hook of ['data-combat-spend','data-combat-move','data-combat-trigger-ready','data-combat-drop-ready','data-combat-ready-form'])assert.match(view,new RegExp(hook));
+assert.match(view,/Ready uses your Action now and your Reaction when the trigger occurs/);
+assert.match(view,/readied spell also requires concentration/);
+assert.match(view,/group\?\.memberIds/,'The DM must get separate controls for every member of an active monster initiative group.');
+assert.match(controls,/UPDATE_COMBAT_ACTION_ECONOMY/);
+assert.match(controls,/RESET_COMBATANT_TURN/);
+assert.match(controls,/createActionEconomyIntent/);
+assert.match(controls,/living-table:combat-action-intent/);
+assert.match(sync,/validatePlayerActionEconomyIntent/);
+assert.match(sync,/UPDATE_COMBAT_ACTION_ECONOMY/);
+assert.match(sync,/living-table:remote-combat-action-economy/);
+assert.match(live,/LivingTableLiveTransport=Object\.freeze/,'The legacy live module should expose only a narrow transport extension API.');
+assert.match(live,/living-table:live-combat-extension-intent/,'Non-initiative combat messages must be delegated to modular extensions.');
+assert.match(transport,/normalizeActionEconomyIntent/);
+assert.match(transport,/intent\.characterId!==claimedCharacter/,'The live action extension must enforce the connection’s claimed character.');
+assert.match(transport,/living-table:remote-combat-action-economy/);
+assert.match(dm,/combat-action-controls\.js\?v=action-economy-1/);
+assert.match(player,/combat-action-controls\.js\?v=action-economy-1/);
+assert.match(dm,/live-combat-action-transport\.js\?v=action-economy-1/);
+assert.match(player,/live-combat-action-transport\.js\?v=action-economy-1/);
+console.log('Action economy, Ready, DM group controls, modular live routing, identity checks, and canonical reducer wiring are present.');

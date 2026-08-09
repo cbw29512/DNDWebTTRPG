@@ -74,6 +74,13 @@ function ensurePeerCtor(){
 
 function connectionOpen(conn){ return Boolean(conn?.open); }
 function send(conn, message){ if(connectionOpen(conn)) conn.send(message); }
+function sendToHostExtension(message){
+  try{
+    if(isDM||!hostConnection?.open)return false;
+    send(hostConnection,message);return true;
+  }catch(error){console.error('[Living Table] Live transport extension send failed.',error);return false;}
+}
+window.LivingTableLiveTransport=Object.freeze({sendToHost:sendToHostExtension,connected:()=>Boolean(!isDM&&hostConnection?.open)});
 
 function safeSessionProjection(){
   const session = loadSession();
@@ -235,8 +242,11 @@ function handleHostConnection(conn){
     if(data?.type==='player-state'&&data.player){record.player=data.player;updateHostRoster();return;}
     if(data?.type==='combat-intent'){
       const intent=normalizeInitiativeIntent(data.intent);
-      if(!intent||!initiativeIntentMatchesPlayer(intent,record.player)){console.warn('[Living Table] Rejected combat intent that does not match the connected player.');return;}
-      window.dispatchEvent(new CustomEvent('living-table:remote-combat-initiative',{detail:{intent,peer:conn.peer}}));
+      if(intent){
+        if(!initiativeIntentMatchesPlayer(intent,record.player)){console.warn('[Living Table] Rejected combat intent that does not match the connected player.');return;}
+        window.dispatchEvent(new CustomEvent('living-table:remote-combat-initiative',{detail:{intent,peer:conn.peer}}));return;
+      }
+      window.dispatchEvent(new CustomEvent('living-table:live-combat-extension-intent',{detail:{intent:data.intent,player:record.player,peer:conn.peer}}));
     }
   });
   conn.on('close',()=>{peers.delete(conn.peer);updateHostRoster();});

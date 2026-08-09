@@ -1,4 +1,5 @@
 import { initiativeComplete, turnLabel } from './src/session/combat-party-model.js';
+import { renderCombatActionControls } from './combat-action-view.js';
 
 const esc=value=>String(value??'').replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[char]));
 const initiativeFor=(combat,id)=>combat.initiativeGroups?.[id]?.initiative??combat.combatants?.[id]?.initiative??null;
@@ -20,13 +21,6 @@ function playerSetup(combat,isDM,ownCharacterId){
   }).join('')||'<p>No player combatants are registered.</p>';
 }
 
-function economyMarkup(combat,ownCharacterId){
-  const player=Object.values(combat.combatants||{}).find(entry=>entry.cardId===ownCharacterId);
-  if(!player?.actionEconomy)return '';
-  const action=player.actionEconomy;
-  return `<div class="combat-economy"><span class="${action.action?'available':'spent'}">Action</span><span class="${action.bonusAction?'available':'spent'}">Bonus</span><span class="${action.reaction?'available':'spent'}">Reaction</span><span>${action.movementRemaining??0}/${action.movementMax??0} ft.</span></div>`;
-}
-
 export function renderCombatPanel({combat,isDM,ownCharacterId='',message=''}){
   try{
     if(!combat)return `<h2>Combat Rounds</h2><p>${isDM?'Start combat when the encounter begins.':'Waiting for the DM to start combat.'}</p>${isDM?'<button class="reveal" data-combat-start>Start Combat</button>':''}<p class="combat-round-message">${esc(message)}</p>`;
@@ -35,7 +29,7 @@ export function renderCombatPanel({combat,isDM,ownCharacterId='',message=''}){
     return `<header class="combat-round-header"><div><small>${setup?'INITIATIVE SETUP':`ROUND ${combat.round}`}</small><h2>Combat Rounds</h2></div>${active?`<strong>Active: ${esc(turnLabel(combat,combat.activeTurnId))}</strong>`:''}</header>
       ${setup?`<section class="combat-player-initiative"><h3>Player Initiative</h3>${playerSetup(combat,isDM,ownCharacterId)}</section>`:''}
       <ol class="combat-order">${orderMarkup(combat)}</ol>
-      ${economyMarkup(combat,ownCharacterId)}
+      ${renderCombatActionControls({combat,isDM,ownCharacterId})}
       <div class="combat-round-actions">${isDM&&setup?`<button class="reveal" data-combat-begin ${initiativeComplete(combat)?'':'disabled'}>Begin Round 1</button>`:''}${isDM&&active?'<button class="reveal" data-combat-next>Next Turn</button>':''}${isDM?'<button data-combat-end>End Combat</button>':''}</div>
       <p class="combat-round-message" aria-live="polite">${esc(message)}</p>
       <small>${setup?'Roll identical monsters from their ⏱ INIT card shortcut; they share one initiative result.':'Action, Bonus Action, Reaction, and movement reset from the canonical combat state when a creature’s turn begins.'}</small>`;
