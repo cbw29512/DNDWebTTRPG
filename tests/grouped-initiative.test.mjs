@@ -18,10 +18,12 @@ assert.match(shortcuts, /living-table:rules-initiative/);
 assert.match(shortcuts, /rule\.initiativeModifier/);
 assert.match(shortcuts, /data-roll-all-monsters/);
 assert.match(shortcuts, /\.remove\(\)/,"The legacy roll-all control with fallback modifiers must be removed from the rendered UI");
+assert.match(shortcuts, /querySelectorAll\('\.rules-initiative-note'\)\.forEach\(note => note\.remove\(\)\)/,'Legacy initiative notes must be removed instead of re-added by the shortcut observer.');
+assert.doesNotMatch(shortcuts, /createElement\('small'\)/,'Shortcut hydration must not write a competing initiative note into the canonical combat panel.');
 assert.match(combatRounds, /living-table:rules-initiative/);
 assert.match(combatRounds, /SET_COMBAT_GROUP_INITIATIVE/);
 assert.match(combatRounds, /ensureCombat\(\)/);
 assert.match(combatModel, /initiativeGroups\[id\]/);
 assert.match(combatModel, /memberIds\.push\(monster\.id\)/);
 
-console.log('Structured monster modifiers now feed canonical grouped initiative without the legacy sessionStorage tracker.');
+console.log('Structured monster modifiers feed canonical grouped initiative without legacy state or observer feedback loops.');
