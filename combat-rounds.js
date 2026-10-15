@@ -1,6 +1,7 @@
 import { dispatchLocalSession, loadLocalSession } from './src/session/local-session-state.js';
 import { SESSION_COMMANDS } from './src/session/session-commands.js';
 import { buildCombatSetup } from './src/session/combat-party-model.js';
+import { createInitiativeIntent } from './src/session/live-combat-protocol.js';
 import { getCharacterCard, getCharacterProfile, resolveRequestedCharacter } from './src/player/character-cards.js';
 import { wishingCakeMonsterStats } from './src/wishing-cake-monster-stats.js';
 import { rollD20 } from './src/dnd/rules-engine.js';
@@ -65,7 +66,11 @@ function handleClick(event){
     const profile=getCharacterProfile(getCharacterCard(player?.cardId),session?.selectedSystem);
     const result=rollD20(Number(profile?.initiative?.modifier)||0,{advantage:Boolean(profile?.initiative?.advantage)});
     if(isDM)setPlayerInitiative(id,result.total);
-    else{message=`Initiative ${result.total} rolled. Tell the DM until live initiative submission is enabled.`;schedule();}
+    else{
+      const intent=createInitiativeIntent(player?.cardId,result.total);
+      message=`Initiative ${result.total} rolled. Sending to the DM…`;schedule();
+      window.dispatchEvent(new CustomEvent('living-table:combat-initiative-intent',{detail:{intent}}));
+    }
   }catch(error){console.error('[Living Table] Combat-round control failed.',error);message=error?.message||'Combat control failed.';schedule();}
 }
 
@@ -78,6 +83,7 @@ window.addEventListener('living-table:rules-initiative',event=>{
     if(group)send({type:SESSION_COMMANDS.SET_COMBAT_GROUP_INITIATIVE,groupId:group.id,initiative:Number(event.detail.initiative)});
   }catch(error){console.error('[Living Table] Could not persist grouped initiative.',error);message=error?.message||'Monster initiative could not be saved.';schedule();}
 });
+window.addEventListener('living-table:combat-initiative-status',event=>{if(!isDM){message=event.detail?.message||message;schedule();}});
 window.addEventListener('living-table:session-updated',schedule);
 const app=document.querySelector('#app');if(app)new MutationObserver(schedule).observe(app,{childList:true,subtree:true});
 window.addEventListener('DOMContentLoaded',schedule);schedule();

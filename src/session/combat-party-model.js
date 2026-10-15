@@ -81,16 +81,24 @@ export function turnLabel(combat,id){
   }catch(error){console.error('[Living Table] Could not resolve turn label.',error);return id||'—';}
 }
 
-export function publicCombatProjection(combat){
+export function publicCombatProjection(combat,{visibleMonsterCardIds=[]}={}){
   try{
     if(!combat)return null;
-    const combatants=Object.fromEntries(Object.values(combat.combatants||{}).map(entry=>[entry.id,{
+    const visible=new Set(visibleMonsterCardIds);
+    const canPublish=entry=>entry.kind==='player'||visible.has(entry.cardId);
+    const publishedEntries=Object.values(combat.combatants||{}).filter(canPublish);
+    const combatants=Object.fromEntries(publishedEntries.map(entry=>[entry.id,{
       id:entry.id,kind:entry.kind,name:entry.name,cardId:entry.cardId,seatId:entry.seatId??null,
       initiativeGroupId:entry.initiativeGroupId??null,initiative:entry.initiative??null,
       actionEconomy:entry.kind==='player'?clone(entry.actionEconomy||{}):undefined
     }]));
+    const initiativeGroups=Object.fromEntries(Object.values(combat.initiativeGroups||{}).map(group=>{
+      const memberIds=group.memberIds.filter(id=>Boolean(combatants[id]));
+      return memberIds.length?[group.id,{...clone(group),memberIds}]:null;
+    }).filter(Boolean));
+    const turnOrder=(combat.turnOrder||[]).filter(id=>Boolean(combatants[id]||initiativeGroups[id]));
+    const activeTurnId=combatants[combat.activeTurnId]||initiativeGroups[combat.activeTurnId]?combat.activeTurnId:null;
     return {schemaVersion:combat.schemaVersion,encounterId:combat.encounterId,edition:combat.edition,status:combat.status,
-      round:combat.round,activeTurnId:combat.activeTurnId,turnOrder:[...(combat.turnOrder||[])],combatants,
-      initiativeGroups:clone(combat.initiativeGroups||{})};
+      round:combat.round,activeTurnId,turnOrder,combatants,initiativeGroups};
   }catch(error){console.error('[Living Table] Could not project public combat state.',error);throw error;}
 }
